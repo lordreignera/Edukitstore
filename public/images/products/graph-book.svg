@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480">
+  <rect width="640" height="480" fill="#f0fdf4"/>
+  <rect x="195" y="82" width="250" height="315" rx="12" fill="#fff" stroke="#16a34a" stroke-width="10"/>
+  <path d="M235 112v255M275 112v255M315 112v255M355 112v255M395 112v255M215 150h210M215 190h210M215 230h210M215 270h210M215 310h210M215 350h210" stroke="#bbf7d0" stroke-width="4"/>
+  <rect x="195" y="82" width="48" height="315" fill="#22c55e" opacity=".75"/>
+  <text x="320" y="440" text-anchor="middle" font-family="Arial" font-size="30" font-weight="700" fill="#0f172a">Graph Book</text>
+</svg>

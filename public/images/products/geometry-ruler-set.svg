@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480">
+  <rect width="640" height="480" fill="#f8fafc"/>
+  <path d="M140 335h350L315 110 140 335z" fill="#e0f2fe" stroke="#0284c7" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M247 292h95l-48-62-47 62z" fill="#f8fafc" stroke="#7dd3fc" stroke-width="8"/>
+  <rect x="378" y="105" width="52" height="250" rx="12" transform="rotate(28 404 230)" fill="#fde68a" stroke="#ca8a04" stroke-width="8"/>
+  <path d="M175 335h285" stroke="#0f172a" stroke-width="8" stroke-linecap="round"/>
+  <text x="320" y="440" text-anchor="middle" font-family="Arial" font-size="30" font-weight="700" fill="#0f172a">Ruler Set</text>
+</svg>

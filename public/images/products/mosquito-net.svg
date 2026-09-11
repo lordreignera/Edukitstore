@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480">
+  <rect width="640" height="480" fill="#ecfeff"/>
+  <path d="M320 72l160 300H160L320 72z" fill="#cffafe" fill-opacity=".75" stroke="#0891b2" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M320 72v300M230 210h180M190 285h260" stroke="#67e8f9" stroke-width="6"/>
+  <rect x="150" y="350" width="340" height="35" rx="10" fill="#06b6d4"/>
+  <text x="320" y="440" text-anchor="middle" font-family="Arial" font-size="30" font-weight="700" fill="#0f172a">Mosquito Net</text>
+</svg>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480">
+  <rect width="640" height="480" fill="#fff1f2"/>
+  <rect x="170" y="105" width="300" height="260" rx="22" fill="#ef4444" stroke="#b91c1c" stroke-width="9"/>
+  <rect x="205" y="145" width="230" height="180" rx="10" fill="#fff"/>
+  <g stroke-width="20" stroke-linecap="round">
+    <path d="M230 306V168" stroke="#ef4444"/>
+    <path d="M270 306V168" stroke="#f59e0b"/>
+    <path d="M310 306V168" stroke="#22c55e"/>
+    <path d="M350 306V168" stroke="#3b82f6"/>
+    <path d="M390 306V168" stroke="#8b5cf6"/>
+  </g>
+  <text x="320" y="440" text-anchor="middle" font-family="Arial" font-size="30" font-weight="700" fill="#0f172a">Colour Pencils</text>
+</svg>

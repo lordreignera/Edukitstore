@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480">
+  <rect width="640" height="480" fill="#eff6ff"/>
+  <g transform="rotate(-18 320 240)">
+    <rect x="198" y="165" width="42" height="210" rx="16" fill="#1d4ed8"/>
+    <rect x="270" y="130" width="42" height="250" rx="16" fill="#2563eb"/>
+    <rect x="342" y="145" width="42" height="230" rx="16" fill="#38bdf8"/>
+    <rect x="414" y="170" width="42" height="205" rx="16" fill="#1e40af"/>
+    <path d="M219 390l-15 45h30l-15-45zM291 395l-15 45h30l-15-45zM363 390l-15 45h30l-15-45zM435 390l-15 45h30l-15-45z" fill="#0f172a"/>
+  </g>
+  <text x="320" y="440" text-anchor="middle" font-family="Arial" font-size="30" font-weight="700" fill="#0f172a">Blue Pens</text>
+</svg>

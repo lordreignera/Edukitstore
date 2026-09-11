@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480">
+  <rect width="640" height="480" fill="#f0fdf4"/>
+  <path d="M120 260l320-92 82 52-320 92-82-52z" fill="#dcfce7" stroke="#16a34a" stroke-width="9" stroke-linejoin="round"/>
+  <path d="M202 312l320-92v62l-320 92v-62z" fill="#bbf7d0" stroke="#16a34a" stroke-width="9" stroke-linejoin="round"/>
+  <path d="M120 260l82 52v62l-82-52v-62z" fill="#86efac" stroke="#16a34a" stroke-width="9" stroke-linejoin="round"/>
+  <text x="320" y="440" text-anchor="middle" font-family="Arial" font-size="30" font-weight="700" fill="#0f172a">Student Mattress</text>
+</svg>

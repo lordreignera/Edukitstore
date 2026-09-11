@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480">
+  <rect width="640" height="480" fill="#f8fafc"/>
+  <path d="M135 290c60 7 106-8 147-48 38-37 106-18 122 37l100 17c18 3 31 20 27 38l-3 15H126c-18 0-30-18-23-35 5-13 17-23 32-24z" fill="#111827" stroke="#020617" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M292 230c18 41 61 62 111 49" fill="none" stroke="#475569" stroke-width="10" stroke-linecap="round"/>
+  <path d="M265 268h82M250 292h108" stroke="#94a3b8" stroke-width="8" stroke-linecap="round"/>
+  <path d="M145 348h380" stroke="#334155" stroke-width="16" stroke-linecap="round"/>
+  <text x="320" y="440" text-anchor="middle" font-family="Arial" font-size="30" font-weight="700" fill="#0f172a">School Shoes</text>
+</svg>

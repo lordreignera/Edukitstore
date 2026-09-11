@@ -1,0 +1,17 @@
+* text=auto eol=lf
+
+*.blade.php diff=html
+*.css diff=css
+*.html diff=html
+*.md diff=markdown
+*.php diff=php
+/.github export-ignore
+CHANGELOG.md export-ignore
+.styleci.yml export-ignore
+doc/*.docx filter=lfs diff=lfs merge=lfs -text
+public/images/products/*.xlsx filter=lfs diff=lfs merge=lfs -text
+public/images/products/graphite-art-pencils.png filter=lfs diff=lfs merge=lfs -text
+public/images/products/dove-deodorant.png filter=lfs diff=lfs merge=lfs -text
+public/images/website/edukit-hero.png filter=lfs diff=lfs merge=lfs -text
+public/images/products/dashbord[[:space:]]ui.png filter=lfs diff=lfs merge=lfs -text
+public/images/products/fogg-body-spray.png filter=lfs diff=lfs merge=lfs -text
