@@ -90,7 +90,11 @@ class WebsiteProductFlowTest extends TestCase
     {
         $this->get(route('website.upload-list'))
             ->assertOk()
-            ->assertSee('Shopping list upload is coming soon');
+            ->assertSee('Send the list. We prepare the basket.');
+
+        $this->get(route('website.suppliers'))
+            ->assertOk()
+            ->assertSee('Supply school essentials across Uganda.');
 
         $this->get(route('website.track-order'))
             ->assertOk()

@@ -25,7 +25,7 @@
                             <tr>
                                 <th class="px-5 py-3">Business</th>
                                 <th class="px-5 py-3">Contact</th>
-                                <th class="px-5 py-3">District</th>
+                                <th class="px-5 py-3">Supply</th>
                                 <th class="px-5 py-3">Status</th>
                                 <th class="px-5 py-3"></th>
                             </tr>
@@ -35,13 +35,20 @@
                                 <tr>
                                     <td class="px-5 py-4">
                                         <p class="font-semibold text-gray-950">{{ $supplier->business_name }}</p>
-                                        <p class="text-xs text-gray-500">{{ $supplier->address ?? 'No address' }}</p>
+                                        <p class="text-xs text-gray-500">{{ $supplier->district ?? 'No district' }}{{ $supplier->address ? ' - '.$supplier->address : '' }}</p>
+                                        <p class="mt-1 text-xs font-semibold text-gray-400">{{ ucfirst($supplier->source ?? 'admin') }} submission</p>
                                     </td>
                                     <td class="px-5 py-4 text-gray-600">
                                         <p>{{ $supplier->contact_person ?? 'No contact person' }}</p>
                                         <p class="text-xs">{{ $supplier->phone ?? $supplier->email ?? 'No phone/email' }}</p>
                                     </td>
-                                    <td class="px-5 py-4 text-gray-600">{{ $supplier->district ?? '-' }}</td>
+                                    <td class="max-w-xs px-5 py-4 text-gray-600">
+                                        <p class="line-clamp-2">{{ $supplier->product_categories ?? 'Categories pending' }}</p>
+                                        <p class="mt-1 text-xs">{{ $supplier->supply_capacity ?? 'Capacity pending' }}</p>
+                                        @if ($supplier->verification_document_path)
+                                            <a href="{{ route('admin.suppliers.download', $supplier) }}" class="mt-2 inline-block text-xs font-bold text-emerald-700 hover:text-emerald-800">Download verification</a>
+                                        @endif
+                                    </td>
                                     <td class="px-5 py-4">
                                         <span class="rounded px-2 py-1 text-xs font-semibold {{ $supplier->is_approved ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700' }}">
                                             {{ $supplier->is_approved ? 'Approved' : 'Pending' }}

@@ -34,6 +34,21 @@
                         <label class="text-sm font-medium text-gray-700" for="address">Address</label>
                         <input id="address" name="address" value="{{ old('address') }}" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
                     </div>
+                    <div class="sm:col-span-2">
+                        <label class="text-sm font-medium text-gray-700" for="product_categories">Product categories supplied</label>
+                        <textarea id="product_categories" name="product_categories" rows="3" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600" placeholder="Books, stationery, uniforms, bags, toiletries...">{{ old('product_categories') }}</textarea>
+                        @error('product_categories') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-700" for="supply_capacity">Supply capacity</label>
+                        <input id="supply_capacity" name="supply_capacity" value="{{ old('supply_capacity') }}" placeholder="Example: 200 orders per week" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                        @error('supply_capacity') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="text-sm font-medium text-gray-700" for="notes">Internal notes</label>
+                        <textarea id="notes" name="notes" rows="4" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">{{ old('notes') }}</textarea>
+                        @error('notes') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
                 </div>
                 <div class="mt-8 flex items-center gap-3">
                     <button class="rounded bg-emerald-700 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-800">Save supplier</button>

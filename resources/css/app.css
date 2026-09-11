@@ -5,3 +5,30 @@
 [x-cloak] {
     display: none;
 }
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.hero-slide {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(10px);
+    transition: opacity 600ms ease, transform 600ms ease;
+}
+
+.hero-slide.is-active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+}
+
+.hero-dot.is-active {
+    background: #10b981;
+    width: 2.75rem;
+}
