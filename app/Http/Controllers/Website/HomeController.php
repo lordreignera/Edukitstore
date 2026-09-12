@@ -19,16 +19,6 @@ class HomeController extends Controller
             ->take(8)
             ->get();
 
-        $spotlightProduct = $featuredProducts->first();
-
-        $stageProducts = Product::query()
-            ->active()
-            ->with('category')
-            ->when($spotlightProduct, fn ($query) => $query->whereKeyNot($spotlightProduct->id))
-            ->latest()
-            ->take(6)
-            ->get();
-
         $categories = ProductCategory::query()
             ->where('is_active', true)
             ->withCount(['products' => fn ($query) => $query->active()])
@@ -42,6 +32,6 @@ class HomeController extends Controller
             ->groupBy('product_category_id')
             ->map(fn ($products) => $products->first()->image_url);
 
-        return view('website.home', compact('featuredProducts', 'spotlightProduct', 'stageProducts', 'categories', 'categoryImages'));
+        return view('website.home', compact('featuredProducts', 'categories', 'categoryImages'));
     }
 }

@@ -1,12 +1,8 @@
 <x-guest-layout>
-    <x-authentication-card>
+    <x-authentication-card title="Reset your password" subtitle="Enter your account email and we will send you a secure reset link.">
         <x-slot name="logo">
             <x-authentication-card-logo />
         </x-slot>
-
-        <div class="mb-4 text-sm text-gray-600">
-            {{ __('Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.') }}
-        </div>
 
         @session('status')
             <div class="mb-4 font-medium text-sm text-green-600">
@@ -25,10 +21,11 @@
             </div>
 
             <div class="flex items-center justify-end mt-4">
-                <x-button>
+                <x-button class="w-full">
                     {{ __('Email Password Reset Link') }}
                 </x-button>
             </div>
+            <p class="mt-5 text-center text-sm text-slate-600"><a href="{{ route('login') }}" class="font-bold text-emerald-700">Back to sign in</a></p>
         </form>
     </x-authentication-card>
 </x-guest-layout>

@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <x-authentication-card>
+    <x-authentication-card title="Choose a new password" subtitle="Create a strong password for your EduKit account.">
         <x-slot name="logo">
             <x-authentication-card-logo />
         </x-slot>
@@ -27,7 +27,7 @@
             </div>
 
             <div class="flex items-center justify-end mt-4">
-                <x-button>
+                <x-button class="w-full">
                     {{ __('Reset Password') }}
                 </x-button>
             </div>

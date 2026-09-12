@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <x-authentication-card>
+    <x-authentication-card title="Two-factor verification" subtitle="Confirm your identity to securely access your account.">
         <x-slot name="logo">
             <x-authentication-card-logo />
         </x-slot>

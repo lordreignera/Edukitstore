@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-admin-layout>
     <x-slot name="header">
         <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
@@ -94,4 +94,4 @@
             </section>
         </div>
     </div>
-</x-app-layout>
+</x-admin-layout>

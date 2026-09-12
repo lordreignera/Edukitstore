@@ -13,11 +13,24 @@ use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $products = Product::with('category')->latest()->paginate(15);
+        $search = trim((string) $request->query('q'));
 
-        return view('admin.products.index', compact('products'));
+        $products = Product::with('category')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($productQuery) use ($search) {
+                    $productQuery
+                        ->where('name', 'like', "%{$search}%")
+                        ->orWhere('sku', 'like', "%{$search}%")
+                        ->orWhere('brand', 'like', "%{$search}%");
+                });
+            })
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('admin.products.index', compact('products', 'search'));
     }
 
     public function create(): View

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Driver;
 use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Models\ShoppingList;
 use App\Models\Supplier;
 use Illuminate\Contracts\View\View;
@@ -29,6 +30,33 @@ class DashboardController extends Controller
         $latestShoppingLists = ShoppingList::latest()->take(5)->get();
         $latestDrivers = Driver::latest()->take(5)->get();
 
-        return view('admin.dashboard', compact('stats', 'latestProducts', 'latestSuppliers', 'latestShoppingLists', 'latestDrivers'));
+        $productCategorySummary = ProductCategory::withCount('products')
+            ->orderByDesc('products_count')
+            ->orderBy('name')
+            ->take(6)
+            ->get();
+
+        $shoppingListStatusCounts = ShoppingList::query()
+            ->selectRaw('status, COUNT(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
+        $shoppingListStatusSummary = collect(ShoppingList::statuses())->map(function ($label, $status) use ($shoppingListStatusCounts) {
+            return [
+                'status' => $status,
+                'label' => $label,
+                'count' => (int) ($shoppingListStatusCounts[$status] ?? 0),
+            ];
+        });
+
+        return view('admin.dashboard', compact(
+            'stats',
+            'latestProducts',
+            'latestSuppliers',
+            'latestShoppingLists',
+            'latestDrivers',
+            'productCategorySummary',
+            'shoppingListStatusSummary',
+        ));
     }
 }

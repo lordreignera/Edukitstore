@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-admin-layout>
     <x-slot name="header">
         <div class="flex flex-col gap-1">
             <h2 class="text-xl font-semibold leading-tight text-gray-800">Shopping Lists</h2>
@@ -68,4 +68,4 @@
             </section>
         </div>
     </div>
-</x-app-layout>
+</x-admin-layout>
