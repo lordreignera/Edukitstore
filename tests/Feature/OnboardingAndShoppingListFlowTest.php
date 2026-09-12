@@ -70,9 +70,40 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         Storage::disk('local')->assertExists($shoppingList->file_path);
     }
 
+    public function test_invoice_references_use_daily_number_sequence(): void
+    {
+        $first = ShoppingList::create([
+            'parent_name' => 'Sarah N.',
+            'phone' => '+256700123456',
+            'delivery_preference' => 'school',
+        ]);
+
+        $second = ShoppingList::create([
+            'parent_name' => 'Daniel K.',
+            'phone' => '+256700999888',
+            'delivery_preference' => 'home',
+        ]);
+
+        $prefix = 'EDK-'.now()->format('ymd');
+
+        $this->assertSame("{$prefix}-1000", $first->reference);
+        $this->assertSame("{$prefix}-1001", $second->reference);
+    }
+
     public function test_supplier_can_submit_onboarding_application(): void
     {
         Storage::fake('local');
+
+        $books = ProductCategory::create([
+            'name' => 'Books',
+            'slug' => 'books',
+            'is_active' => true,
+        ]);
+        $stationery = ProductCategory::create([
+            'name' => 'Stationery',
+            'slug' => 'stationery',
+            'is_active' => true,
+        ]);
 
         $response = $this->post(route('website.suppliers.store'), [
             'business_name' => 'Nakasero Scholastic Stores',
@@ -83,7 +114,8 @@ class OnboardingAndShoppingListFlowTest extends TestCase
             'password' => 'SupplierPass123!',
             'password_confirmation' => 'SupplierPass123!',
             'address' => 'Nakasero Market',
-            'product_categories' => 'Exercise books, pens, mathematical sets',
+            'product_category_ids' => [$books->id, $stationery->id],
+            'other_product_categories' => 'Mathematical sets',
             'supply_capacity' => '300 orders per week',
             'notes' => 'We can fulfil urgent stationery orders.',
             'verification_document' => UploadedFile::fake()->create('business-license.pdf', 90, 'application/pdf'),
@@ -101,7 +133,7 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         $this->assertNotNull($supplier->user_id);
         $this->assertFalse($supplier->user->is_active);
         $this->assertTrue(Hash::check('SupplierPass123!', $supplier->user->password));
-        $this->assertSame('Exercise books, pens, mathematical sets', $supplier->product_categories);
+        $this->assertSame('Books, Stationery, Mathematical sets', $supplier->product_categories);
         Storage::disk('local')->assertExists($supplier->verification_document_path);
 
         $this->post('/login', ['email' => 'supply@example.test', 'password' => 'SupplierPass123!'])
@@ -115,6 +147,34 @@ class OnboardingAndShoppingListFlowTest extends TestCase
 
         $this->post('/login', ['email' => 'supply@example.test', 'password' => 'SupplierPass123!'])
             ->assertRedirect(route('dashboard'));
+    }
+
+    public function test_supplier_verification_document_uses_configured_documents_disk(): void
+    {
+        Storage::fake('s3');
+        config(['filesystems.documents_disk' => 's3']);
+
+        $category = ProductCategory::create([
+            'name' => 'Books',
+            'slug' => 'books',
+            'is_active' => true,
+        ]);
+
+        $this->post(route('website.suppliers.store'), [
+            'business_name' => 'Kikuubo Stationers',
+            'contact_person' => 'Sarah K.',
+            'phone' => '+256701222444',
+            'email' => 'kikuubo@example.test',
+            'district' => 'Kampala',
+            'password' => 'SupplierPass123!',
+            'password_confirmation' => 'SupplierPass123!',
+            'product_category_ids' => [$category->id],
+            'verification_document' => UploadedFile::fake()->create('license.pdf', 90, 'application/pdf'),
+        ])->assertRedirect(route('website.suppliers'));
+
+        $supplier = Supplier::firstOrFail();
+
+        Storage::disk('s3')->assertExists($supplier->verification_document_path);
     }
 
     public function test_admin_can_review_uploaded_shopping_list(): void
@@ -141,7 +201,7 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         ]);
 
         $this->actingAs($admin)
-            ->patch(route('admin.shopping-lists.update', $shoppingList), [
+            ->patch(route('admin.invoices.update', $shoppingList), [
                 'status' => ShoppingList::STATUS_QUOTED,
                 'estimated_total' => 145000,
                 'assigned_driver_id' => $driver->id,
@@ -214,7 +274,7 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         $this->assertFalse(session()->has('cart'));
 
         $this->actingAs($admin)
-            ->patch(route('admin.shopping-lists.update', $shoppingList), [
+            ->patch(route('admin.invoices.update', $shoppingList), [
                 'status' => ShoppingList::STATUS_QUOTED,
                 'delivery_fee' => 15000,
                 'assigned_driver_id' => $driver->id,
@@ -261,7 +321,7 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         ]);
 
         $this->actingAs($admin)
-            ->patch(route('admin.shopping-lists.update', $shoppingList), [
+            ->patch(route('admin.invoices.update', $shoppingList), [
                 'status' => ShoppingList::STATUS_FULFILLED,
                 'delivery_fee' => 15000,
                 'assigned_driver_id' => $driver->id,

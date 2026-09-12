@@ -16,6 +16,9 @@ class AdminLayout extends Component
     {
         $this->adminNavStats = [
             'shopping_lists' => ShoppingList::where('status', ShoppingList::STATUS_PENDING)->count(),
+            'invoices' => ShoppingList::where('status', ShoppingList::STATUS_QUOTED)
+                ->where('payment_status', '!=', ShoppingList::PAYMENT_PAID)
+                ->count(),
             'suppliers' => Supplier::where('is_approved', false)->count(),
             'drivers' => Driver::where('is_approved', false)->count(),
         ];

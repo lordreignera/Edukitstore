@@ -72,6 +72,10 @@
             <path d="M20 13 13 20a2 2 0 0 1-2.8 0L4 13.8V4h9.8L20 10.2a2 2 0 0 1 0 2.8Z" />
             <path d="M8 8h.01" />
             @break
+        @case('invoice')
+            <path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z" />
+            <path d="M9 8h6M9 12h6M9 16h4" />
+            @break
         @case('edit')
             <path d="M12 20h9" />
             <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" />

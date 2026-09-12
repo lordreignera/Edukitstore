@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Website;
 
 use App\Http\Controllers\Controller;
 use App\Models\ShoppingList;
+use App\Support\DocumentStorage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class ShoppingListController extends Controller
 {
@@ -33,10 +33,10 @@ class ShoppingListController extends Controller
 
         $file = $request->file('shopping_list');
 
-        $data['file_path'] = $file->store('shopping-lists');
+        $data['file_path'] = $file->store('shopping-lists', DocumentStorage::disk());
         $data['original_filename'] = $file->getClientOriginalName();
         $data['source'] = ShoppingList::SOURCE_UPLOAD;
-        $data['reference'] = $this->uniqueReference();
+        $data['reference'] = ShoppingList::nextReference();
         $data['status'] = ShoppingList::STATUS_PENDING;
 
         unset($data['shopping_list']);
@@ -48,14 +48,5 @@ class ShoppingListController extends Controller
         return redirect()
             ->route('website.quote.show', $shoppingList->reference)
             ->with('status', 'Your school list has been uploaded. EduKit will review it and prepare your invoice.');
-    }
-
-    private function uniqueReference(): string
-    {
-        do {
-            $reference = 'EDK-'.now()->format('ymd').'-'.Str::upper(Str::random(5));
-        } while (ShoppingList::where('reference', $reference)->exists());
-
-        return $reference;
     }
 }

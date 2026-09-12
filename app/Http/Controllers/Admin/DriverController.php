@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Driver;
 use App\Services\AccountProvisioner;
+use App\Support\DocumentStorage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -115,9 +116,11 @@ class DriverController extends Controller
 
     public function download(Driver $driver): StreamedResponse
     {
-        abort_unless($driver->verification_document_path && Storage::exists($driver->verification_document_path), 404);
+        $disk = DocumentStorage::disk();
 
-        return Storage::download($driver->verification_document_path, $driver->verification_document_name);
+        abort_unless($driver->verification_document_path && Storage::disk($disk)->exists($driver->verification_document_path), 404);
+
+        return Storage::disk($disk)->download($driver->verification_document_path, $driver->verification_document_name);
     }
 
     private function validatedData(Request $request, ?Driver $driver = null): array
@@ -138,4 +141,5 @@ class DriverController extends Controller
             'payment_phone' => ['nullable', 'string', 'max:40'],
         ]);
     }
+
 }

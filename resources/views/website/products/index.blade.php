@@ -6,9 +6,9 @@
     <section class="bg-white">
         <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
             <p class="text-[11px] font-extrabold uppercase text-emerald-700">Products</p>
-            <h1 class="mt-2 text-[32px] font-extrabold text-[#07215f]">School supplies catalogue</h1>
+            <h1 class="mt-2 text-[30px] font-extrabold leading-tight text-[#07215f] sm:text-[36px]">School supplies catalogue</h1>
 
-            <form method="GET" action="{{ route('website.products.index') }}" class="mt-8 grid gap-3 rounded-md border border-[#dbe8f3] bg-[#f7fbff] p-4 shadow-sm sm:grid-cols-[1fr_220px_auto_auto]">
+            <form method="GET" action="{{ route('website.products.index') }}" class="mt-8 grid gap-3 rounded-md border border-[#dbe8f3] bg-[#f7fbff] p-4 shadow-sm md:grid-cols-[1fr_220px_auto_auto]">
                 <input name="search" value="{{ $search }}" placeholder="Search products, code or brand" class="rounded-md border-[#d7e4ef] text-sm font-medium focus:border-emerald-600 focus:ring-emerald-600">
                 <select name="category" class="rounded-md border-[#d7e4ef] text-sm font-medium focus:border-emerald-600 focus:ring-emerald-600">
                     <option value="">All categories</option>
@@ -23,7 +23,7 @@
     </section>
 
     <section class="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+        <div class="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
             @forelse ($products as $product)
                 <article class="group overflow-hidden rounded-md border border-[#dbe8f3] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
                     <a href="{{ route('website.products.show', $product) }}" class="block aspect-[4/3] bg-slate-100">
@@ -50,7 +50,7 @@
                     </div>
                 </article>
             @empty
-                <div class="border border-dashed border-slate-300 bg-white p-8 sm:col-span-2 lg:col-span-4">
+                <div class="border border-dashed border-slate-300 bg-white p-8 min-[420px]:col-span-2 lg:col-span-4">
                     <p class="font-semibold text-slate-950">No products match this search.</p>
                 </div>
             @endforelse

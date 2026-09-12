@@ -110,7 +110,7 @@ class CartController extends Controller
 
         $shoppingList = ShoppingList::create($data + [
             'source' => ShoppingList::SOURCE_CART,
-            'reference' => $this->uniqueReference(),
+            'reference' => ShoppingList::nextReference(),
             'cart_items' => $items->all(),
             'items_subtotal' => $items->sum('line_total'),
             'status' => ShoppingList::STATUS_PENDING,
@@ -243,15 +243,6 @@ class CartController extends Controller
         session(['cart' => $cart]);
 
         return back()->with('status', "{$product->name} removed from cart.");
-    }
-
-    private function uniqueReference(): string
-    {
-        do {
-            $reference = 'EDK-'.now()->format('ymd').'-'.Str::upper(Str::random(5));
-        } while (ShoppingList::where('reference', $reference)->exists());
-
-        return $reference;
     }
 
     private function customerEmail(ShoppingList $shoppingList): string

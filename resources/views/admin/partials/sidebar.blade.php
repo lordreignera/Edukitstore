@@ -4,6 +4,7 @@
         ['label' => 'Products', 'route' => 'admin.products.index', 'pattern' => 'admin.products.*', 'icon' => 'products'],
         ['label' => 'Categories', 'route' => 'admin.product-categories.index', 'pattern' => 'admin.product-categories.*', 'icon' => 'tag'],
         ['label' => 'Shopping Lists', 'route' => 'admin.shopping-lists.index', 'pattern' => 'admin.shopping-lists.*', 'icon' => 'list'],
+        ['label' => 'Invoices', 'route' => 'admin.invoices.index', 'pattern' => 'admin.invoices.*', 'icon' => 'invoice'],
         ['label' => 'Suppliers', 'route' => 'admin.suppliers.index', 'pattern' => 'admin.suppliers.*', 'icon' => 'suppliers'],
         ['label' => 'Drivers', 'route' => 'admin.drivers.index', 'pattern' => 'admin.drivers.*', 'icon' => 'drivers'],
         ['label' => 'Users & Roles', 'route' => 'admin.users.index', 'pattern' => 'admin.users.*', 'icon' => 'user'],
@@ -31,6 +32,8 @@
                     <span>{{ $item['label'] }}</span>
                     @if ($item['label'] === 'Shopping Lists' && $adminNavStats['shopping_lists'] > 0)
                         <span class="ml-auto rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold text-amber-950">{{ $adminNavStats['shopping_lists'] }}</span>
+                    @elseif ($item['label'] === 'Invoices' && $adminNavStats['invoices'] > 0)
+                        <span class="ml-auto rounded-full bg-emerald-400 px-2 py-0.5 text-[10px] font-bold text-emerald-950">{{ $adminNavStats['invoices'] }}</span>
                     @endif
                 </a>
             @endforeach

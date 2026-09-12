@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\ShoppingList;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -114,7 +115,27 @@ class WebsiteProductFlowTest extends TestCase
         $this->get(route('website.cart.index'))
             ->assertOk()
             ->assertSee('Blue School Bag')
-            ->assertSee('UGX 60,000');
+            ->assertSee('UGX 60,000')
+            ->assertSee('View order summary');
+    }
+
+    public function test_cart_supports_legacy_public_product_image_paths(): void
+    {
+        $product = Product::create([
+            'name' => 'Files and Folders Assortment',
+            'slug' => 'files-and-folders-assortment',
+            'sku' => 'TEST-FILES',
+            'price' => 10000,
+            'stock_quantity' => 10,
+            'image_path' => '/images/products/files-and-folders.jpg',
+            'is_active' => true,
+        ]);
+
+        $this->post(route('website.cart.store', $product));
+
+        $this->get(route('website.cart.index'))
+            ->assertOk()
+            ->assertSee('/images/products/files-and-folders.jpg', false);
     }
 
     public function test_coming_soon_pages_are_real_destinations(): void
@@ -129,6 +150,27 @@ class WebsiteProductFlowTest extends TestCase
 
         $this->get(route('website.track-order'))
             ->assertOk()
-            ->assertSee('Order tracking is coming soon');
+            ->assertSee('Check if your EduKit invoice is ready.');
+    }
+
+    public function test_customer_can_lookup_invoice_by_reference_and_contact(): void
+    {
+        $invoice = ShoppingList::create([
+            'parent_name' => 'Norah A.',
+            'phone' => '+256700123456',
+            'email' => 'norah@example.test',
+            'delivery_preference' => 'school',
+            'status' => ShoppingList::STATUS_QUOTED,
+        ]);
+
+        $this->post(route('website.track-order.lookup'), [
+            'reference' => strtolower($invoice->reference),
+            'contact' => '+256700123456',
+        ])->assertRedirect(route('website.quote.show', $invoice->reference));
+
+        $this->post(route('website.track-order.lookup'), [
+            'reference' => $invoice->reference,
+            'contact' => 'wrong@example.test',
+        ])->assertSessionHasErrors('reference');
     }
 }

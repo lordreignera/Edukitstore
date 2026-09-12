@@ -1,50 +1,77 @@
+@php
+    $cartCount = array_sum(session('cart', []));
+    $navLinks = [
+        ['label' => 'Home', 'route' => route('website.home'), 'active' => request()->routeIs('website.home')],
+        ['label' => 'Shop', 'route' => route('website.products.index'), 'active' => request()->routeIs('website.products.*')],
+        ['label' => 'Upload List', 'route' => route('website.upload-list'), 'active' => request()->routeIs('website.upload-list*')],
+        ['label' => 'Schools', 'route' => route('website.schools'), 'active' => request()->routeIs('website.schools')],
+        ['label' => 'How It Works', 'route' => route('website.home').'#how-it-works', 'active' => false],
+        ['label' => 'For Suppliers', 'route' => route('website.suppliers'), 'active' => request()->routeIs('website.suppliers*')],
+        ['label' => 'For Drivers', 'route' => route('website.drivers'), 'active' => request()->routeIs('website.drivers*')],
+        ['label' => 'For Schools', 'route' => route('website.schools'), 'active' => false],
+        ['label' => 'Track Order', 'route' => route('website.track-order'), 'active' => request()->routeIs('website.track-order')],
+        ['label' => 'Help', 'route' => route('website.help'), 'active' => request()->routeIs('website.help')],
+    ];
+@endphp
+
 <header class="sticky top-0 z-40 border-b border-[#dce8f2] bg-white/95 shadow-sm backdrop-blur">
-    <div class="mx-auto grid max-w-7xl grid-cols-[1fr_auto] items-center gap-3 px-4 py-2.5 sm:px-6 lg:grid-cols-[260px_minmax(320px,540px)_auto] lg:justify-between lg:px-8">
-        <a href="{{ route('website.home') }}" class="flex min-w-0 items-center">
-            <img src="/images/website/edukit-store-logo.png" alt="EduKit Store" class="h-12 max-w-[180px] object-contain sm:h-14 sm:max-w-[220px] lg:h-16 lg:max-w-none">
-        </a>
-
-        <form method="GET" action="{{ route('website.products.index') }}" class="order-3 col-span-2 flex h-10 overflow-hidden rounded-md border border-[#d8e5f0] bg-white shadow-sm lg:order-none lg:col-span-1">
-            <input name="search" value="{{ request('search') }}" placeholder="Search for school items, uniforms, books, stationery..." class="min-w-0 flex-1 border-0 px-3 text-[12px] font-semibold text-slate-600 placeholder:text-slate-400 focus:ring-0 sm:px-4">
-            <button class="grid w-12 place-items-center bg-[#07215f] text-white hover:bg-emerald-700" aria-label="Search">
-                <svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="m21 21-4.3-4.3m2.3-5.2a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-            </button>
-        </form>
-
-        <nav class="flex items-center justify-end gap-2 text-[12px] font-extrabold text-[#07215f] sm:gap-3 sm:text-sm">
-            <a href="{{ route('website.cart.index') }}" class="relative grid size-9 place-items-center rounded-md hover:bg-slate-50 hover:text-emerald-700" aria-label="Cart">
-                <svg class="size-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M3 4h2l2.3 11.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 2-1.5L21 8H6.2M10 21h.01M18 21h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                @php($cartCount = array_sum(session('cart', [])))
-                @if ($cartCount > 0)
-                    <span class="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-emerald-600 text-[10px] font-black text-white">{{ $cartCount }}</span>
-                @endif
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="grid min-h-[72px] grid-cols-[1fr_auto_auto] items-center gap-2 py-2 lg:grid-cols-[250px_minmax(320px,540px)_auto] lg:gap-5">
+            <a href="{{ route('website.home') }}" class="flex min-w-0 items-center">
+                <img src="/images/website/edukit-store-logo.png" alt="EduKit Store" class="h-12 w-auto max-w-[172px] object-contain sm:h-14 sm:max-w-[220px] lg:h-16 lg:max-w-none">
             </a>
-            <a href="{{ route('login') }}" class="hidden items-center gap-1 rounded-md px-2 py-2 hover:bg-slate-50 hover:text-emerald-700 min-[420px]:inline-flex">
-                <svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Sign In
-            </a>
-            <a href="{{ route('website.join') }}" class="rounded-md bg-emerald-600 px-3 py-2 text-white shadow-sm hover:bg-emerald-700 sm:px-4">Join EduKit</a>
-        </nav>
+
+            <form method="GET" action="{{ route('website.products.index') }}" class="order-4 col-span-3 flex h-11 overflow-hidden rounded-md border border-[#d8e5f0] bg-white shadow-sm lg:order-none lg:col-span-1">
+                <input name="search" value="{{ request('search') }}" placeholder="Search school items, uniforms, books..." class="min-w-0 flex-1 border-0 px-3 text-[13px] font-semibold text-slate-600 placeholder:text-slate-400 focus:ring-0 sm:px-4">
+                <button class="grid w-12 shrink-0 place-items-center bg-[#07215f] text-white hover:bg-emerald-700" aria-label="Search">
+                    <x-ui.icon name="search" size="size-5" />
+                </button>
+            </form>
+
+            <div class="flex items-center justify-end gap-1.5 text-sm font-extrabold text-[#07215f] sm:gap-2">
+                <a href="{{ route('website.cart.index') }}" class="relative grid size-10 place-items-center rounded-md hover:bg-slate-50 hover:text-emerald-700" aria-label="Cart">
+                    <svg class="size-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M3 4h2l2.3 11.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 2-1.5L21 8H6.2M10 21h.01M18 21h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    @if ($cartCount > 0)
+                        <span class="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-emerald-600 text-[10px] font-black text-white">{{ $cartCount }}</span>
+                    @endif
+                </a>
+
+                <a href="{{ route('login') }}" class="hidden min-h-10 items-center gap-1 rounded-md px-2.5 hover:bg-slate-50 hover:text-emerald-700 sm:inline-flex">
+                    <x-ui.icon name="user" size="size-4" />
+                    Sign In
+                </a>
+
+                <a href="{{ route('website.join') }}" class="hidden rounded-md bg-emerald-600 px-4 py-2.5 text-white shadow-sm hover:bg-emerald-700 min-[460px]:inline-flex">Join EduKit</a>
+
+                <details class="group relative lg:hidden">
+                    <summary class="grid size-10 cursor-pointer list-none place-items-center rounded-md border border-[#d8e5f0] bg-white text-[#07215f] hover:border-emerald-500 [&::-webkit-details-marker]:hidden" aria-label="Open menu">
+                        <span class="group-open:hidden"><x-ui.icon name="menu" size="size-5" /></span>
+                        <span class="hidden group-open:block"><x-ui.icon name="close" size="size-5" /></span>
+                    </summary>
+
+                    <div class="absolute right-0 top-12 w-[min(88vw,360px)] overflow-hidden rounded-md border border-[#d8e5f0] bg-white shadow-xl">
+                        <nav class="grid p-2 text-sm font-extrabold text-[#19366f]" aria-label="Mobile navigation">
+                            @foreach ($navLinks as $link)
+                                <a href="{{ $link['route'] }}" class="rounded-md px-4 py-3 {{ $link['active'] ? 'bg-emerald-50 text-emerald-700' : 'hover:bg-slate-50 hover:text-emerald-700' }}">{{ $link['label'] }}</a>
+                            @endforeach
+                        </nav>
+                        <div class="grid gap-2 border-t border-slate-100 p-3 min-[460px]:hidden">
+                            <a href="{{ route('login') }}" class="rounded-md border border-[#d8e5f0] px-4 py-3 text-center text-sm font-black text-[#07215f]">Sign In</a>
+                            <a href="{{ route('website.join') }}" class="rounded-md bg-emerald-600 px-4 py-3 text-center text-sm font-black text-white">Join EduKit</a>
+                        </div>
+                    </div>
+                </details>
+            </div>
+        </div>
     </div>
 
-    <div class="border-t border-[#eef4f8]">
-        <nav class="no-scrollbar mx-auto flex max-w-7xl gap-7 overflow-x-auto px-4 py-2.5 text-[12px] font-extrabold text-[#19366f] sm:px-6 sm:text-[13px] lg:justify-center lg:px-8">
-            <a href="{{ route('website.home') }}" class="{{ request()->routeIs('website.home') ? 'border-emerald-500 text-emerald-700' : 'border-transparent hover:text-emerald-700' }} whitespace-nowrap border-b-2 pb-2">Home</a>
-            <a href="{{ route('website.products.index') }}" class="{{ request()->routeIs('website.products.*') ? 'border-emerald-500 text-emerald-700' : 'border-transparent hover:text-emerald-700' }} whitespace-nowrap border-b-2 pb-2">Shop</a>
-            <a href="{{ route('website.upload-list') }}" class="{{ request()->routeIs('website.upload-list*') ? 'border-emerald-500 text-emerald-700' : 'border-transparent hover:text-emerald-700' }} whitespace-nowrap border-b-2 pb-2">Upload List</a>
-            <a href="{{ route('website.schools') }}" class="{{ request()->routeIs('website.schools') ? 'border-emerald-500 text-emerald-700' : 'border-transparent hover:text-emerald-700' }} whitespace-nowrap border-b-2 pb-2">Schools</a>
-            <a href="{{ route('website.home') }}#how-it-works" class="whitespace-nowrap border-b-2 border-transparent pb-2 hover:text-emerald-700">How It Works</a>
-            <a href="{{ route('website.suppliers') }}" class="{{ request()->routeIs('website.suppliers*') ? 'border-emerald-500 text-emerald-700' : 'border-transparent hover:text-emerald-700' }} whitespace-nowrap border-b-2 pb-2">For Suppliers</a>
-            <a href="{{ route('website.drivers') }}" class="{{ request()->routeIs('website.drivers*') ? 'border-emerald-500 text-emerald-700' : 'border-transparent hover:text-emerald-700' }} whitespace-nowrap border-b-2 pb-2">For Drivers</a>
-            <a href="{{ route('website.schools') }}" class="whitespace-nowrap border-b-2 border-transparent pb-2 hover:text-emerald-700">For Schools</a>
-            <a href="{{ route('website.track-order') }}" class="{{ request()->routeIs('website.track-order') ? 'border-emerald-500 text-emerald-700' : 'border-transparent hover:text-emerald-700' }} whitespace-nowrap border-b-2 pb-2">Track Order</a>
-            <a href="{{ route('website.help') }}" class="{{ request()->routeIs('website.help') ? 'border-emerald-500 text-emerald-700' : 'border-transparent hover:text-emerald-700' }} whitespace-nowrap border-b-2 pb-2">Help</a>
+    <div class="hidden border-t border-[#eef4f8] lg:block">
+        <nav class="mx-auto flex max-w-7xl justify-center gap-7 px-8 py-2.5 text-[13px] font-extrabold text-[#19366f]" aria-label="Primary navigation">
+            @foreach ($navLinks as $link)
+                <a href="{{ $link['route'] }}" class="{{ $link['active'] ? 'border-emerald-500 text-emerald-700' : 'border-transparent hover:text-emerald-700' }} whitespace-nowrap border-b-2 pb-2">{{ $link['label'] }}</a>
+            @endforeach
         </nav>
     </div>
 </header>

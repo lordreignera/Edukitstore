@@ -74,8 +74,8 @@ class EduKitProductSeeder extends Seeder
 
         $path = 'products/seed/'.basename($sourcePath);
 
-        if (! Storage::disk('public')->exists($path)) {
-            Storage::disk('public')->put($path, file_get_contents($sourcePath));
+        if (! Storage::disk(Product::imageDisk())->exists($path)) {
+            Storage::disk(Product::imageDisk())->put($path, file_get_contents($sourcePath));
         }
 
         return $path;

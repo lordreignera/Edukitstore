@@ -43,6 +43,7 @@ class AdminInterfaceTest extends TestCase
             ->assertSee('Shopping List Workflow')
             ->assertSee('Latest Products')
             ->assertSee('Uganda Primary Atlas')
+            ->assertSee('Invoices')
             ->assertSee('View Website');
     }
 

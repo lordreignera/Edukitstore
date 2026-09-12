@@ -134,13 +134,13 @@ class ProductController extends Controller
 
     private function storeImage(Request $request): ?string
     {
-        return $request->file('image')?->store('products', 'public');
+        return $request->file('image')?->store('products', Product::imageDisk());
     }
 
     private function deleteStoredImage(Product $product): void
     {
-        if ($product->image_path && Storage::disk('public')->exists($product->image_path)) {
-            Storage::disk('public')->delete($product->image_path);
+        if ($product->image_path && Storage::disk(Product::imageDisk())->exists($product->image_path)) {
+            Storage::disk(Product::imageDisk())->delete($product->image_path);
         }
     }
 

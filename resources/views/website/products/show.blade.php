@@ -16,8 +16,8 @@
 
         <div>
             <p class="text-[11px] font-extrabold uppercase text-emerald-700">{{ $product->category?->name ?? 'School supply' }}</p>
-            <h1 class="mt-3 text-[38px] font-extrabold leading-tight text-[#07215f]">{{ $product->name }}</h1>
-            <p class="mt-4 text-[28px] font-extrabold text-slate-950">UGX {{ number_format($product->price) }}</p>
+            <h1 class="mt-3 text-[30px] font-extrabold leading-tight text-[#07215f] sm:text-[38px]">{{ $product->name }}</h1>
+            <p class="mt-4 text-[24px] font-extrabold text-slate-950 sm:text-[28px]">UGX {{ number_format($product->price) }}</p>
             <dl class="mt-6 grid gap-3 text-sm sm:grid-cols-2">
                 <div class="rounded border border-slate-200 bg-white p-4">
                     <dt class="font-semibold text-slate-500">Product code</dt>
@@ -44,13 +44,13 @@
                 <p class="mt-6 leading-7 text-slate-700">{{ $product->description }}</p>
             @endif
             <div class="mt-8 flex flex-wrap gap-3">
-                <form method="POST" action="{{ route('website.cart.store', $product) }}" class="flex flex-wrap gap-3">
+                <form method="POST" action="{{ route('website.cart.store', $product) }}" class="flex w-full flex-wrap gap-3 sm:w-auto">
                     @csrf
                     <label class="sr-only" for="quantity">Quantity</label>
                     <input id="quantity" name="quantity" type="number" min="1" max="{{ $product->stock_quantity }}" value="1" class="w-28 rounded-md border-[#d7e4ef] text-center text-sm font-bold text-[#07215f] focus:border-emerald-600 focus:ring-emerald-600">
-                    <button class="rounded-md bg-emerald-600 px-5 py-3 text-sm font-extrabold text-white hover:bg-emerald-700">Add to cart</button>
+                    <button class="flex-1 rounded-md bg-emerald-600 px-5 py-3 text-sm font-extrabold text-white hover:bg-emerald-700 sm:flex-none">Add to cart</button>
                 </form>
-                <a href="{{ route('website.products.index') }}" class="inline-flex rounded-md border border-[#d7e4ef] bg-white px-5 py-3 text-sm font-extrabold text-[#07215f] hover:border-emerald-500">Back to products</a>
+                <a href="{{ route('website.products.index') }}" class="inline-flex w-full justify-center rounded-md border border-[#d7e4ef] bg-white px-5 py-3 text-sm font-extrabold text-[#07215f] hover:border-emerald-500 sm:w-auto">Back to products</a>
             </div>
         </div>
     </section>

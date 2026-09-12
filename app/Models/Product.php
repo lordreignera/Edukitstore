@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
 {
@@ -49,9 +50,24 @@ class Product extends Model
 
     protected function imageUrl(): Attribute
     {
-        return Attribute::get(fn (): ?string => $this->image_path
-            ? '/storage/'.ltrim($this->image_path, '/')
-            : null);
+        return Attribute::get(function (): ?string {
+            if (! $this->image_path) {
+                return null;
+            }
+
+            $path = ltrim($this->image_path, '/');
+
+            if (str_starts_with($path, 'images/') && is_file(public_path($path))) {
+                return asset($path);
+            }
+
+            return Storage::disk(self::imageDisk())->url($path);
+        });
+    }
+
+    public static function imageDisk(): string
+    {
+        return config('filesystems.product_images_disk', 'public');
     }
 
     public function scopeActive(Builder $query): Builder

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DriverController as AdminDriverController;
+use App\Http\Controllers\Admin\InvoiceController as AdminInvoiceController;
 use App\Http\Controllers\Admin\ProductCategoryController as AdminProductCategoryController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ShoppingListController as AdminShoppingListController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\Website\ProductController as WebsiteProductController;
 use App\Http\Controllers\Website\ShoppingListController as WebsiteShoppingListController;
 use App\Http\Controllers\Website\SupplierOnboardingController as WebsiteSupplierOnboardingController;
 use App\Http\Controllers\Website\DriverOnboardingController as WebsiteDriverOnboardingController;
+use App\Http\Controllers\Website\TrackOrderController as WebsiteTrackOrderController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('website.home');
@@ -30,7 +32,8 @@ Route::post('/quote/{reference}/pay', [WebsiteCartController::class, 'pay'])->na
 Route::get('/payments/flutterwave/callback', [WebsiteCartController::class, 'flutterwaveCallback'])->name('website.payments.flutterwave.callback');
 Route::get('/upload-list', [WebsiteShoppingListController::class, 'create'])->name('website.upload-list');
 Route::post('/upload-list', [WebsiteShoppingListController::class, 'store'])->name('website.upload-list.store');
-Route::get('/track-order', [WebsitePageController::class, 'show'])->defaults('page', 'track-order')->name('website.track-order');
+Route::get('/track-order', [WebsiteTrackOrderController::class, 'index'])->name('website.track-order');
+Route::post('/track-order', [WebsiteTrackOrderController::class, 'lookup'])->name('website.track-order.lookup');
 Route::get('/for-suppliers', [WebsiteSupplierOnboardingController::class, 'create'])->name('website.suppliers');
 Route::post('/for-suppliers', [WebsiteSupplierOnboardingController::class, 'store'])->name('website.suppliers.store');
 Route::get('/for-drivers', [WebsiteDriverOnboardingController::class, 'create'])->name('website.drivers');
@@ -65,6 +68,9 @@ Route::middleware([
 
     Route::middleware('role:super-admin|admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/', AdminDashboardController::class)->name('dashboard');
+        Route::get('invoices', [AdminInvoiceController::class, 'index'])->name('invoices.index');
+        Route::get('invoices/{invoice}', [AdminInvoiceController::class, 'show'])->name('invoices.show');
+        Route::patch('invoices/{invoice}', [AdminInvoiceController::class, 'update'])->name('invoices.update');
         Route::resource('products', AdminProductController::class);
         Route::resource('product-categories', AdminProductCategoryController::class);
         Route::resource('suppliers', AdminSupplierController::class)->only(['index', 'create', 'store']);
@@ -75,7 +81,6 @@ Route::middleware([
         Route::get('suppliers/{supplier}/download', [AdminSupplierController::class, 'download'])->name('suppliers.download');
         Route::get('shopping-lists', [AdminShoppingListController::class, 'index'])->name('shopping-lists.index');
         Route::get('shopping-lists/{shoppingList}', [AdminShoppingListController::class, 'show'])->name('shopping-lists.show');
-        Route::patch('shopping-lists/{shoppingList}', [AdminShoppingListController::class, 'update'])->name('shopping-lists.update');
         Route::get('shopping-lists/{shoppingList}/download', [AdminShoppingListController::class, 'download'])->name('shopping-lists.download');
         Route::resource('drivers', AdminDriverController::class)->only(['index', 'create', 'store']);
         Route::patch('drivers/{driver}', [AdminDriverController::class, 'update'])->name('drivers.update');

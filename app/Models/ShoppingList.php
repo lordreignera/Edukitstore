@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Str;
 
 class ShoppingList extends Model
 {
@@ -14,6 +13,7 @@ class ShoppingList extends Model
     public const STATUS_PENDING = 'pending';
     public const STATUS_REVIEWING = 'reviewing';
     public const STATUS_QUOTED = 'quoted';
+    public const STATUS_REJECTED = 'rejected';
     public const STATUS_FULFILLED = 'fulfilled';
     public const STATUS_CANCELLED = 'cancelled';
 
@@ -23,6 +23,8 @@ class ShoppingList extends Model
     public const PAYMENT_UNPAID = 'unpaid';
     public const PAYMENT_PENDING = 'pending';
     public const PAYMENT_PAID = 'paid';
+    public const PAYMENT_FAILED = 'failed';
+    public const PAYMENT_REFUNDED = 'refunded';
 
     protected $fillable = [
         'parent_name',
@@ -84,20 +86,73 @@ class ShoppingList extends Model
             self::STATUS_PENDING => 'Pending',
             self::STATUS_REVIEWING => 'Reviewing',
             self::STATUS_QUOTED => 'Quoted',
+            self::STATUS_REJECTED => 'Rejected',
             self::STATUS_FULFILLED => 'Fulfilled',
             self::STATUS_CANCELLED => 'Cancelled',
         ];
+    }
+
+    public static function paymentStatuses(): array
+    {
+        return [
+            self::PAYMENT_UNPAID => 'Unpaid',
+            self::PAYMENT_PENDING => 'Payment Pending',
+            self::PAYMENT_PAID => 'Paid',
+            self::PAYMENT_FAILED => 'Failed',
+            self::PAYMENT_REFUNDED => 'Refunded',
+        ];
+    }
+
+    public static function deliveryStatuses(): array
+    {
+        return [
+            'unassigned' => 'Unassigned',
+            'awaiting_payment' => 'Awaiting Payment',
+            'ready_for_delivery' => 'Ready for Delivery',
+            'delivered' => 'Delivered',
+        ];
+    }
+
+    public function deliveryStatus(): string
+    {
+        if ($this->delivery_confirmed_at) {
+            return 'delivered';
+        }
+
+        if (! $this->assigned_driver_id) {
+            return 'unassigned';
+        }
+
+        if ($this->payment_status !== self::PAYMENT_PAID) {
+            return 'awaiting_payment';
+        }
+
+        return 'ready_for_delivery';
+    }
+
+    public static function nextReference(): string
+    {
+        $prefix = 'EDK-'.now()->format('ymd');
+        $latestSequence = self::where('reference', 'like', "{$prefix}-%")
+            ->pluck('reference')
+            ->map(function (?string $reference) use ($prefix): ?int {
+                if (! $reference || ! preg_match('/^'.preg_quote($prefix, '/').'-(\d+)$/', $reference, $matches)) {
+                    return null;
+                }
+
+                return (int) $matches[1];
+            })
+            ->filter()
+            ->max();
+
+        return $prefix.'-'.($latestSequence ? $latestSequence + 1 : 1000);
     }
 
     protected static function booted(): void
     {
         static::creating(function (ShoppingList $shoppingList): void {
             if (! $shoppingList->reference) {
-                do {
-                    $reference = 'EDK-'.now()->format('ymd').'-'.Str::upper(Str::random(5));
-                } while (self::where('reference', $reference)->exists());
-
-                $shoppingList->reference = $reference;
+                $shoppingList->reference = self::nextReference();
             }
         });
     }

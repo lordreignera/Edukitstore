@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Supplier;
 use App\Services\AccountProvisioner;
+use App\Support\DocumentStorage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -132,9 +133,11 @@ class SupplierController extends Controller
 
     public function download(Supplier $supplier): StreamedResponse
     {
-        abort_unless($supplier->verification_document_path && Storage::exists($supplier->verification_document_path), 404);
+        $disk = DocumentStorage::disk();
 
-        return Storage::download($supplier->verification_document_path, $supplier->verification_document_name);
+        abort_unless($supplier->verification_document_path && Storage::disk($disk)->exists($supplier->verification_document_path), 404);
+
+        return Storage::disk($disk)->download($supplier->verification_document_path, $supplier->verification_document_name);
     }
 
     private function validatedData(Request $request, ?Supplier $supplier = null): array
@@ -157,4 +160,5 @@ class SupplierController extends Controller
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
     }
+
 }

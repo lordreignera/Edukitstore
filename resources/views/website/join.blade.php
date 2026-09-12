@@ -7,7 +7,7 @@
     <div class="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
         <header class="mx-auto max-w-2xl text-center">
             <p class="text-sm font-extrabold uppercase text-emerald-700">Join EduKit</p>
-            <h1 class="mt-3 text-4xl font-extrabold leading-tight text-[#07215f] sm:text-5xl">Work with Uganda's school supply network.</h1>
+            <h1 class="mt-3 text-[32px] font-extrabold leading-tight text-[#07215f] sm:text-5xl">Work with Uganda's school supply network.</h1>
             <p class="mt-4 text-base leading-7 text-slate-600">Choose the application that matches your work. EduKit reviews every application before creating an account.</p>
         </header>
 

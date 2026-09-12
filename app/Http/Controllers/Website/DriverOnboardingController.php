@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Website;
 
 use App\Http\Controllers\Controller;
 use App\Models\Driver;
+use App\Support\DocumentStorage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,7 +32,7 @@ class DriverOnboardingController extends Controller
 
         if ($request->hasFile('verification_document')) {
             $file = $request->file('verification_document');
-            $data['verification_document_path'] = $file->store('driver-documents');
+            $data['verification_document_path'] = $file->store('driver-documents', DocumentStorage::disk());
             $data['verification_document_name'] = $file->getClientOriginalName();
         }
 
@@ -49,4 +50,5 @@ class DriverOnboardingController extends Controller
             'Your delivery partner application has been received. EduKit will contact you after verification.'
         );
     }
+
 }

@@ -7,7 +7,7 @@
         <div class="mx-auto grid max-w-7xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[0.85fr_1.15fr] lg:px-8 lg:py-14">
             <div class="self-start">
                 <p class="text-sm font-black uppercase tracking-wide text-emerald-700">Upload school list</p>
-                <h1 class="mt-3 text-4xl font-black leading-tight text-[#07215f] sm:text-5xl">Send the list. We prepare the basket.</h1>
+                <h1 class="mt-3 text-[32px] font-black leading-tight text-[#07215f] sm:text-5xl">Send the list. We prepare the basket.</h1>
                 <p class="mt-4 max-w-xl text-base leading-7 text-slate-600">
                     Upload a photo, PDF, Word document or spreadsheet of your child&apos;s school requirements. EduKit will review it against the master catalogue and prepare a quote for school, home or pickup delivery.
                 </p>

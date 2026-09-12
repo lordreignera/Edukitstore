@@ -13,7 +13,7 @@
             </div>
         </div>
 
-        <div class="mt-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-6">
+        <div class="mt-6 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:gap-4 md:grid-cols-3 xl:grid-cols-6">
             @foreach ($featuredProducts->take(6) as $product)
                 <article class="group overflow-hidden rounded-md border border-[#dbe8f3] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
                     <a href="{{ route('website.products.show', $product) }}" class="block aspect-[1.05] bg-[#f8fbff]">
