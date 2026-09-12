@@ -26,9 +26,10 @@
                     <div class="p-3">
                         <a href="{{ route('website.products.show', $product) }}" class="block min-h-10 text-[12px] font-black leading-5 text-[#07215f] group-hover:text-emerald-700 sm:text-[13px]">{{ $product->name }}</a>
                         <p class="mt-2 text-[13px] font-black text-slate-950">UGX {{ number_format($product->price) }}</p>
-                        <p class="mt-1 text-[11px] font-semibold text-amber-500">5.0 rating <span class="text-slate-400">({{ max(12, $product->stock_quantity) }})</span></p>
                         <form method="POST" action="{{ route('website.cart.store', $product) }}" class="mt-3">
                             @csrf
+                            <label class="sr-only" for="featured-quantity-{{ $product->id }}">Quantity</label>
+                            <input id="featured-quantity-{{ $product->id }}" name="quantity" type="number" min="1" max="{{ $product->stock_quantity }}" value="1" class="mb-2 h-9 w-full rounded-md border-[#d7e4ef] text-center text-xs font-bold text-[#07215f] focus:border-emerald-600 focus:ring-emerald-600">
                             <button class="w-full rounded-md border border-[#d7e4ef] px-3 py-2 text-[11px] font-black text-[#07215f] hover:border-emerald-500 hover:text-emerald-700">Add to Cart</button>
                         </form>
                     </div>

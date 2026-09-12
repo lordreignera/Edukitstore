@@ -7,6 +7,7 @@ use App\Models\ShoppingList;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ShoppingListController extends Controller
 {
@@ -34,14 +35,27 @@ class ShoppingListController extends Controller
 
         $data['file_path'] = $file->store('shopping-lists');
         $data['original_filename'] = $file->getClientOriginalName();
+        $data['source'] = ShoppingList::SOURCE_UPLOAD;
+        $data['reference'] = $this->uniqueReference();
         $data['status'] = ShoppingList::STATUS_PENDING;
 
         unset($data['shopping_list']);
 
-        ShoppingList::create($data);
+        $shoppingList = ShoppingList::create($data + [
+            'payment_status' => ShoppingList::PAYMENT_UNPAID,
+        ]);
 
         return redirect()
-            ->route('website.upload-list')
-            ->with('status', 'Your school list has been uploaded. EduKit will review it and prepare a quote.');
+            ->route('website.quote.show', $shoppingList->reference)
+            ->with('status', 'Your school list has been uploaded. EduKit will review it and prepare your invoice.');
+    }
+
+    private function uniqueReference(): string
+    {
+        do {
+            $reference = 'EDK-'.now()->format('ymd').'-'.Str::upper(Str::random(5));
+        } while (ShoppingList::where('reference', $reference)->exists());
+
+        return $reference;
     }
 }

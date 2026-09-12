@@ -27,8 +27,8 @@ class HomeController extends Controller
 
         $categoryImages = Product::query()
             ->active()
-            ->whereNotNull('image_url')
-            ->get(['product_category_id', 'image_url'])
+            ->whereNotNull('image_path')
+            ->get(['product_category_id', 'image_path'])
             ->groupBy('product_category_id')
             ->map(fn ($products) => $products->first()->image_url);
 

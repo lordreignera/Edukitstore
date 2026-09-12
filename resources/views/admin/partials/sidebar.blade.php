@@ -2,9 +2,11 @@
     $navigation = [
         ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'pattern' => 'admin.dashboard', 'icon' => 'home'],
         ['label' => 'Products', 'route' => 'admin.products.index', 'pattern' => 'admin.products.*', 'icon' => 'products'],
+        ['label' => 'Categories', 'route' => 'admin.product-categories.index', 'pattern' => 'admin.product-categories.*', 'icon' => 'tag'],
         ['label' => 'Shopping Lists', 'route' => 'admin.shopping-lists.index', 'pattern' => 'admin.shopping-lists.*', 'icon' => 'list'],
         ['label' => 'Suppliers', 'route' => 'admin.suppliers.index', 'pattern' => 'admin.suppliers.*', 'icon' => 'suppliers'],
         ['label' => 'Drivers', 'route' => 'admin.drivers.index', 'pattern' => 'admin.drivers.*', 'icon' => 'drivers'],
+        ['label' => 'Users & Roles', 'route' => 'admin.users.index', 'pattern' => 'admin.users.*', 'icon' => 'user'],
     ];
 @endphp
 

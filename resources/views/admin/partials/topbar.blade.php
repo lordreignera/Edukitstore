@@ -10,7 +10,7 @@
     <form method="GET" action="{{ route('admin.products.index') }}" class="relative hidden w-full max-w-md sm:block">
         <label for="admin-search" class="sr-only">Search products</label>
         <x-ui.icon name="search" size="size-[18px]" class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input id="admin-search" name="q" value="{{ request('q') }}" placeholder="Search products by name or SKU..." class="h-10 w-full rounded-md border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:ring-emerald-600">
+        <input id="admin-search" name="q" value="{{ request('q') }}" placeholder="Search products by name or code..." class="h-10 w-full rounded-md border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:ring-emerald-600">
     </form>
 
     <div class="ml-auto flex items-center gap-2 sm:gap-3">

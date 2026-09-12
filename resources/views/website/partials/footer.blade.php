@@ -30,13 +30,14 @@
                 <a href="{{ route('website.suppliers') }}" class="hover:text-emerald-700">Become a Supplier</a>
                 <a href="{{ route('login') }}" class="hover:text-emerald-700">Supplier Login</a>
                 <a href="{{ route('website.suppliers') }}" class="hover:text-emerald-700">Supplier Guide</a>
+                <a href="{{ route('website.drivers') }}" class="hover:text-emerald-700">Become a Delivery Partner</a>
             </div>
         </div>
 
         <div>
             <p class="font-black text-[#07215f]">For Schools</p>
             <div class="mt-3 grid gap-1.5">
-                <a href="{{ route('website.schools') }}" class="hover:text-emerald-700">School Login</a>
+                <a href="{{ route('login') }}" class="hover:text-emerald-700">School Login</a>
                 <a href="{{ route('website.schools') }}" class="hover:text-emerald-700">Partnerships</a>
                 <a href="{{ route('website.schools') }}" class="hover:text-emerald-700">Delivery Information</a>
             </div>

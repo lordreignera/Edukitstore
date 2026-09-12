@@ -3,51 +3,32 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Laravel\Fortify\Features;
-use Laravel\Jetstream\Jetstream;
 use Tests\TestCase;
 
 class RegistrationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_registration_screen_can_be_rendered(): void
+    public function test_registration_page_redirects_to_the_reviewed_application_options(): void
     {
-        if (! Features::enabled(Features::registration())) {
-            $this->markTestSkipped('Registration support is not enabled.');
-        }
+        $this->get('/register')->assertRedirect(route('website.join'));
 
-        $response = $this->get('/register');
-
-        $response->assertStatus(200);
+        $this->get(route('website.join'))
+            ->assertOk()
+            ->assertSee('Become a supplier')
+            ->assertSee('Become a delivery partner')
+            ->assertSee('created by an EduKit administrator');
     }
 
-    public function test_registration_screen_cannot_be_rendered_if_support_is_disabled(): void
+    public function test_public_registration_cannot_create_an_account(): void
     {
-        if (Features::enabled(Features::registration())) {
-            $this->markTestSkipped('Registration support is enabled.');
-        }
+        $this->post('/register', [
+            'name' => 'Unapproved User',
+            'email' => 'unapproved@example.com',
+            'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
+        ])->assertStatus(405);
 
-        $response = $this->get('/register');
-
-        $response->assertStatus(404);
-    }
-
-    public function test_new_users_can_register(): void
-    {
-        if (! Features::enabled(Features::registration())) {
-            $this->markTestSkipped('Registration support is not enabled.');
-        }
-
-        $response = $this->post('/register', [
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-            'password' => 'password',
-            'password_confirmation' => 'password',
-            'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature(),
-        ]);
-
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $this->assertDatabaseMissing('users', ['email' => 'unapproved@example.com']);
     }
 }

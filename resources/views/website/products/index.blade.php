@@ -8,15 +8,16 @@
             <p class="text-[11px] font-extrabold uppercase text-emerald-700">Products</p>
             <h1 class="mt-2 text-[32px] font-extrabold text-[#07215f]">School supplies catalogue</h1>
 
-            <form method="GET" action="{{ route('website.products.index') }}" class="mt-8 grid gap-3 rounded-md border border-[#dbe8f3] bg-[#f7fbff] p-4 shadow-sm sm:grid-cols-[1fr_220px_auto]">
-                <input name="search" value="{{ request('search') }}" placeholder="Search products, SKU or brand" class="rounded-md border-[#d7e4ef] text-sm font-medium focus:border-emerald-600 focus:ring-emerald-600">
+            <form method="GET" action="{{ route('website.products.index') }}" class="mt-8 grid gap-3 rounded-md border border-[#dbe8f3] bg-[#f7fbff] p-4 shadow-sm sm:grid-cols-[1fr_220px_auto_auto]">
+                <input name="search" value="{{ $search }}" placeholder="Search products, code or brand" class="rounded-md border-[#d7e4ef] text-sm font-medium focus:border-emerald-600 focus:ring-emerald-600">
                 <select name="category" class="rounded-md border-[#d7e4ef] text-sm font-medium focus:border-emerald-600 focus:ring-emerald-600">
                     <option value="">All categories</option>
                     @foreach ($categories as $category)
-                        <option value="{{ $category->slug }}" @selected(request('category') === $category->slug)>{{ $category->name }}</option>
+                        <option value="{{ $category->slug }}" @selected($selectedCategory === $category->slug)>{{ $category->name }}</option>
                     @endforeach
                 </select>
                 <button class="rounded-md bg-[#07215f] px-5 py-2 text-sm font-extrabold text-white hover:bg-emerald-700">Filter</button>
+                <a href="{{ route('website.products.index') }}" class="grid rounded-md border border-[#d7e4ef] bg-white px-5 py-2 text-sm font-extrabold text-[#07215f] hover:border-emerald-500">Clear</a>
             </form>
         </div>
     </section>
@@ -41,6 +42,8 @@
                             <a href="{{ route('website.products.show', $product) }}" class="rounded-md border border-[#d7e4ef] px-3 py-2 text-center text-xs font-extrabold text-[#07215f] hover:border-emerald-500">View</a>
                             <form method="POST" action="{{ route('website.cart.store', $product) }}">
                                 @csrf
+                                <label class="sr-only" for="product-quantity-{{ $product->id }}">Quantity</label>
+                                <input id="product-quantity-{{ $product->id }}" name="quantity" type="number" min="1" max="{{ $product->stock_quantity }}" value="1" class="mb-2 h-9 w-full rounded-md border-[#d7e4ef] text-center text-xs font-bold text-[#07215f] focus:border-emerald-600 focus:ring-emerald-600">
                                 <button class="w-full rounded-md bg-emerald-600 px-3 py-2 text-xs font-extrabold text-white hover:bg-emerald-700">Add</button>
                             </form>
                         </div>

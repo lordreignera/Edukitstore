@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -21,7 +22,7 @@ class Product extends Model
         'unit',
         'price',
         'stock_quantity',
-        'image_url',
+        'image_path',
         'is_active',
         'is_featured',
     ];
@@ -44,6 +45,13 @@ class Product extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    protected function imageUrl(): Attribute
+    {
+        return Attribute::get(fn (): ?string => $this->image_path
+            ? '/storage/'.ltrim($this->image_path, '/')
+            : null);
     }
 
     public function scopeActive(Builder $query): Builder

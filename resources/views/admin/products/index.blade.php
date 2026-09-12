@@ -5,12 +5,27 @@
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">Master Product List</h2>
                 <p class="mt-1 text-sm text-gray-500">Super admin sets customer-facing prices for the website catalogue.</p>
             </div>
-            <a href="{{ route('admin.products.create') }}" class="rounded bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">Add product</a>
+            <div class="flex flex-wrap gap-3">
+                <a href="{{ route('admin.product-categories.create') }}" class="inline-flex items-center gap-2 rounded border border-emerald-700 px-4 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-50">
+                    <x-ui.icon name="tag" size="size-4" /> Add category
+                </a>
+                <a href="{{ route('admin.products.create') }}" class="inline-flex items-center gap-2 rounded bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">
+                    <x-ui.icon name="plus" size="size-4" /> Add product
+                </a>
+            </div>
         </div>
     </x-slot>
 
     <div class="py-8">
-        <div class="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 lg:grid-cols-[1fr_320px] lg:px-8">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <form method="GET" class="mb-5 grid gap-3 border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-2 xl:grid-cols-[minmax(180px,1fr)_170px_140px_140px_auto_auto]">
+                <input name="q" value="{{ $search }}" placeholder="Search name, product code or brand" class="h-10 rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                <select name="category" class="h-10 rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600"><option value="">All categories</option>@foreach ($categories as $category)<option value="{{ $category->id }}" @selected($categoryId === (string) $category->id)>{{ $category->name }}</option>@endforeach</select>
+                <select name="status" class="h-10 rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600"><option value="">Any status</option><option value="active" @selected($status === 'active')>Active</option><option value="hidden" @selected($status === 'hidden')>Hidden</option></select>
+                <select name="featured" class="h-10 rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600"><option value="">Featured or not</option><option value="yes" @selected($featured === 'yes')>Featured</option><option value="no" @selected($featured === 'no')>Not featured</option></select>
+                <button class="h-10 rounded bg-[#07215f] px-4 text-sm font-bold text-white hover:bg-[#0b2f7c]">Filter</button>
+                <a href="{{ route('admin.products.index') }}" class="grid h-10 place-items-center rounded border border-slate-300 px-4 text-sm font-bold text-slate-600 hover:bg-slate-50">Clear</a>
+            </form>
             <section class="rounded border border-gray-200 bg-white shadow-sm">
                 <div class="border-b border-gray-100 px-5 py-4">
                     @if (session('status'))
@@ -24,7 +39,7 @@
                         <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                             <tr>
                                 <th class="px-5 py-3">Product</th>
-                                <th class="px-5 py-3">SKU</th>
+                                <th class="px-5 py-3">Product code</th>
                                 <th class="px-5 py-3">Price</th>
                                 <th class="px-5 py-3">Stock</th>
                                 <th class="px-5 py-3">Status</th>
@@ -46,8 +61,22 @@
                                             {{ $product->is_active ? 'Active' : 'Hidden' }}
                                         </span>
                                     </td>
-                                    <td class="px-5 py-4 text-right">
-                                        <a href="{{ route('admin.products.edit', $product) }}" class="font-semibold text-emerald-700">Edit</a>
+                                    <td class="px-5 py-4">
+                                        <div class="flex justify-end gap-2">
+                                            <a href="{{ route('admin.products.show', $product) }}" class="grid size-9 place-items-center rounded border border-slate-200 text-slate-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" title="View product" aria-label="View {{ $product->name }}">
+                                                <x-ui.icon name="eye" size="size-4" />
+                                            </a>
+                                            <a href="{{ route('admin.products.edit', $product) }}" class="grid size-9 place-items-center rounded border border-slate-200 text-slate-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700" title="Edit product" aria-label="Edit {{ $product->name }}">
+                                                <x-ui.icon name="edit" size="size-4" />
+                                            </a>
+                                            <form method="POST" action="{{ route('admin.products.destroy', $product) }}" onsubmit="return confirm('Delete this product from the master list?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button class="grid size-9 place-items-center rounded border border-slate-200 text-slate-600 hover:border-red-200 hover:bg-red-50 hover:text-red-700" title="Delete product" aria-label="Delete {{ $product->name }}">
+                                                    <x-ui.icon name="trash" size="size-4" />
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
@@ -62,23 +91,6 @@
                     {{ $products->links() }}
                 </div>
             </section>
-
-            <aside class="rounded border border-gray-200 bg-white p-5 shadow-sm">
-                <h3 class="font-semibold text-gray-950">Add Category</h3>
-                <form method="POST" action="{{ route('admin.product-categories.store') }}" class="mt-4 space-y-4">
-                    @csrf
-                    <div>
-                        <label class="text-sm font-medium text-gray-700" for="category-name">Name</label>
-                        <input id="category-name" name="name" value="{{ old('name') }}" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
-                        @error('name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                    </div>
-                    <div>
-                        <label class="text-sm font-medium text-gray-700" for="category-description">Description</label>
-                        <textarea id="category-description" name="description" rows="3" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">{{ old('description') }}</textarea>
-                    </div>
-                    <button class="w-full rounded bg-slate-950 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Save category</button>
-                </form>
-            </aside>
         </div>
     </div>
 </x-admin-layout>

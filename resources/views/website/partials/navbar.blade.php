@@ -29,7 +29,7 @@
                 </svg>
                 Sign In
             </a>
-            <a href="{{ route('register') }}" class="rounded-md bg-emerald-600 px-3 py-2 text-white shadow-sm hover:bg-emerald-700 sm:px-4">Register</a>
+            <a href="{{ route('website.join') }}" class="rounded-md bg-emerald-600 px-3 py-2 text-white shadow-sm hover:bg-emerald-700 sm:px-4">Join EduKit</a>
         </nav>
     </div>
 
@@ -41,6 +41,7 @@
             <a href="{{ route('website.schools') }}" class="{{ request()->routeIs('website.schools') ? 'border-emerald-500 text-emerald-700' : 'border-transparent hover:text-emerald-700' }} whitespace-nowrap border-b-2 pb-2">Schools</a>
             <a href="{{ route('website.home') }}#how-it-works" class="whitespace-nowrap border-b-2 border-transparent pb-2 hover:text-emerald-700">How It Works</a>
             <a href="{{ route('website.suppliers') }}" class="{{ request()->routeIs('website.suppliers*') ? 'border-emerald-500 text-emerald-700' : 'border-transparent hover:text-emerald-700' }} whitespace-nowrap border-b-2 pb-2">For Suppliers</a>
+            <a href="{{ route('website.drivers') }}" class="{{ request()->routeIs('website.drivers*') ? 'border-emerald-500 text-emerald-700' : 'border-transparent hover:text-emerald-700' }} whitespace-nowrap border-b-2 pb-2">For Drivers</a>
             <a href="{{ route('website.schools') }}" class="whitespace-nowrap border-b-2 border-transparent pb-2 hover:text-emerald-700">For Schools</a>
             <a href="{{ route('website.track-order') }}" class="{{ request()->routeIs('website.track-order') ? 'border-emerald-500 text-emerald-700' : 'border-transparent hover:text-emerald-700' }} whitespace-nowrap border-b-2 pb-2">Track Order</a>
             <a href="{{ route('website.help') }}" class="{{ request()->routeIs('website.help') ? 'border-emerald-500 text-emerald-700' : 'border-transparent hover:text-emerald-700' }} whitespace-nowrap border-b-2 pb-2">Help</a>

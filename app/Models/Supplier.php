@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Supplier extends Model
 {
@@ -27,6 +28,7 @@ class Supplier extends Model
         'is_active',
         'approved_at',
         'approved_by',
+        'user_id',
     ];
 
     protected function casts(): array
@@ -37,5 +39,10 @@ class Supplier extends Model
             'approved_at' => 'datetime',
             'submitted_at' => 'datetime',
         ];
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

@@ -44,8 +44,6 @@
             <x-button class="w-full">Sign in</x-button>
         </form>
 
-        @if (Route::has('register'))
-            <p class="mt-6 text-center text-sm text-slate-600">New to EduKit? <a href="{{ route('register') }}" class="font-bold text-emerald-700 hover:text-[#071d4f]">Create an account</a></p>
-        @endif
+        <p class="mt-6 text-center text-sm text-slate-600">Want to supply or deliver with EduKit? <a href="{{ route('website.join') }}" class="font-bold text-emerald-700 hover:text-[#071d4f]">Apply to join</a></p>
     </x-authentication-card>
 </x-guest-layout>

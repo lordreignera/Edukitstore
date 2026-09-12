@@ -19,7 +19,7 @@
                     </div>
                     <div>
                         <label class="text-sm font-medium text-gray-700" for="email">Email</label>
-                        <input id="email" name="email" type="email" value="{{ old('email') }}" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                        <input id="email" name="email" type="email" value="{{ old('email') }}" required class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
                         @error('email') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
                     <div>

@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Website;
 
 use App\Http\Controllers\Controller;
 use App\Models\Supplier;
+use App\Services\AccountProvisioner;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rules\Password;
 
 class SupplierOnboardingController extends Controller
 {
@@ -15,13 +18,14 @@ class SupplierOnboardingController extends Controller
         return view('website.suppliers.apply');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, AccountProvisioner $provisioner): RedirectResponse
     {
         $data = $request->validate([
             'business_name' => ['required', 'string', 'max:255'],
             'contact_person' => ['required', 'string', 'max:160'],
             'phone' => ['required', 'string', 'max:40'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email', 'unique:suppliers,email'],
+            'password' => ['required', 'confirmed', Password::defaults()],
             'district' => ['required', 'string', 'max:120'],
             'address' => ['nullable', 'string', 'max:255'],
             'product_categories' => ['required', 'string', 'max:1000'],
@@ -38,16 +42,23 @@ class SupplierOnboardingController extends Controller
         }
 
         unset($data['verification_document']);
+        $password = $data['password'];
+        unset($data['password'], $data['password_confirmation']);
 
-        Supplier::create($data + [
-            'source' => 'website',
-            'submitted_at' => now(),
-            'is_approved' => false,
-            'is_active' => true,
-        ]);
+        DB::transaction(function () use ($data, $password, $provisioner) {
+            $user = $provisioner->createPending($data['email'], $data['contact_person'], $password, 'supplier');
+
+            Supplier::create($data + [
+                'user_id' => $user->id,
+                'source' => 'website',
+                'submitted_at' => now(),
+                'is_approved' => false,
+                'is_active' => false,
+            ]);
+        });
 
         return redirect()
             ->route('website.suppliers')
-            ->with('status', 'Your supplier application has been received. EduKit will verify your business before approval.');
+            ->with('status', 'Your application and login details have been received. You can sign in after EduKit approves your business.');
     }
 }

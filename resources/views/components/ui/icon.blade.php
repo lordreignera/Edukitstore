@@ -68,6 +68,20 @@
         @case('plus')
             <path d="M12 5v14M5 12h14" />
             @break
+        @case('tag')
+            <path d="M20 13 13 20a2 2 0 0 1-2.8 0L4 13.8V4h9.8L20 10.2a2 2 0 0 1 0 2.8Z" />
+            <path d="M8 8h.01" />
+            @break
+        @case('edit')
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" />
+            @break
+        @case('trash')
+            <path d="M3 6h18" />
+            <path d="M8 6V4h8v2" />
+            <path d="M19 6l-1 14H6L5 6" />
+            <path d="M10 11v5M14 11v5" />
+            @break
         @case('arrow-right')
             <path d="M5 12h14M13 6l6 6-6 6" />
             @break

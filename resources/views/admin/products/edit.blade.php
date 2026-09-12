@@ -5,7 +5,7 @@
 
     <div class="py-8">
         <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-            <form method="POST" action="{{ route('admin.products.update', $product) }}" class="rounded border border-gray-200 bg-white p-6 shadow-sm">
+            <form method="POST" action="{{ route('admin.products.update', $product) }}" enctype="multipart/form-data" class="rounded border border-gray-200 bg-white p-6 shadow-sm">
                 @method('PUT')
                 @include('admin.products._form')
             </form>

@@ -26,7 +26,7 @@ class WebsiteProductFlowTest extends TestCase
             'sku' => 'TEST-EX96',
             'price' => 2500,
             'stock_quantity' => 40,
-            'image_url' => '/images/products/exercise-book-96.svg',
+            'image_path' => 'products/test/exercise-book-96.svg',
             'is_active' => true,
             'is_featured' => true,
         ]);
@@ -53,7 +53,7 @@ class WebsiteProductFlowTest extends TestCase
             'sku' => 'TEST-SHOES',
             'price' => 45000,
             'stock_quantity' => 12,
-            'image_url' => '/images/products/black-school-shoes.svg',
+            'image_path' => 'products/test/black-school-shoes.svg',
             'is_active' => true,
             'is_featured' => true,
         ]);
@@ -64,6 +64,37 @@ class WebsiteProductFlowTest extends TestCase
             ->assertSee('UGX 45,000');
     }
 
+    public function test_search_ignores_stale_category_filter(): void
+    {
+        $bags = ProductCategory::create([
+            'name' => 'Bags',
+            'slug' => 'bags',
+            'is_active' => true,
+        ]);
+        ProductCategory::create([
+            'name' => 'Bedding and Linen',
+            'slug' => 'bedding-and-linen',
+            'is_active' => true,
+        ]);
+
+        Product::create([
+            'product_category_id' => $bags->id,
+            'name' => 'Blue School Backpack',
+            'slug' => 'blue-school-backpack',
+            'sku' => 'EDK260900100',
+            'price' => 60000,
+            'stock_quantity' => 10,
+            'image_path' => 'products/test/blue-school-bag.svg',
+            'is_active' => true,
+            'is_featured' => true,
+        ]);
+
+        $this->get('/products?search=bags&category=bedding-and-linen')
+            ->assertOk()
+            ->assertSee('Blue School Backpack')
+            ->assertDontSee('No products match this search.');
+    }
+
     public function test_customer_can_add_product_to_session_cart(): void
     {
         $product = Product::create([
@@ -72,7 +103,7 @@ class WebsiteProductFlowTest extends TestCase
             'sku' => 'TEST-BAG',
             'price' => 60000,
             'stock_quantity' => 10,
-            'image_url' => '/images/products/blue-school-bag.svg',
+            'image_path' => 'products/test/blue-school-bag.svg',
             'is_active' => true,
             'is_featured' => true,
         ]);

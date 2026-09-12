@@ -17,7 +17,8 @@ class AdminInterfaceTest extends TestCase
         $this->get(route('login'))
             ->assertOk()
             ->assertSee('Welcome back')
-            ->assertSee('Everything learners need, managed in one place.')
+            ->assertSee('Back to shop')
+            ->assertDontSee('Everything learners need, managed in one place.')
             ->assertSee('/images/website/edukit-store-logo.png', false);
     }
 

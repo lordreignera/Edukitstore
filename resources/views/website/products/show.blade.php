@@ -20,7 +20,7 @@
             <p class="mt-4 text-[28px] font-extrabold text-slate-950">UGX {{ number_format($product->price) }}</p>
             <dl class="mt-6 grid gap-3 text-sm sm:grid-cols-2">
                 <div class="rounded border border-slate-200 bg-white p-4">
-                    <dt class="font-semibold text-slate-500">SKU</dt>
+                    <dt class="font-semibold text-slate-500">Product code</dt>
                     <dd class="mt-1 text-slate-950">{{ $product->sku }}</dd>
                 </div>
                 <div class="rounded border border-slate-200 bg-white p-4">
@@ -44,8 +44,10 @@
                 <p class="mt-6 leading-7 text-slate-700">{{ $product->description }}</p>
             @endif
             <div class="mt-8 flex flex-wrap gap-3">
-                <form method="POST" action="{{ route('website.cart.store', $product) }}">
+                <form method="POST" action="{{ route('website.cart.store', $product) }}" class="flex flex-wrap gap-3">
                     @csrf
+                    <label class="sr-only" for="quantity">Quantity</label>
+                    <input id="quantity" name="quantity" type="number" min="1" max="{{ $product->stock_quantity }}" value="1" class="w-28 rounded-md border-[#d7e4ef] text-center text-sm font-bold text-[#07215f] focus:border-emerald-600 focus:ring-emerald-600">
                     <button class="rounded-md bg-emerald-600 px-5 py-3 text-sm font-extrabold text-white hover:bg-emerald-700">Add to cart</button>
                 </form>
                 <a href="{{ route('website.products.index') }}" class="inline-flex rounded-md border border-[#d7e4ef] bg-white px-5 py-3 text-sm font-extrabold text-[#07215f] hover:border-emerald-500">Back to products</a>

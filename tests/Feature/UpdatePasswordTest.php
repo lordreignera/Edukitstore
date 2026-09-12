@@ -15,7 +15,7 @@ class UpdatePasswordTest extends TestCase
 
     public function test_password_can_be_updated(): void
     {
-        $this->actingAs($user = User::factory()->create());
+        $this->actingAs($user = User::factory()->create(['must_change_password' => true]));
 
         Livewire::test(UpdatePasswordForm::class)
             ->set('state', [
@@ -26,6 +26,7 @@ class UpdatePasswordTest extends TestCase
             ->call('updatePassword');
 
         $this->assertTrue(Hash::check('new-password', $user->fresh()->password));
+        $this->assertFalse($user->fresh()->must_change_password);
     }
 
     public function test_current_password_must_be_correct(): void

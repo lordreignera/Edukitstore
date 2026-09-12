@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::create('drivers', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->nullable()->unique()->constrained()->nullOnDelete();
             $table->string('name');
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
@@ -17,6 +18,11 @@ return new class extends Migration
             $table->string('vehicle_type')->nullable();
             $table->string('vehicle_registration')->nullable();
             $table->string('payment_phone')->nullable();
+            $table->text('notes')->nullable();
+            $table->string('verification_document_path')->nullable();
+            $table->string('verification_document_name')->nullable();
+            $table->string('source')->default('admin');
+            $table->timestamp('submitted_at')->nullable();
             $table->boolean('is_approved')->default(false);
             $table->boolean('is_available')->default(true);
             $table->timestamp('approved_at')->nullable();

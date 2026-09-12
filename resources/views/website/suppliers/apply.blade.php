@@ -58,7 +58,7 @@
 
                     <div>
                         <label class="text-sm font-bold text-slate-700" for="email">Email</label>
-                        <input id="email" name="email" type="email" value="{{ old('email') }}" class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                        <input id="email" name="email" type="email" value="{{ old('email') }}" required class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
                         @error('email') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 
@@ -66,6 +66,17 @@
                         <label class="text-sm font-bold text-slate-700" for="district">District</label>
                         <input id="district" name="district" value="{{ old('district') }}" required class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
                         @error('district') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
+                        <label class="text-sm font-bold text-slate-700" for="password">Create password</label>
+                        <input id="password" name="password" type="password" required autocomplete="new-password" class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                        @error('password') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
+                        <label class="text-sm font-bold text-slate-700" for="password_confirmation">Confirm password</label>
+                        <input id="password_confirmation" name="password_confirmation" type="password" required autocomplete="new-password" class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
                     </div>
 
                     <div class="sm:col-span-2">
