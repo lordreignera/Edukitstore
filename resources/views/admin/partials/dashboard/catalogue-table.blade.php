@@ -19,15 +19,17 @@
                         <td class="px-5 py-3.5">
                             <div class="flex min-w-[210px] items-center gap-3">
                                 <div class="size-10 shrink-0 overflow-hidden rounded border border-slate-200 bg-slate-50">
-                                    @if ($product->image_url)
-                                        <img src="{{ $product->image_url }}" alt="" class="h-full w-full object-contain p-1">
-                                    @else
-                                        <span class="grid h-full place-items-center text-slate-400"><x-ui.icon name="products" size="size-4" /></span>
-                                    @endif
+                                    <x-ui.responsive-image
+                                        :src="$product->image_url"
+                                        alt=""
+                                        label="EK"
+                                        image-class="h-full w-full object-contain p-1"
+                                        fallback-class="grid h-full w-full place-items-center text-[10px] font-black text-slate-400"
+                                    />
                                 </div>
                                 <div class="min-w-0">
                                     <a href="{{ route('admin.products.edit', $product) }}" class="block truncate font-bold text-slate-900 hover:text-emerald-700">{{ $product->name }}</a>
-                                    <p class="truncate text-xs text-slate-500">{{ $product->category?->name ?? 'Uncategorised' }} · {{ $product->sku }}</p>
+                                    <p class="truncate text-xs text-slate-500">{{ $product->category?->name ?? 'Uncategorised' }} &middot; {{ $product->sku }}</p>
                                 </div>
                             </div>
                         </td>

@@ -53,7 +53,15 @@
         <label class="text-sm font-medium text-gray-700" for="{{ $prefix }}-image">Product image</label>
         @if ($product->image_url)
             <div class="mt-2 flex items-center gap-4 rounded border border-gray-200 bg-gray-50 p-3">
-                <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="size-20 rounded bg-white object-contain">
+                <div class="size-20 shrink-0 overflow-hidden rounded bg-white">
+                    <x-ui.responsive-image
+                        :src="$product->image_url"
+                        :alt="$product->name"
+                        :label="$product->category?->name ?? 'Image'"
+                        image-class="h-full w-full object-contain p-1"
+                        fallback-class="grid h-full w-full place-items-center px-2 text-center text-[10px] font-black uppercase leading-4 text-slate-400"
+                    />
+                </div>
                 <p class="text-xs leading-5 text-gray-500">Upload a new image only when you want to replace the current one.</p>
             </div>
         @endif

@@ -6,6 +6,7 @@ use App\Models\ShoppingList;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class WebsiteProductFlowTest extends TestCase
@@ -36,7 +37,8 @@ class WebsiteProductFlowTest extends TestCase
             ->assertOk()
             ->assertSee('Everything for their education')
             ->assertSee('Ugandan Exercise Book 96 Pages')
-            ->assertSee('UGX 2,500');
+            ->assertSee('UGX 2,500')
+            ->assertSee('Mobile apps are being prepared');
     }
 
     public function test_product_search_displays_matching_products(): void
@@ -136,6 +138,29 @@ class WebsiteProductFlowTest extends TestCase
         $this->get(route('website.cart.index'))
             ->assertOk()
             ->assertSee('/images/products/files-and-folders.jpg', false);
+    }
+
+    public function test_product_image_url_falls_back_to_seed_disk_for_missing_public_image(): void
+    {
+        Storage::fake('s3');
+        config([
+            'filesystems.product_images_disk' => 's3',
+            'filesystems.disks.s3.url' => 'https://cdn.edukit.test',
+        ]);
+
+        Storage::disk('s3')->put('products/seed/cloud-only-product.png', 'image');
+
+        $product = Product::create([
+            'name' => 'Cloud Only Product',
+            'slug' => 'cloud-only-product',
+            'sku' => 'TEST-CLOUD',
+            'price' => 10000,
+            'stock_quantity' => 10,
+            'image_path' => '/images/products/cloud-only-product.png',
+            'is_active' => true,
+        ]);
+
+        $this->assertStringContainsString('/products/seed/cloud-only-product.png', $product->image_url);
     }
 
     public function test_coming_soon_pages_are_real_destinations(): void

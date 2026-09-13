@@ -4,11 +4,11 @@
             <img src="/images/website/edukit-store-logo.png" alt="EduKit Store" class="h-14 w-auto sm:h-16">
             <p class="mt-3 max-w-xs text-slate-600">EduKit connects parents, schools, suppliers and delivery partners to make education more accessible for every child in Uganda.</p>
             <div class="mt-4 flex gap-3 text-[#07215f]">
-                <a href="#" class="grid size-8 place-items-center rounded-full bg-[#f1f7fc] font-black hover:bg-emerald-50 hover:text-emerald-700" aria-label="Facebook">f</a>
-                <a href="#" class="grid size-8 place-items-center rounded-full bg-[#f1f7fc] font-black hover:bg-emerald-50 hover:text-emerald-700" aria-label="X">x</a>
-                <a href="#" class="grid size-8 place-items-center rounded-full bg-[#f1f7fc] font-black hover:bg-emerald-50 hover:text-emerald-700" aria-label="Instagram">ig</a>
-                <a href="#" class="grid size-8 place-items-center rounded-full bg-[#f1f7fc] font-black hover:bg-emerald-50 hover:text-emerald-700" aria-label="YouTube">yt</a>
-                <a href="#" class="grid size-8 place-items-center rounded-full bg-[#f1f7fc] font-black hover:bg-emerald-50 hover:text-emerald-700" aria-label="LinkedIn">in</a>
+                <a href="#" class="grid size-8 place-items-center rounded-full bg-[#f1f7fc] hover:bg-emerald-50 hover:text-emerald-700" aria-label="Facebook"><x-ui.icon name="facebook" size="size-4" /></a>
+                <a href="#" class="grid size-8 place-items-center rounded-full bg-[#f1f7fc] hover:bg-emerald-50 hover:text-emerald-700" aria-label="X"><x-ui.icon name="x-social" size="size-4" /></a>
+                <a href="#" class="grid size-8 place-items-center rounded-full bg-[#f1f7fc] hover:bg-emerald-50 hover:text-emerald-700" aria-label="Instagram"><x-ui.icon name="instagram" size="size-4" /></a>
+                <a href="#" class="grid size-8 place-items-center rounded-full bg-[#f1f7fc] hover:bg-emerald-50 hover:text-emerald-700" aria-label="YouTube"><x-ui.icon name="youtube" size="size-4" /></a>
+                <a href="#" class="grid size-8 place-items-center rounded-full bg-[#f1f7fc] hover:bg-emerald-50 hover:text-emerald-700" aria-label="LinkedIn"><x-ui.icon name="linkedin" size="size-4" /></a>
             </div>
         </div>
 
@@ -46,24 +46,25 @@
         <div>
             <p class="font-black text-[#07215f]">Contact Us</p>
             <div class="mt-3 grid gap-2 text-slate-600">
-                <p>+256 700 123456</p>
-                <p>support@edukit.ug</p>
-                <p>Kampala, Uganda</p>
+                <p class="flex items-center gap-2"><x-ui.icon name="phone" size="size-4" /> <span>+256 700 123456</span></p>
+                <p class="flex items-center gap-2"><x-ui.icon name="mail" size="size-4" /> <span>support@edukit.ug</span></p>
+                <p class="flex items-center gap-2"><x-ui.icon name="map-pin" size="size-4" /> <span>Kampala, Uganda</span></p>
             </div>
         </div>
 
         <div>
             <p class="font-black text-[#07215f]">Download Our App</p>
             <div class="mt-3 grid max-w-40 gap-2">
-                <a href="#" class="rounded bg-black px-3 py-2 text-white shadow-sm">
-                    <span class="block text-[9px] uppercase leading-none text-white/70">Get it on</span>
-                    <span class="block text-sm font-black leading-tight">Google Play</span>
-                </a>
-                <a href="#" class="rounded bg-black px-3 py-2 text-white shadow-sm">
-                    <span class="block text-[9px] uppercase leading-none text-white/70">Download on the</span>
-                    <span class="block text-sm font-black leading-tight">App Store</span>
-                </a>
+                <div class="rounded bg-black px-3 py-2 text-white shadow-sm">
+                    <span class="flex items-center gap-2 text-[9px] uppercase leading-none text-white/70"><x-ui.icon name="play-store" size="size-4" /> Android</span>
+                    <span class="block text-sm font-black leading-tight">Coming soon</span>
+                </div>
+                <div class="rounded bg-black px-3 py-2 text-white shadow-sm">
+                    <span class="flex items-center gap-2 text-[9px] uppercase leading-none text-white/70"><x-ui.icon name="app-store" size="size-4" /> iOS</span>
+                    <span class="block text-sm font-black leading-tight">Coming soon</span>
+                </div>
             </div>
+            <p class="mt-2 text-xs font-semibold leading-5 text-slate-500">Mobile apps are being prepared for parents, suppliers and delivery teams.</p>
         </div>
     </div>
 

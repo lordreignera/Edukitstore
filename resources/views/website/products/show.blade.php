@@ -6,11 +6,13 @@
     <section class="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-2 lg:px-8">
         <div class="overflow-hidden rounded-md border border-[#dbe8f3] bg-white shadow-sm">
             <div class="aspect-[4/3] bg-slate-100">
-                @if ($product->image_url)
-                    <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="h-full w-full object-contain p-6">
-                @else
-                    <div class="grid h-full place-items-center bg-emerald-50 text-lg font-bold text-emerald-800">EduKit Supply</div>
-                @endif
+                <x-ui.responsive-image
+                    :src="$product->image_url"
+                    :alt="$product->name"
+                    :label="$product->category?->name ?? 'EduKit Supply'"
+                    image-class="h-full w-full object-contain p-6"
+                    fallback-class="grid h-full w-full place-items-center bg-emerald-50 px-4 text-center text-lg font-bold text-emerald-800"
+                />
             </div>
         </div>
 

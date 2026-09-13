@@ -27,11 +27,12 @@
             @forelse ($products as $product)
                 <article class="group overflow-hidden rounded-md border border-[#dbe8f3] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
                     <a href="{{ route('website.products.show', $product) }}" class="block aspect-[4/3] bg-slate-100">
-                        @if ($product->image_url)
-                            <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="h-full w-full object-contain p-3">
-                        @else
-                            <span class="grid h-full place-items-center bg-emerald-50 text-sm font-bold text-emerald-800">EduKit Supply</span>
-                        @endif
+                        <x-ui.responsive-image
+                            :src="$product->image_url"
+                            :alt="$product->name"
+                            :label="$product->category?->name ?? 'EduKit Supply'"
+                            fallback-class="grid h-full w-full place-items-center bg-emerald-50 px-3 text-center text-xs font-black uppercase tracking-wide text-emerald-800"
+                        />
                     </a>
                     <div class="p-3 sm:p-4">
                         <p class="text-[10px] font-extrabold uppercase text-slate-500 sm:text-[11px]">{{ $product->category?->name ?? 'School supply' }}</p>

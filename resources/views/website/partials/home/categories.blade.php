@@ -13,11 +13,13 @@
                 @php($image = $categoryArtwork[$category->name] ?? $categoryImages->get($category->id))
                 <a href="{{ route('website.products.index', ['category' => $category->slug]) }}" class="group rounded-md border border-[#dbe8f3] bg-white p-3 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-500 hover:shadow-md">
                     <div class="mx-auto grid aspect-square w-20 place-items-center overflow-hidden rounded-md bg-[#f1f8ff]">
-                        @if ($image)
-                            <img src="{{ $image }}" alt="{{ $category->name }}" class="h-full w-full object-contain p-2">
-                        @else
-                            <span class="text-sm font-black text-emerald-700">EK</span>
-                        @endif
+                        <x-ui.responsive-image
+                            :src="$image"
+                            :alt="$category->name"
+                            :label="$category->name"
+                            image-class="h-full w-full object-contain p-2"
+                            fallback-class="grid h-full w-full place-items-center px-2 text-center text-[10px] font-black leading-4 text-emerald-700"
+                        />
                     </div>
                     <p class="mt-3 min-h-9 text-[11px] font-black leading-4 text-[#07215f] group-hover:text-emerald-700">{{ $category->name }}</p>
                 </a>

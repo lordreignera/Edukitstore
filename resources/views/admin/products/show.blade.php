@@ -18,11 +18,12 @@
         <div class="mx-auto grid max-w-6xl gap-6 px-4 sm:px-6 lg:grid-cols-[380px_1fr] lg:px-8">
             <section class="rounded border border-slate-200 bg-white p-4 shadow-sm">
                 <div class="aspect-square overflow-hidden rounded bg-slate-50">
-                    @if ($product->image_url)
-                        <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="h-full w-full object-contain">
-                    @else
-                        <div class="grid h-full place-items-center text-sm font-bold text-slate-400">No image</div>
-                    @endif
+                    <x-ui.responsive-image
+                        :src="$product->image_url"
+                        :alt="$product->name"
+                        :label="$product->category?->name ?? 'No image'"
+                        image-class="h-full w-full object-contain"
+                    />
                 </div>
             </section>
 

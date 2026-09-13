@@ -17,11 +17,12 @@
             @foreach ($featuredProducts->take(6) as $product)
                 <article class="group overflow-hidden rounded-md border border-[#dbe8f3] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
                     <a href="{{ route('website.products.show', $product) }}" class="block aspect-[1.05] bg-[#f8fbff]">
-                        @if ($product->image_url)
-                            <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="h-full w-full object-contain p-3">
-                        @else
-                            <span class="grid h-full place-items-center text-sm font-bold text-emerald-800">EduKit Supply</span>
-                        @endif
+                        <x-ui.responsive-image
+                            :src="$product->image_url"
+                            :alt="$product->name"
+                            :label="$product->category?->name ?? 'EduKit Supply'"
+                            fallback-class="grid h-full w-full place-items-center px-3 text-center text-xs font-black uppercase tracking-wide text-emerald-800"
+                        />
                     </a>
                     <div class="p-3">
                         <a href="{{ route('website.products.show', $product) }}" class="block min-h-10 text-[12px] font-black leading-5 text-[#07215f] group-hover:text-emerald-700 sm:text-[13px]">{{ $product->name }}</a>

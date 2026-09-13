@@ -22,12 +22,12 @@
             @forelse ($products as $product)
                 <article class="grid gap-4 rounded-md border border-[#dbe8f3] bg-white p-4 shadow-sm sm:grid-cols-[120px_1fr_220px]">
                     <div class="relative aspect-square overflow-hidden rounded-md bg-slate-50">
-                        @if ($product->image_url)
-                            <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="h-full w-full object-contain p-2" onerror="this.remove(); this.parentElement.querySelector('[data-image-placeholder]').classList.remove('hidden');">
-                        @endif
-                        <div data-image-placeholder class="{{ $product->image_url ? 'hidden' : '' }} grid h-full w-full place-items-center px-3 text-center text-xs font-black uppercase tracking-wide text-slate-400">
-                            {{ $product->category?->name ?? 'EduKit item' }}
-                        </div>
+                        <x-ui.responsive-image
+                            :src="$product->image_url"
+                            :alt="$product->name"
+                            :label="$product->category?->name ?? 'EduKit item'"
+                            image-class="h-full w-full object-contain p-2"
+                        />
                     </div>
                     <div>
                         <p class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ $product->category?->name ?? 'School supply' }}</p>

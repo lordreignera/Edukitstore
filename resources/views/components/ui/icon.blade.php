@@ -118,6 +118,43 @@
             <rect x="3" y="5" width="18" height="14" rx="2" />
             <path d="m3 7 9 6 9-6" />
             @break
+        @case('phone')
+            <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.7.6 2.5a2 2 0 0 1-.5 2.1L8 9.5a16 16 0 0 0 6.5 6.5l1.2-1.2a2 2 0 0 1 2.1-.5c.8.3 1.6.5 2.5.6a2 2 0 0 1 1.7 2Z" />
+            @break
+        @case('map-pin')
+            <path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z" />
+            <circle cx="12" cy="10" r="3" />
+            @break
+        @case('facebook')
+            <path d="M14 8h2V4h-2c-3 0-5 2-5 5v2H7v4h2v7h4v-7h3l1-4h-4V9c0-.6.4-1 1-1Z" />
+            @break
+        @case('x-social')
+            <path d="m4 4 16 16" />
+            <path d="M20 4 4 20" />
+            @break
+        @case('instagram')
+            <rect x="3" y="3" width="18" height="18" rx="5" />
+            <circle cx="12" cy="12" r="4" />
+            <path d="M17.5 6.5h.01" />
+            @break
+        @case('youtube')
+            <path d="M22 12s0-3.4-.4-5a2.8 2.8 0 0 0-2-2C17.8 4.5 12 4.5 12 4.5s-5.8 0-7.6.5a2.8 2.8 0 0 0-2 2C2 8.6 2 12 2 12s0 3.4.4 5a2.8 2.8 0 0 0 2 2c1.8.5 7.6.5 7.6.5s5.8 0 7.6-.5a2.8 2.8 0 0 0 2-2c.4-1.6.4-5 .4-5Z" />
+            <path d="m10 9 5 3-5 3V9Z" />
+            @break
+        @case('linkedin')
+            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4V9h4v2" />
+            <path d="M2 9h4v12H2z" />
+            <circle cx="4" cy="4" r="2" />
+            @break
+        @case('play-store')
+            <path d="M5 3v18l14-9L5 3Z" />
+            <path d="m5 3 10 9L5 21" />
+            @break
+        @case('app-store')
+            <path d="M8 16h8" />
+            <path d="m9 13 3-6 3 6" />
+            <path d="M6 21h12a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3Z" />
+            @break
         @case('eye')
             <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
             <circle cx="12" cy="12" r="2.5" />

@@ -41,7 +41,7 @@
             'Shoes' => '/images/products/black-school-shoes.svg',
             'Bags' => '/images/products/school-backpack.jpg',
             'Bedding and Linen' => '/images/products/school_material.jpeg',
-            'Toiletries' => '/images/products/dove-deodorant.png',
+            'Toiletries' => '/images/products/toiletries-pack.svg',
             'School Equipment' => '/images/products/school_equipment.jpeg',
             'Other Supplies' => '/images/products/shoopinggcart.jpeg',
         ];
