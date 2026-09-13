@@ -44,23 +44,32 @@ class EduKitProductSeeder extends Seeder
 
         foreach ($products as $product) {
             $imagePath = $this->storeSeedImage($product['image_url']);
+            $slug = $product['slug'] ?? Str::slug($product['name']);
 
-            Product::firstOrCreate(
-                ['slug' => $product['slug'] ?? Str::slug($product['name'])],
-                [
-                    'product_category_id' => $categories[$product['category']],
-                    'name' => $product['name'],
-                    'sku' => $this->nextProductCode(),
-                    'description' => $product['description'],
-                    'brand' => $product['brand'],
-                    'unit' => $product['unit'],
-                    'price' => $product['price'],
-                    'stock_quantity' => $product['stock_quantity'],
-                    'image_path' => $imagePath,
-                    'is_active' => true,
-                    'is_featured' => $product['is_featured'],
-                ]
-            );
+            $existingProduct = Product::where('slug', $slug)->first();
+
+            if ($existingProduct) {
+                if ($this->shouldRefreshSeedImage($existingProduct->image_path) && $imagePath) {
+                    $existingProduct->update(['image_path' => $imagePath]);
+                }
+
+                continue;
+            }
+
+            Product::create([
+                'slug' => $slug,
+                'product_category_id' => $categories[$product['category']],
+                'name' => $product['name'],
+                'sku' => $this->nextProductCode(),
+                'description' => $product['description'],
+                'brand' => $product['brand'],
+                'unit' => $product['unit'],
+                'price' => $product['price'],
+                'stock_quantity' => $product['stock_quantity'],
+                'image_path' => $imagePath,
+                'is_active' => true,
+                'is_featured' => $product['is_featured'],
+            ]);
         }
     }
 
@@ -79,6 +88,18 @@ class EduKitProductSeeder extends Seeder
         }
 
         return $path;
+    }
+
+    private function shouldRefreshSeedImage(?string $imagePath): bool
+    {
+        if (! $imagePath) {
+            return true;
+        }
+
+        $path = ltrim($imagePath, '/');
+
+        return str_starts_with($path, 'images/products/')
+            || str_starts_with($path, 'products/seed/');
     }
 
     private function nextProductCode(): string

@@ -211,12 +211,13 @@ class AdminProductManagementTest extends TestCase
         $this->assertSame(18000, (int) $product->price);
         $this->assertMatchesRegularExpression('/^EDK\d{9}$/', $product->sku);
         $this->assertSame('products/seed/oxford-math-set.png', $product->image_path);
-        $this->assertStringContainsString('/storage/products/seed/oxford-math-set.png', $product->image_url);
+        $this->assertStringContainsString('/images/products/oxford-math-set.png', $product->image_url);
         Storage::disk('public')->assertExists($product->image_path);
 
         $product->update([
             'price' => 20000,
             'description' => 'Admin updated this product after the initial seed.',
+            'image_path' => '/images/products/oxford-math-set.png',
         ]);
 
         $this->seed(EduKitProductSeeder::class);
@@ -225,5 +226,6 @@ class AdminProductManagementTest extends TestCase
 
         $this->assertSame(20000, (int) $product->price);
         $this->assertSame('Admin updated this product after the initial seed.', $product->description);
+        $this->assertSame('products/seed/oxford-math-set.png', $product->image_path);
     }
 }

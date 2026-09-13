@@ -57,8 +57,28 @@ class Product extends Model
 
             $path = ltrim($this->image_path, '/');
 
-            if (str_starts_with($path, 'images/') && is_file(public_path($path))) {
-                return asset($path);
+            if (preg_match('/^https?:\/\//i', $path)) {
+                return $path;
+            }
+
+            if (is_file(public_path($path))) {
+                return '/'.$path;
+            }
+
+            if (str_starts_with($path, 'products/seed/')) {
+                $publicSeedPath = 'images/products/'.basename($path);
+
+                if (is_file(public_path($publicSeedPath))) {
+                    return '/'.$publicSeedPath;
+                }
+            }
+
+            if (str_starts_with($path, 'images/products/')) {
+                $storageSeedPath = 'products/seed/'.basename($path);
+
+                if (Storage::disk(self::imageDisk())->exists($storageSeedPath)) {
+                    return Storage::disk(self::imageDisk())->url($storageSeedPath);
+                }
             }
 
             return Storage::disk(self::imageDisk())->url($path);
