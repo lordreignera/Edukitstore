@@ -74,7 +74,7 @@
 
     @if ($products->isNotEmpty())
         <dialog data-order-summary-dialog class="w-[min(94vw,720px)] rounded-md border border-[#dbe8f3] bg-white p-0 text-slate-950 shadow-2xl backdrop:bg-[#03133d]/60">
-            <div class="max-h-[90vh] overflow-y-auto">
+            <div class="max-h-[90vh] overflow-y-auto" data-school-delivery data-subtotal="{{ $subtotal }}">
                 <div class="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
                     <div>
                         <p class="text-xs font-black uppercase tracking-wide text-emerald-700">Order summary</p>
@@ -102,7 +102,7 @@
                         <p class="mt-3 text-xs leading-5 text-slate-500">The delivery fee is pulled from the selected school record set by EduKit admin.</p>
                     </div>
 
-                    <form method="POST" action="{{ route('website.cart.submit') }}" class="mt-5 grid gap-4 sm:grid-cols-2" data-checkout-form data-subtotal="{{ $subtotal }}">
+                    <form method="POST" action="{{ route('website.cart.submit') }}" class="mt-5 grid gap-4 sm:grid-cols-2">
                         @csrf
                         <div>
                             <label for="parent_name" class="text-sm font-bold text-slate-700">Your name</label>
@@ -119,41 +119,7 @@
                             <input id="email" name="email" type="email" value="{{ old('email') }}" class="mt-1 w-full rounded-md border-[#d7e4ef] text-sm focus:border-emerald-600 focus:ring-emerald-600">
                             @error('email') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                         </div>
-                        <div>
-                            <label for="delivery_preference" class="text-sm font-bold text-slate-700">Delivery option</label>
-                            <select id="delivery_preference" name="delivery_preference" required data-delivery-preference class="mt-1 w-full rounded-md border-[#d7e4ef] text-sm focus:border-emerald-600 focus:ring-emerald-600">
-                                <option value="school" @selected(old('delivery_preference', 'school') === 'school')>Deliver to school</option>
-                                <option value="pickup" @selected(old('delivery_preference') === 'pickup')>Pickup from warehouse</option>
-                            </select>
-                        </div>
-                        <div data-school-fields>
-                            <label for="school_id" class="text-sm font-bold text-slate-700">School</label>
-                            <select id="school_id" name="school_id" data-school-select class="mt-1 w-full rounded-md border-[#d7e4ef] text-sm focus:border-emerald-600 focus:ring-emerald-600">
-                                <option value="" data-fee="0">Select school</option>
-                                @foreach ($schools as $school)
-                                    <option value="{{ $school->id }}" data-fee="{{ $school->delivery_fee }}" data-location="{{ $school->location }}" data-district="{{ $school->district?->name }}" @selected((int) old('school_id') === $school->id)>
-                                        {{ $school->name }} - {{ $school->district?->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('school_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                        </div>
-                        <div data-school-fields>
-                            <label for="learner_name" class="text-sm font-bold text-slate-700">Student name</label>
-                            <input id="learner_name" name="learner_name" value="{{ old('learner_name') }}" class="mt-1 w-full rounded-md border-[#d7e4ef] text-sm focus:border-emerald-600 focus:ring-emerald-600">
-                            @error('learner_name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                        </div>
-                        <div data-school-fields>
-                            <label for="class_level" class="text-sm font-bold text-slate-700">Class / stream</label>
-                            <input id="class_level" name="class_level" value="{{ old('class_level') }}" class="mt-1 w-full rounded-md border-[#d7e4ef] text-sm focus:border-emerald-600 focus:ring-emerald-600">
-                            @error('class_level') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                        </div>
-                        <div class="sm:col-span-2">
-                            <div class="rounded-md border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-950" data-school-fee-card>
-                                <p class="font-black">Selected school fee: <span data-school-fee-text>UGX 0</span></p>
-                                <p class="mt-1 text-xs leading-5 text-emerald-800" data-school-location-text>Select a school to show the destination fee.</p>
-                            </div>
-                        </div>
+                        <x-website.school-delivery-fields :schools="$schools" />
                         <div class="sm:col-span-2">
                             <label for="notes" class="text-sm font-bold text-slate-700">Notes</label>
                             <textarea id="notes" name="notes" rows="3" class="mt-1 w-full rounded-md border-[#d7e4ef] text-sm focus:border-emerald-600 focus:ring-emerald-600">{{ old('notes') }}</textarea>
@@ -190,53 +156,11 @@
                 }
             });
 
-            const checkoutForm = document.querySelector('[data-checkout-form]');
-            const subtotal = Number(checkoutForm?.dataset.subtotal || 0);
-            const deliveryPreference = document.querySelector('[data-delivery-preference]');
-            const schoolSelect = document.querySelector('[data-school-select]');
-            const schoolFields = document.querySelectorAll('[data-school-fields]');
-            const deliveryFeeText = document.querySelector('[data-delivery-fee]');
-            const grandTotalText = document.querySelector('[data-grand-total]');
-            const schoolFeeText = document.querySelector('[data-school-fee-text]');
-            const schoolLocationText = document.querySelector('[data-school-location-text]');
-            const learnerInput = document.getElementById('learner_name');
-            const classInput = document.getElementById('class_level');
-            const formatUgx = (amount) => `UGX ${Number(amount || 0).toLocaleString('en-US')}`;
-
-            const syncCheckoutTotals = () => {
-                const isSchoolDelivery = deliveryPreference?.value === 'school';
-                const selectedSchool = schoolSelect?.selectedOptions?.[0];
-                const fee = isSchoolDelivery ? Number(selectedSchool?.dataset.fee || 0) : 0;
-                const location = selectedSchool?.dataset.location || selectedSchool?.dataset.district || '';
-
-                schoolFields.forEach((field) => {
-                    field.classList.toggle('hidden', ! isSchoolDelivery);
-                });
-
-                if (schoolSelect) {
-                    schoolSelect.required = isSchoolDelivery;
-                }
-
-                if (learnerInput && classInput) {
-                    learnerInput.required = isSchoolDelivery;
-                    classInput.required = isSchoolDelivery;
-                }
-
-                deliveryFeeText.textContent = formatUgx(fee);
-                grandTotalText.textContent = formatUgx(subtotal + fee);
-                schoolFeeText.textContent = formatUgx(fee);
-                schoolLocationText.textContent = isSchoolDelivery
-                    ? (selectedSchool?.value ? `Delivery to ${location || selectedSchool.textContent.trim()}.` : 'Select a school to show the destination fee.')
-                    : 'Pickup from the EduKit warehouse has no delivery fee.';
-            };
-
-            deliveryPreference?.addEventListener('change', syncCheckoutTotals);
-            schoolSelect?.addEventListener('change', syncCheckoutTotals);
-            syncCheckoutTotals();
-
             @if ($errors->any())
                 orderSummaryDialog?.showModal();
             @endif
         </script>
+
+        @include('website.partials.forms.school-delivery-script')
     @endif
 @endpush

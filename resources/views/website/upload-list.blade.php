@@ -28,7 +28,7 @@
                 </div>
             </div>
 
-            <form method="POST" action="{{ route('website.upload-list.store') }}" enctype="multipart/form-data" class="rounded border border-slate-200 bg-[#f8fbff] p-5 shadow-sm sm:p-7">
+            <form method="POST" action="{{ route('website.upload-list.store') }}" enctype="multipart/form-data" class="rounded border border-slate-200 bg-[#f8fbff] p-5 shadow-sm sm:p-7" data-school-delivery>
                 @csrf
 
                 @if (session('status'))
@@ -56,46 +56,14 @@
                         @error('email') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 
-                    <div>
-                        <label class="text-sm font-bold text-slate-700" for="learner_name">Learner name</label>
-                        <input id="learner_name" name="learner_name" value="{{ old('learner_name') }}" class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
-                        @error('learner_name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div>
-                        <label class="text-sm font-bold text-slate-700" for="class_level">Class or level</label>
-                        <input id="class_level" name="class_level" value="{{ old('class_level') }}" placeholder="P.5, S.2, Baby class" class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
-                        @error('class_level') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div>
-                        <label class="text-sm font-bold text-slate-700" for="delivery_preference">Delivery preference</label>
-                        <select id="delivery_preference" name="delivery_preference" required data-upload-delivery-preference class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
-                            <option value="school" @selected(old('delivery_preference', 'school') === 'school')>Deliver to school</option>
-                            <option value="pickup" @selected(old('delivery_preference') === 'pickup')>Pickup from warehouse</option>
-                        </select>
-                        @error('delivery_preference') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div data-upload-school-fields>
-                        <label class="text-sm font-bold text-slate-700" for="school_id">School</label>
-                        <select id="school_id" name="school_id" data-upload-school-select class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
-                            <option value="" data-fee="0">Select school</option>
-                            @foreach ($schools as $school)
-                                <option value="{{ $school->id }}" data-fee="{{ $school->delivery_fee }}" data-location="{{ $school->location }}" data-district="{{ $school->district?->name }}" @selected((int) old('school_id') === $school->id)>
-                                    {{ $school->name }} - {{ $school->district?->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('school_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div class="sm:col-span-2">
-                        <div class="rounded border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-950">
-                            <p class="font-black">School delivery fee: <span data-upload-school-fee>UGX 0</span></p>
-                            <p class="mt-1 text-xs leading-5 text-emerald-800" data-upload-school-location>Select a school to show the delivery fee. EduKit will add item pricing after reviewing the uploaded list.</p>
-                        </div>
-                    </div>
+                    <x-website.school-delivery-fields
+                        :schools="$schools"
+                        input-class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600"
+                        fee-card-class="rounded border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-950"
+                        fee-label="School delivery fee"
+                        school-help="Select a school to show the delivery fee. EduKit will add item pricing after reviewing the uploaded list."
+                        pickup-help="Pickup from the EduKit warehouse has no delivery fee. EduKit will add item pricing after reviewing the uploaded list."
+                    />
 
                     <div class="sm:col-span-2">
                         <label class="text-sm font-bold text-slate-700" for="shopping_list">School list file</label>
@@ -118,41 +86,5 @@
 @endsection
 
 @push('scripts')
-    <script>
-        const uploadDeliveryPreference = document.querySelector('[data-upload-delivery-preference]');
-        const uploadSchoolSelect = document.querySelector('[data-upload-school-select]');
-        const uploadSchoolFields = document.querySelectorAll('[data-upload-school-fields]');
-        const uploadSchoolFee = document.querySelector('[data-upload-school-fee]');
-        const uploadSchoolLocation = document.querySelector('[data-upload-school-location]');
-        const uploadLearnerInput = document.getElementById('learner_name');
-        const uploadClassInput = document.getElementById('class_level');
-        const uploadFormatUgx = (amount) => `UGX ${Number(amount || 0).toLocaleString('en-US')}`;
-
-        const syncUploadSchoolFee = () => {
-            const isSchoolDelivery = uploadDeliveryPreference?.value === 'school';
-            const selectedSchool = uploadSchoolSelect?.selectedOptions?.[0];
-            const fee = isSchoolDelivery ? Number(selectedSchool?.dataset.fee || 0) : 0;
-            const location = selectedSchool?.dataset.location || selectedSchool?.dataset.district || '';
-
-            uploadSchoolFields.forEach((field) => field.classList.toggle('hidden', ! isSchoolDelivery));
-
-            if (uploadSchoolSelect) {
-                uploadSchoolSelect.required = isSchoolDelivery;
-            }
-
-            if (uploadLearnerInput && uploadClassInput) {
-                uploadLearnerInput.required = isSchoolDelivery;
-                uploadClassInput.required = isSchoolDelivery;
-            }
-
-            uploadSchoolFee.textContent = uploadFormatUgx(fee);
-            uploadSchoolLocation.textContent = isSchoolDelivery
-                ? (selectedSchool?.value ? `Delivery to ${location || selectedSchool.textContent.trim()}.` : 'Select a school to show the delivery fee. EduKit will add item pricing after reviewing the uploaded list.')
-                : 'Pickup from the EduKit warehouse has no delivery fee. EduKit will add item pricing after reviewing the uploaded list.';
-        };
-
-        uploadDeliveryPreference?.addEventListener('change', syncUploadSchoolFee);
-        uploadSchoolSelect?.addEventListener('change', syncUploadSchoolFee);
-        syncUploadSchoolFee();
-    </script>
+    @include('website.partials.forms.school-delivery-script')
 @endpush

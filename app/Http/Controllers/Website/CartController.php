@@ -4,18 +4,17 @@ namespace App\Http\Controllers\Website;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
-use App\Models\School;
 use App\Models\ShoppingList;
+use App\Services\SchoolDeliveryService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 
 class CartController extends Controller
 {
-    public function index(): View
+    public function index(SchoolDeliveryService $delivery): View
     {
         $cart = session('cart', []);
         $productIds = array_keys($cart);
@@ -32,12 +31,7 @@ class CartController extends Controller
             });
 
         $subtotal = $products->sum('cart_line_total');
-        $schools = School::query()
-            ->with('district')
-            ->active()
-            ->whereHas('district', fn ($query) => $query->active())
-            ->orderBy('name')
-            ->get();
+        $schools = $delivery->activeSchools();
 
         return view('website.cart.index', compact('products', 'subtotal', 'schools'));
     }
@@ -73,7 +67,7 @@ class CartController extends Controller
         return back()->with('status', "{$product->name} quantity updated.");
     }
 
-    public function submit(Request $request): RedirectResponse
+    public function submit(Request $request, SchoolDeliveryService $delivery): RedirectResponse
     {
         $cart = session('cart', []);
 
@@ -85,35 +79,10 @@ class CartController extends Controller
             'parent_name' => ['required', 'string', 'max:160'],
             'phone' => ['required', 'string', 'max:40'],
             'email' => ['nullable', 'email', 'max:255'],
-            'school_id' => ['nullable', 'required_if:delivery_preference,school', Rule::exists('schools', 'id')->where('is_active', true)],
-            'learner_name' => ['nullable', 'required_if:delivery_preference,school', 'string', 'max:160'],
-            'class_level' => ['nullable', 'required_if:delivery_preference,school', 'string', 'max:80'],
-            'delivery_location' => ['nullable', 'string', 'max:255'],
-            'delivery_preference' => ['required', 'in:school,pickup'],
             'notes' => ['nullable', 'string', 'max:2000'],
-        ]);
+        ] + $delivery->validationRules());
 
-        $school = null;
-        $deliveryFee = 0;
-
-        if ($data['delivery_preference'] === 'school') {
-            $school = School::query()
-                ->with('district')
-                ->active()
-                ->whereHas('district', fn ($query) => $query->active())
-                ->findOrFail($data['school_id']);
-
-            $deliveryFee = $school->delivery_fee;
-            $data['district_id'] = $school->district_id;
-            $data['school_id'] = $school->id;
-            $data['school_name'] = $school->name;
-            $data['delivery_location'] = $school->location ?: $school->district?->name;
-        } else {
-            $data['district_id'] = null;
-            $data['school_id'] = null;
-            $data['school_name'] = 'Warehouse pickup';
-            $data['delivery_location'] = $data['delivery_location'] ?: 'EduKit warehouse pickup';
-        }
+        $data = $delivery->applyTo($data);
 
         $products = Product::query()
             ->active()
@@ -138,13 +107,14 @@ class CartController extends Controller
             return back()->withErrors(['cart' => 'The products in your cart are no longer available.']);
         }
 
+        $itemsSubtotal = $items->sum('line_total');
+
         $shoppingList = ShoppingList::create($data + [
             'source' => ShoppingList::SOURCE_CART,
             'reference' => ShoppingList::nextReference(),
             'cart_items' => $items->all(),
-            'items_subtotal' => $items->sum('line_total'),
-            'delivery_fee' => $deliveryFee,
-            'estimated_total' => $items->sum('line_total') + $deliveryFee,
+            'items_subtotal' => $itemsSubtotal,
+            'estimated_total' => $itemsSubtotal + $data['delivery_fee'],
             'status' => ShoppingList::STATUS_QUOTED,
             'payment_status' => ShoppingList::PAYMENT_UNPAID,
         ]);
