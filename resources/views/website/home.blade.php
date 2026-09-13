@@ -66,16 +66,16 @@
     @endphp
 
     @include('website.partials.home.hero', ['heroSlides' => $heroSlides, 'categories' => $categories])
+    @include('website.partials.home.featured-products', [
+        'featuredProducts' => $featuredProducts,
+        'featuredTabs' => $featuredTabs,
+    ])
     @include('website.partials.home.categories', [
         'categories' => $categories,
         'categoryArtwork' => $categoryArtwork,
         'categoryImages' => $categoryImages,
     ])
     @include('website.partials.home.promo-panels')
-    @include('website.partials.home.featured-products', [
-        'featuredProducts' => $featuredProducts,
-        'featuredTabs' => $featuredTabs,
-    ])
     @include('website.partials.home.how-it-works', ['howItWorks' => $howItWorks])
     @include('website.partials.home.why-choose', ['whyChoose' => $whyChoose])
     @include('website.partials.home.newsletter')
