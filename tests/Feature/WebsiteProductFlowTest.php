@@ -67,6 +67,38 @@ class WebsiteProductFlowTest extends TestCase
             ->assertSee('UGX 45,000');
     }
 
+    public function test_product_catalogue_can_sort_by_lowest_price(): void
+    {
+        Product::create([
+            'name' => 'Premium School Bag',
+            'slug' => 'premium-school-bag',
+            'sku' => 'TEST-PREMIUM-BAG',
+            'price' => 90000,
+            'stock_quantity' => 10,
+            'is_active' => true,
+        ]);
+
+        Product::create([
+            'name' => 'Budget Exercise Book',
+            'slug' => 'budget-exercise-book',
+            'sku' => 'TEST-BUDGET-BOOK',
+            'price' => 2500,
+            'stock_quantity' => 10,
+            'is_active' => true,
+        ]);
+
+        $response = $this->get('/products?sort=price_low')
+            ->assertOk()
+            ->assertSee('Shop school supplies')
+            ->assertSee('Departments');
+
+        $this->assertStringContainsString('Budget Exercise Book', $response->getContent());
+        $this->assertLessThan(
+            strpos($response->getContent(), 'Premium School Bag'),
+            strpos($response->getContent(), 'Budget Exercise Book')
+        );
+    }
+
     public function test_search_ignores_stale_category_filter(): void
     {
         $bags = ProductCategory::create([

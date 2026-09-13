@@ -14,9 +14,11 @@ class ProductController extends Controller
     {
         $search = trim((string) $request->query('search'));
         $selectedCategory = $search !== '' ? '' : (string) $request->query('category');
+        $sort = (string) $request->query('sort', 'latest');
 
         $categories = ProductCategory::query()
             ->where('is_active', true)
+            ->withCount(['products' => fn ($query) => $query->active()])
             ->orderBy('name')
             ->get();
 
@@ -34,11 +36,14 @@ class ProductController extends Controller
                         ->orWhereHas('category', fn ($category) => $category->where('name', 'like', "%{$search}%"));
                 });
             })
-            ->latest()
-            ->paginate(12)
+            ->when($sort === 'price_low', fn ($query) => $query->orderBy('price'))
+            ->when($sort === 'price_high', fn ($query) => $query->orderByDesc('price'))
+            ->when($sort === 'name', fn ($query) => $query->orderBy('name'))
+            ->when(! in_array($sort, ['price_low', 'price_high', 'name'], true), fn ($query) => $query->latest())
+            ->paginate(16)
             ->withQueryString();
 
-        return view('website.products.index', compact('categories', 'products', 'search', 'selectedCategory'));
+        return view('website.products.index', compact('categories', 'products', 'search', 'selectedCategory', 'sort'));
     }
 
     public function show(Product $product): View

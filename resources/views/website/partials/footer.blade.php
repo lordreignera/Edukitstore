@@ -53,7 +53,7 @@
         </div>
 
         <div>
-            <p class="font-black text-[#07215f]">Download Our App</p>
+            <p class="font-black text-[#07215f]">Mobile Apps</p>
             <div class="mt-3 grid max-w-40 gap-2">
                 <div class="rounded bg-black px-3 py-2 text-white shadow-sm">
                     <span class="flex items-center gap-2 text-[9px] uppercase leading-none text-white/70"><x-ui.icon name="play-store" size="size-4" /> Android</span>

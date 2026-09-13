@@ -1,52 +1,67 @@
-<section class="relative overflow-hidden border-b border-[#dbe8f3] bg-[#eaf7ff]" data-hero-slider>
-    <div class="relative min-h-[620px] min-[420px]:min-h-[600px] sm:min-h-[560px] lg:min-h-[590px]">
-        @foreach ($heroSlides as $index => $slide)
-            <article class="hero-slide {{ $index === 0 ? 'is-active' : '' }} absolute inset-0" data-hero-slide>
-                <div class="absolute inset-0 bg-gradient-to-r from-white via-white/95 to-white/45"></div>
-                <div class="absolute inset-y-0 right-0 hidden w-[58%] bg-cover bg-center sm:block" style="background-image: url('{{ $slide['image'] }}')">
-                    <div class="h-full w-full bg-gradient-to-r from-white/35 via-white/5 to-transparent"></div>
-                </div>
-                <div class="relative mx-auto grid min-h-[620px] max-w-7xl content-center px-4 py-10 min-[420px]:min-h-[600px] sm:min-h-[560px] sm:px-6 lg:min-h-[590px] lg:px-8">
-                    <div class="max-w-[620px]">
-                        <p class="inline-flex rounded-md border border-emerald-200 bg-white/90 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-emerald-700 shadow-sm sm:text-[11px]">
-                            {{ $slide['eyebrow'] }}
-                        </p>
-                        <h1 class="mt-4 max-w-[640px] text-[30px] font-black leading-[1.08] text-[#07215f] min-[420px]:text-[42px] sm:text-[58px]">
-                            {{ \Illuminate\Support\Str::before($slide['title'], $slide['accent']) }}<span class="text-emerald-600">{{ $slide['accent'] }}</span>
-                        </h1>
-                        <p class="mt-5 max-w-xl text-sm font-semibold leading-7 text-slate-600 sm:text-base">
-                            {{ $slide['copy'] }}
-                        </p>
-                        <div class="mt-7 flex flex-wrap gap-3">
-                            <a href="{{ $slide['primary']['route'] }}" class="rounded-md bg-emerald-600 px-5 py-3 text-sm font-black text-white shadow-sm hover:bg-emerald-700">
-                                {{ $slide['primary']['label'] }}
-                            </a>
-                            <a href="{{ $slide['secondary']['route'] }}" class="rounded-md border border-[#d7e4ef] bg-white px-5 py-3 text-sm font-black text-[#07215f] shadow-sm hover:border-emerald-500 hover:text-emerald-700">
-                                {{ $slide['secondary']['label'] }}
-                            </a>
+<section class="border-b border-[#dbe8f3] bg-[#eef6fb]">
+    <div class="mx-auto grid max-w-7xl gap-4 px-4 py-5 sm:px-6 lg:grid-cols-[236px_minmax(0,1fr)_250px] lg:px-8">
+        <aside class="hidden overflow-hidden rounded-md border border-[#dbe8f3] bg-white shadow-sm lg:block">
+            <div class="border-b border-slate-100 px-4 py-3">
+                <p class="text-sm font-black text-[#07215f]">Shop categories</p>
+            </div>
+            <nav class="grid p-2 text-[13px] font-bold text-[#173267]" aria-label="Shop categories">
+                @foreach ($categories->take(9) as $category)
+                    <a href="{{ route('website.products.index', ['category' => $category->slug]) }}" class="flex items-center justify-between rounded px-3 py-2.5 hover:bg-emerald-50 hover:text-emerald-700">
+                        <span>{{ $category->name }}</span>
+                        <span class="text-[11px] text-slate-400">{{ $category->products_count }}</span>
+                    </a>
+                @endforeach
+            </nav>
+        </aside>
+
+        <section class="relative overflow-hidden rounded-md border border-[#dbe8f3] bg-white shadow-sm" data-hero-slider>
+            <div class="relative min-h-[310px] sm:min-h-[340px]">
+                @foreach ($heroSlides as $index => $slide)
+                    <article class="hero-slide {{ $index === 0 ? 'is-active' : '' }} absolute inset-0" data-hero-slide>
+                        <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('{{ $slide['image'] }}')"></div>
+                        <div class="absolute inset-0 bg-gradient-to-r from-white via-white/90 to-white/20"></div>
+                        <div class="relative grid min-h-[310px] content-center px-5 py-8 sm:min-h-[340px] sm:px-8">
+                            <div class="max-w-[520px]">
+                                <p class="inline-flex rounded border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-black uppercase text-emerald-700">{{ $slide['eyebrow'] }}</p>
+                                <h1 class="mt-3 text-[28px] font-black leading-tight text-[#07215f] sm:text-[42px]">
+                                    {{ \Illuminate\Support\Str::before($slide['title'], $slide['accent']) }}<span class="text-emerald-600">{{ $slide['accent'] }}</span>
+                                </h1>
+                                <p class="mt-3 max-w-md text-sm font-semibold leading-6 text-slate-600">{{ $slide['copy'] }}</p>
+                                <div class="mt-5 flex flex-wrap gap-2">
+                                    <a href="{{ $slide['primary']['route'] }}" class="rounded-md bg-emerald-600 px-4 py-2.5 text-xs font-black text-white shadow-sm hover:bg-emerald-700">{{ $slide['primary']['label'] }}</a>
+                                    <a href="{{ $slide['secondary']['route'] }}" class="rounded-md border border-[#d7e4ef] bg-white px-4 py-2.5 text-xs font-black text-[#07215f] shadow-sm hover:border-emerald-500">{{ $slide['secondary']['label'] }}</a>
+                                </div>
+                            </div>
                         </div>
+                    </article>
+                @endforeach
+            </div>
 
-                        <div class="mt-8 grid max-w-xl grid-cols-2 gap-3 text-[11px] font-extrabold text-[#19366f] sm:grid-cols-4 sm:text-[12px]">
-                            <div class="rounded-md bg-white/80 p-3 shadow-sm">Delivery to schools and homes</div>
-                            <div class="rounded-md bg-white/80 p-3 shadow-sm">Secure checkout flow</div>
-                            <div class="rounded-md bg-white/80 p-3 shadow-sm">Trusted suppliers</div>
-                            <div class="rounded-md bg-white/80 p-3 shadow-sm">Supporting learners</div>
-                        </div>
-                    </div>
+            <div class="absolute bottom-4 left-5 flex items-center gap-2 sm:left-8">
+                @foreach ($heroSlides as $index => $slide)
+                    <button type="button" class="hero-dot {{ $index === 0 ? 'is-active' : '' }} h-2 w-7 rounded-full bg-[#07215f]/25 transition hover:bg-emerald-500" data-hero-dot="{{ $index }}" aria-label="Show slide {{ $index + 1 }}"></button>
+                @endforeach
+            </div>
+        </section>
 
-                    <div class="mt-7 block h-48 overflow-hidden rounded-md bg-cover bg-center min-[420px]:h-56 sm:hidden" style="background-image: url('{{ $slide['image'] }}')">
-                        <span class="sr-only">{{ $slide['eyebrow'] }}</span>
-                    </div>
+        <aside class="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
+            <a href="{{ route('website.upload-list') }}" class="rounded-md border border-emerald-100 bg-white p-4 shadow-sm hover:border-emerald-400">
+                <p class="text-sm font-black text-[#07215f]">Upload school list</p>
+                <p class="mt-1 text-xs font-semibold leading-5 text-slate-500">Send a list and get an invoice with delivery fee.</p>
+                <span class="mt-3 inline-flex text-xs font-black text-emerald-700">Start request</span>
+            </a>
+            <a href="{{ route('website.track-order') }}" class="rounded-md border border-blue-100 bg-white p-4 shadow-sm hover:border-blue-400">
+                <p class="text-sm font-black text-[#07215f]">Track invoice</p>
+                <p class="mt-1 text-xs font-semibold leading-5 text-slate-500">Check quotation, payment and delivery status.</p>
+                <span class="mt-3 inline-flex text-xs font-black text-blue-700">Track order</span>
+            </a>
+            <a href="{{ route('website.products.index') }}" class="overflow-hidden rounded-md border border-amber-100 bg-white shadow-sm hover:border-amber-400">
+                <div class="h-24 bg-cover bg-center" style="background-image: url('/images/products/all.jpeg')"></div>
+                <div class="p-4">
+                    <p class="text-sm font-black text-[#07215f]">Term supplies</p>
+                    <p class="mt-1 text-xs font-semibold leading-5 text-slate-500">Books, stationery, bags and toiletries.</p>
                 </div>
-            </article>
-        @endforeach
-    </div>
-
-    <div class="absolute bottom-5 left-0 right-0">
-        <div class="mx-auto flex max-w-7xl items-center gap-2 px-4 sm:px-6 lg:px-8">
-            @foreach ($heroSlides as $index => $slide)
-                <button type="button" class="hero-dot {{ $index === 0 ? 'is-active' : '' }} h-2.5 w-8 rounded-full bg-[#07215f]/25 transition hover:bg-emerald-500" data-hero-dot="{{ $index }}" aria-label="Show slide {{ $index + 1 }}"></button>
-            @endforeach
-        </div>
+            </a>
+        </aside>
     </div>
 </section>
