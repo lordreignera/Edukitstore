@@ -19,6 +19,7 @@ class ShoppingListController extends Controller
         $delivery = (string) $request->query('delivery');
 
         $shoppingLists = ShoppingList::query()
+            ->with('school.district')
             ->where('source', ShoppingList::SOURCE_UPLOAD)
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($listQuery) use ($search) {
@@ -29,7 +30,7 @@ class ShoppingListController extends Controller
                 });
             })
             ->when(array_key_exists($status, ShoppingList::statuses()), fn ($query) => $query->where('status', $status))
-            ->when(in_array($delivery, ['school', 'home'], true), fn ($query) => $query->where('delivery_preference', $delivery))
+            ->when(in_array($delivery, ['school', 'pickup'], true), fn ($query) => $query->where('delivery_preference', $delivery))
             ->latest()
             ->paginate(15)
             ->withQueryString();
@@ -46,7 +47,7 @@ class ShoppingListController extends Controller
     public function show(ShoppingList $shoppingList): View
     {
         return view('admin.shopping-lists.show', [
-            'shoppingList' => $shoppingList,
+            'shoppingList' => $shoppingList->load('school.district'),
         ]);
     }
 
@@ -59,5 +60,4 @@ class ShoppingListController extends Controller
 
         return Storage::disk($disk)->download($shoppingList->file_path, $shoppingList->original_filename);
     }
-
 }

@@ -23,7 +23,7 @@ class InvoiceController extends Controller
         $source = (string) $request->query('source');
 
         $invoices = ShoppingList::query()
-            ->with('assignedDriver')
+            ->with('assignedDriver', 'school.district')
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($invoiceQuery) use ($search) {
                     $invoiceQuery->where('reference', 'like', "%{$search}%")
@@ -64,7 +64,7 @@ class InvoiceController extends Controller
     public function show(ShoppingList $invoice): View
     {
         return view('admin.invoices.show', [
-            'invoice' => $invoice->load('assignedDriver', 'deliveryConfirmer'),
+            'invoice' => $invoice->load('assignedDriver', 'deliveryConfirmer', 'school.district'),
             'statuses' => ShoppingList::statuses(),
             'drivers' => Driver::query()
                 ->where('is_approved', true)

@@ -11,25 +11,37 @@ class ShoppingList extends Model
     use HasFactory;
 
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_REVIEWING = 'reviewing';
+
     public const STATUS_QUOTED = 'quoted';
+
     public const STATUS_REJECTED = 'rejected';
+
     public const STATUS_FULFILLED = 'fulfilled';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     public const SOURCE_UPLOAD = 'upload';
+
     public const SOURCE_CART = 'cart';
 
     public const PAYMENT_UNPAID = 'unpaid';
+
     public const PAYMENT_PENDING = 'pending';
+
     public const PAYMENT_PAID = 'paid';
+
     public const PAYMENT_FAILED = 'failed';
+
     public const PAYMENT_REFUNDED = 'refunded';
 
     protected $fillable = [
         'parent_name',
         'phone',
         'email',
+        'district_id',
+        'school_id',
         'school_name',
         'learner_name',
         'class_level',
@@ -61,6 +73,8 @@ class ShoppingList extends Model
     {
         return [
             'cart_items' => 'array',
+            'district_id' => 'integer',
+            'school_id' => 'integer',
             'items_subtotal' => 'integer',
             'delivery_fee' => 'integer',
             'estimated_total' => 'integer',
@@ -75,6 +89,16 @@ class ShoppingList extends Model
         return $this->belongsTo(Driver::class, 'assigned_driver_id');
     }
 
+    public function district(): BelongsTo
+    {
+        return $this->belongsTo(District::class);
+    }
+
+    public function school(): BelongsTo
+    {
+        return $this->belongsTo(School::class);
+    }
+
     public function deliveryConfirmer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'delivery_confirmed_by');
@@ -85,9 +109,9 @@ class ShoppingList extends Model
         return [
             self::STATUS_PENDING => 'Pending',
             self::STATUS_REVIEWING => 'Reviewing',
-            self::STATUS_QUOTED => 'Quoted',
+            self::STATUS_QUOTED => 'Ready for Payment',
             self::STATUS_REJECTED => 'Rejected',
-            self::STATUS_FULFILLED => 'Fulfilled',
+            self::STATUS_FULFILLED => 'Delivered / Complete',
             self::STATUS_CANCELLED => 'Cancelled',
         ];
     }

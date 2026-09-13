@@ -3,6 +3,7 @@
         ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'pattern' => 'admin.dashboard', 'icon' => 'home'],
         ['label' => 'Products', 'route' => 'admin.products.index', 'pattern' => 'admin.products.*', 'icon' => 'products'],
         ['label' => 'Categories', 'route' => 'admin.product-categories.index', 'pattern' => 'admin.product-categories.*', 'icon' => 'tag'],
+        ['label' => 'Schools', 'route' => 'admin.schools.index', 'pattern' => 'admin.schools.*', 'icon' => 'school'],
         ['label' => 'Shopping Lists', 'route' => 'admin.shopping-lists.index', 'pattern' => 'admin.shopping-lists.*', 'icon' => 'list'],
         ['label' => 'Invoices', 'route' => 'admin.invoices.index', 'pattern' => 'admin.invoices.*', 'icon' => 'invoice'],
         ['label' => 'Suppliers', 'route' => 'admin.suppliers.index', 'pattern' => 'admin.suppliers.*', 'icon' => 'suppliers'],

@@ -13,6 +13,8 @@ return new class extends Migration
             $table->string('parent_name');
             $table->string('phone');
             $table->string('email')->nullable();
+            $table->foreignId('district_id')->nullable()->constrained('districts')->nullOnDelete();
+            $table->foreignId('school_id')->nullable()->constrained('schools')->nullOnDelete();
             $table->string('school_name')->nullable();
             $table->string('learner_name')->nullable();
             $table->string('class_level')->nullable();
@@ -39,6 +41,9 @@ return new class extends Migration
             $table->timestamp('reviewed_at')->nullable();
             $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
+
+            $table->index(['phone', 'email']);
+            $table->index(['school_id', 'payment_status']);
         });
     }
 

@@ -5,17 +5,18 @@ use App\Http\Controllers\Admin\DriverController as AdminDriverController;
 use App\Http\Controllers\Admin\InvoiceController as AdminInvoiceController;
 use App\Http\Controllers\Admin\ProductCategoryController as AdminProductCategoryController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\SchoolController as AdminSchoolController;
 use App\Http\Controllers\Admin\ShoppingListController as AdminShoppingListController;
 use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Driver\DeliveryController as DriverDeliveryController;
-use App\Http\Controllers\Website\HomeController;
 use App\Http\Controllers\Website\CartController as WebsiteCartController;
+use App\Http\Controllers\Website\DriverOnboardingController as WebsiteDriverOnboardingController;
+use App\Http\Controllers\Website\HomeController;
 use App\Http\Controllers\Website\PageController as WebsitePageController;
 use App\Http\Controllers\Website\ProductController as WebsiteProductController;
 use App\Http\Controllers\Website\ShoppingListController as WebsiteShoppingListController;
 use App\Http\Controllers\Website\SupplierOnboardingController as WebsiteSupplierOnboardingController;
-use App\Http\Controllers\Website\DriverOnboardingController as WebsiteDriverOnboardingController;
 use App\Http\Controllers\Website\TrackOrderController as WebsiteTrackOrderController;
 use Illuminate\Support\Facades\Route;
 
@@ -46,8 +47,8 @@ Route::get('/help', [WebsitePageController::class, 'show'])->defaults('page', 'h
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
-        'verified',
-        'password.changed',
+    'verified',
+    'password.changed',
 ])->group(function () {
     Route::get('/dashboard', function () {
         if (auth()->user()?->hasAnyRole(['super-admin', 'admin'])) {
@@ -73,6 +74,7 @@ Route::middleware([
         Route::patch('invoices/{invoice}', [AdminInvoiceController::class, 'update'])->name('invoices.update');
         Route::resource('products', AdminProductController::class);
         Route::resource('product-categories', AdminProductCategoryController::class);
+        Route::resource('schools', AdminSchoolController::class);
         Route::resource('suppliers', AdminSupplierController::class)->only(['index', 'create', 'store']);
         Route::patch('suppliers/{supplier}', [AdminSupplierController::class, 'update'])->name('suppliers.update');
         Route::patch('suppliers/{supplier}/approve', [AdminSupplierController::class, 'approve'])->name('suppliers.approve');

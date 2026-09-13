@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
-use App\Models\ShoppingList;
+use App\Models\District;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\School;
+use App\Models\ShoppingList;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -151,6 +153,62 @@ class WebsiteProductFlowTest extends TestCase
             ->assertSee('Blue School Bag')
             ->assertSee('UGX 60,000')
             ->assertSee('View order summary');
+    }
+
+    public function test_cart_checkout_uses_selected_school_fee_and_is_ready_for_payment(): void
+    {
+        $district = District::create([
+            'name' => 'Wakiso',
+            'slug' => 'wakiso',
+            'is_active' => true,
+        ]);
+
+        $school = School::create([
+            'district_id' => $district->id,
+            'name' => 'Gayaza High School',
+            'slug' => 'gayaza-high-school-wakiso',
+            'location' => 'Gayaza',
+            'distance_from_warehouse_km' => 21,
+            'delivery_fee' => 12000,
+            'is_active' => true,
+        ]);
+
+        $product = Product::create([
+            'name' => 'School Backpack',
+            'slug' => 'school-backpack',
+            'sku' => 'TEST-BAG',
+            'price' => 60000,
+            'stock_quantity' => 10,
+            'is_active' => true,
+        ]);
+
+        $this->post(route('website.cart.store', $product), ['quantity' => 1]);
+
+        $this->post(route('website.cart.submit'), [
+            'parent_name' => 'Norah A.',
+            'phone' => '+256700123456',
+            'email' => 'norah@example.test',
+            'delivery_preference' => 'school',
+            'school_id' => $school->id,
+            'learner_name' => 'Sarah Nakato',
+            'class_level' => 'S2',
+        ])->assertRedirect();
+
+        $invoice = ShoppingList::firstOrFail();
+
+        $this->assertSame(ShoppingList::STATUS_QUOTED, $invoice->status);
+        $this->assertSame(ShoppingList::PAYMENT_UNPAID, $invoice->payment_status);
+        $this->assertSame($school->id, $invoice->school_id);
+        $this->assertSame($district->id, $invoice->district_id);
+        $this->assertSame(60000, $invoice->items_subtotal);
+        $this->assertSame(12000, $invoice->delivery_fee);
+        $this->assertSame(72000, $invoice->estimated_total);
+
+        $this->get(route('website.quote.show', $invoice->reference))
+            ->assertOk()
+            ->assertSee('Gayaza High School')
+            ->assertSee('UGX 72,000')
+            ->assertSee('Pay with Flutterwave');
     }
 
     public function test_cart_supports_legacy_public_product_image_paths(): void

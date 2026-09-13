@@ -9,7 +9,7 @@
                 'eyebrow' => "Uganda's school supply platform",
                 'title' => 'Everything for their education, delivered with care.',
                 'accent' => 'delivered with care.',
-                'copy' => 'Buy school supplies, uniforms, books and more from trusted suppliers. We source, package and deliver to schools, homes or pickup points.',
+                'copy' => 'Buy school supplies, uniforms, books and more from trusted suppliers. We source, package and deliver to selected schools or pickup points.',
                 'image' => '/images/website/edukit-hero.png',
                 'primary' => ['label' => 'Shop Now', 'route' => route('website.products.index')],
                 'secondary' => ['label' => 'Upload Shopping List', 'route' => route('website.upload-list')],
@@ -48,9 +48,9 @@
 
         $howItWorks = [
             ['step' => '1', 'title' => 'Shop or Upload List', 'copy' => 'Browse products or upload your school list.', 'icon' => 'M4 6h2l2 9h8l2-6H7'],
-            ['step' => '2', 'title' => 'Checkout and Pay', 'copy' => 'Select delivery option and pay securely.', 'icon' => 'M4 7h16v10H4z M4 10h16'],
+            ['step' => '2', 'title' => 'Checkout and Pay', 'copy' => 'Select a school, see the fee and pay securely.', 'icon' => 'M4 7h16v10H4z M4 10h16'],
             ['step' => '3', 'title' => 'We Fulfil and Deliver', 'copy' => 'We source from trusted suppliers and deliver.', 'icon' => 'M3 7h11v9H3z M14 10h4l3 3v3h-7z'],
-            ['step' => '4', 'title' => 'Receive and Confirm', 'copy' => 'Your school, home or pickup point confirms receipt.', 'icon' => 'M20 6 9 17l-5-5'],
+            ['step' => '4', 'title' => 'Receive and Confirm', 'copy' => 'Your school or pickup point confirms receipt.', 'icon' => 'M20 6 9 17l-5-5'],
         ];
 
         $whyChoose = [

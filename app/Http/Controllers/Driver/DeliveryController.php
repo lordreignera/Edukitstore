@@ -17,6 +17,7 @@ class DeliveryController extends Controller
         abort_unless($driver?->is_approved, 403);
 
         $deliveries = ShoppingList::query()
+            ->with('school.district')
             ->where('assigned_driver_id', $driver->id)
             ->latest()
             ->paginate(12);

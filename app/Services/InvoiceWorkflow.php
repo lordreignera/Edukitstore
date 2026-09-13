@@ -19,12 +19,6 @@ class InvoiceWorkflow
 
         $assignedDriverId = $data['assigned_driver_id'] ?? $invoice->assigned_driver_id;
 
-        if (($data['status'] ?? null) === ShoppingList::STATUS_QUOTED && ! $assignedDriverId) {
-            throw ValidationException::withMessages([
-                'assigned_driver_id' => 'Assign an approved driver before releasing the invoice.',
-            ]);
-        }
-
         if ($assignedDriverId) {
             $driverIsAssignable = Driver::whereKey($assignedDriverId)
                 ->where('is_approved', true)
@@ -39,10 +33,8 @@ class InvoiceWorkflow
         }
 
         if ($invoice->source === ShoppingList::SOURCE_CART) {
-            $deliveryFee = $data['delivery_fee'] ?? null;
-            $data['estimated_total'] = $deliveryFee === null
-                ? null
-                : $invoice->items_subtotal + (int) $deliveryFee;
+            $data['delivery_fee'] = $invoice->delivery_fee ?? 0;
+            $data['estimated_total'] = $invoice->items_subtotal + (int) $data['delivery_fee'];
         }
 
         return DB::transaction(function () use ($invoice, $data, $adminId): ShoppingList {

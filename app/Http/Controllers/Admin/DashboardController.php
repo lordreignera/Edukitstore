@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Driver;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\School;
 use App\Models\ShoppingList;
 use App\Models\Supplier;
 use Illuminate\Contracts\View\View;
@@ -21,6 +22,8 @@ class DashboardController extends Controller
             'approved_suppliers' => Supplier::where('is_approved', true)->count(),
             'pending_shopping_lists' => ShoppingList::where('status', ShoppingList::STATUS_PENDING)->count(),
             'shopping_lists' => ShoppingList::count(),
+            'schools' => School::count(),
+            'active_schools' => School::where('is_active', true)->count(),
             'pending_drivers' => Driver::where('is_approved', false)->count(),
             'approved_drivers' => Driver::where('is_approved', true)->count(),
         ];

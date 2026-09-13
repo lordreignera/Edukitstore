@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex flex-col gap-1">
             <h2 class="text-xl font-semibold leading-tight text-gray-800">Invoices</h2>
-            <p class="text-sm text-gray-500">Track request approval, invoice release, payment, driver assignment and delivery completion.</p>
+            <p class="text-sm text-gray-500">Track payment, school delivery fees, driver assignment and delivery completion.</p>
         </div>
     </x-slot>
 
@@ -65,6 +65,7 @@
                                     <td class="px-5 py-4">
                                         <p class="font-semibold text-gray-950">{{ $invoice->parent_name }}</p>
                                         <p class="text-xs text-gray-500">{{ $invoice->phone }}</p>
+                                        <p class="mt-1 text-xs text-gray-500">{{ $invoice->school?->name ?? $invoice->school_name ?? 'School pending' }}</p>
                                     </td>
                                     <td class="px-5 py-4 text-gray-600">{{ $invoice->assignedDriver?->name ?? '-' }}</td>
                                     <td class="px-5 py-4">

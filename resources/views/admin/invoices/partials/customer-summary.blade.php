@@ -13,7 +13,11 @@
     </div>
     <div>
         <dt class="font-semibold text-gray-500">School</dt>
-        <dd class="mt-1 text-gray-950">{{ $invoice->school_name ?? '-' }}</dd>
+        <dd class="mt-1 text-gray-950">{{ $invoice->school?->name ?? $invoice->school_name ?? '-' }}</dd>
+    </div>
+    <div>
+        <dt class="font-semibold text-gray-500">District</dt>
+        <dd class="mt-1 text-gray-950">{{ $invoice->school?->district?->name ?? $invoice->district?->name ?? '-' }}</dd>
     </div>
     <div>
         <dt class="font-semibold text-gray-500">Learner</dt>

@@ -7,7 +7,13 @@
         <div class="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
             <p class="text-sm font-black uppercase tracking-wide text-emerald-700">Invoice request</p>
             <h1 class="mt-2 text-3xl font-black text-[#07215f]">{{ $shoppingList->reference }}</h1>
-            <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600">EduKit reviews your request, adds the delivery/convenience fee, then releases the final invoice for payment.</p>
+            <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+                @if ($shoppingList->source === \App\Models\ShoppingList::SOURCE_CART)
+                    Your order total includes the school delivery fee selected at checkout. Pay securely, then EduKit assigns delivery.
+                @else
+                    EduKit reviews uploaded school lists, prepares the item total, then releases the invoice for payment.
+                @endif
+            </p>
         </div>
     </section>
 
@@ -44,7 +50,8 @@
                 <dl class="mt-4 grid gap-4 text-sm sm:grid-cols-2">
                     <div><dt class="font-bold text-slate-500">Name</dt><dd class="mt-1 text-slate-950">{{ $shoppingList->parent_name }}</dd></div>
                     <div><dt class="font-bold text-slate-500">Phone</dt><dd class="mt-1 text-slate-950">{{ $shoppingList->phone }}</dd></div>
-                    <div><dt class="font-bold text-slate-500">School</dt><dd class="mt-1 text-slate-950">{{ $shoppingList->school_name ?: '-' }}</dd></div>
+                    <div><dt class="font-bold text-slate-500">School</dt><dd class="mt-1 text-slate-950">{{ $shoppingList->school?->name ?? ($shoppingList->school_name ?: '-') }}</dd></div>
+                    <div><dt class="font-bold text-slate-500">District</dt><dd class="mt-1 text-slate-950">{{ $shoppingList->school?->district?->name ?? $shoppingList->district?->name ?? '-' }}</dd></div>
                     <div><dt class="font-bold text-slate-500">Delivery</dt><dd class="mt-1 text-slate-950">{{ ucfirst($shoppingList->delivery_preference) }}</dd></div>
                     <div class="sm:col-span-2"><dt class="font-bold text-slate-500">Location</dt><dd class="mt-1 text-slate-950">{{ $shoppingList->delivery_location ?: '-' }}</dd></div>
                 </dl>
@@ -83,7 +90,7 @@
                     <button class="flex w-full justify-center rounded-md bg-emerald-600 px-5 py-3 text-sm font-black text-white hover:bg-emerald-700">Pay with Flutterwave</button>
                 </form>
             @else
-                <p class="mt-5 rounded-md border border-amber-200 bg-amber-50 p-4 text-xs font-semibold leading-5 text-amber-900">Payment opens after EduKit adds the delivery/convenience fee and marks the invoice as quoted.</p>
+                <p class="mt-5 rounded-md border border-amber-200 bg-amber-50 p-4 text-xs font-semibold leading-5 text-amber-900">Payment opens when this invoice is ready for payment.</p>
             @endif
         </aside>
     </section>

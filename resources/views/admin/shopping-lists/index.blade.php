@@ -37,7 +37,7 @@
                                         <p class="text-xs text-gray-500">{{ $shoppingList->phone }}</p>
                                     </td>
                                     <td class="px-5 py-4 text-gray-600">
-                                        <p>{{ $shoppingList->school_name ?? 'School pending' }}</p>
+                                        <p>{{ $shoppingList->school?->name ?? $shoppingList->school_name ?? 'School pending' }}</p>
                                         <p class="text-xs">{{ $shoppingList->learner_name ?? 'Learner pending' }} {{ $shoppingList->class_level ? '- '.$shoppingList->class_level : '' }}</p>
                                     </td>
                                     <td class="px-5 py-4 text-gray-600">{{ ucfirst($shoppingList->delivery_preference) }}</td>

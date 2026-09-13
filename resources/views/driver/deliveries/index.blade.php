@@ -33,7 +33,8 @@
                                 <dl class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
                                     <div><dt class="font-bold text-slate-500">Customer</dt><dd class="mt-1 text-slate-900">{{ $delivery->parent_name }}</dd></div>
                                     <div><dt class="font-bold text-slate-500">Phone</dt><dd class="mt-1 text-slate-900">{{ $delivery->phone }}</dd></div>
-                                    <div><dt class="font-bold text-slate-500">School</dt><dd class="mt-1 text-slate-900">{{ $delivery->school_name ?: '-' }}</dd></div>
+                                    <div><dt class="font-bold text-slate-500">School</dt><dd class="mt-1 text-slate-900">{{ $delivery->school?->name ?? ($delivery->school_name ?: '-') }}</dd></div>
+                                    <div><dt class="font-bold text-slate-500">District</dt><dd class="mt-1 text-slate-900">{{ $delivery->school?->district?->name ?? $delivery->district?->name ?? '-' }}</dd></div>
                                     <div><dt class="font-bold text-slate-500">Total</dt><dd class="mt-1 text-slate-900">{{ $delivery->estimated_total ? 'UGX '.number_format($delivery->estimated_total) : '-' }}</dd></div>
                                     <div class="sm:col-span-2"><dt class="font-bold text-slate-500">Delivery location</dt><dd class="mt-1 text-slate-900">{{ $delivery->delivery_location ?: '-' }}</dd></div>
                                 </dl>

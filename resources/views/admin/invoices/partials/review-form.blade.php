@@ -15,11 +15,9 @@
     @if ($invoice->source === \App\Models\ShoppingList::SOURCE_CART)
         @include('admin.invoices.partials.summary', ['invoice' => $invoice])
 
-        <div>
-            <label class="text-sm font-medium text-gray-700" for="delivery_fee">Delivery/convenience fee (UGX)</label>
-            <input id="delivery_fee" name="delivery_fee" type="number" min="0" step="1" value="{{ old('delivery_fee', $invoice->delivery_fee) }}" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
-            @error('delivery_fee') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-            <p class="mt-1 text-xs text-gray-500">For cart requests, total is product subtotal plus this fee.</p>
+        <div class="rounded border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-950">
+            <p class="font-bold">School fee was calculated at checkout.</p>
+            <p class="mt-1 text-xs leading-5 text-emerald-800">To change future fees, edit the school record. This invoice keeps the fee that was shown to the customer.</p>
         </div>
     @else
         <div>
@@ -27,6 +25,13 @@
             <input id="estimated_total" name="estimated_total" type="number" min="0" step="1" value="{{ old('estimated_total', $invoice->estimated_total) }}" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
             @error('estimated_total') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             <p class="mt-1 text-xs text-gray-500">For uploaded shopping lists, enter the full invoice total after matching items manually.</p>
+        </div>
+
+        <div>
+            <label class="text-sm font-medium text-gray-700" for="delivery_fee">Delivery/convenience fee (UGX)</label>
+            <input id="delivery_fee" name="delivery_fee" type="number" min="0" step="1" value="{{ old('delivery_fee', $invoice->delivery_fee) }}" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+            @error('delivery_fee') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            <p class="mt-1 text-xs text-gray-500">Use the school fee as guidance when preparing manual uploaded-list invoices.</p>
         </div>
     @endif
 
@@ -41,7 +46,7 @@
             @endforeach
         </select>
         @error('assigned_driver_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-        <p class="mt-1 text-xs text-gray-500">This contact appears on the customer invoice. Only the assigned driver can complete delivery.</p>
+        <p class="mt-1 text-xs text-gray-500">This contact appears on the customer invoice after assignment. Only the assigned driver can complete delivery.</p>
     </div>
 
     @if ($invoice->assignedDriver)

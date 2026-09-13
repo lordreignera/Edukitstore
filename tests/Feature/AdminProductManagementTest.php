@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\District;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\School;
 use App\Models\User;
 use Database\Seeders\EduKitProductSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -191,6 +193,77 @@ class AdminProductManagementTest extends TestCase
 
         $this->assertDatabaseMissing('product_categories', ['id' => $category->id]);
         $this->assertNull($product->fresh()->product_category_id);
+    }
+
+    public function test_super_admin_can_manage_schools_and_delivery_fees(): void
+    {
+        Role::findOrCreate('super-admin');
+        $admin = User::factory()->create();
+        $admin->assignRole('super-admin');
+
+        $district = District::create([
+            'name' => 'Wakiso',
+            'slug' => 'wakiso',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.schools.store'), [
+                'district_id' => $district->id,
+                'name' => 'Gayaza High School',
+                'school_code' => 'UG-SCH-0001',
+                'location' => 'Gayaza',
+                'contact_person' => 'School Administrator',
+                'contact_phone' => '+256700000001',
+                'distance_from_warehouse_km' => 21,
+                'delivery_fee' => 12000,
+                'is_active' => '1',
+            ])->assertRedirect(route('admin.schools.index'));
+
+        $school = School::where('name', 'Gayaza High School')->firstOrFail();
+
+        $this->assertSame('gayaza-high-school-wakiso', $school->slug);
+        $this->assertSame(12000, $school->delivery_fee);
+        $this->assertTrue($school->is_active);
+
+        $this->actingAs($admin)
+            ->get(route('admin.schools.index', ['q' => 'Gayaza', 'district_id' => $district->id, 'status' => 'active']))
+            ->assertOk()
+            ->assertSee('Gayaza High School')
+            ->assertSee('UGX 12,000')
+            ->assertSee(route('admin.schools.show', $school), false)
+            ->assertSee(route('admin.schools.edit', $school), false)
+            ->assertSee(route('admin.schools.destroy', $school), false);
+
+        $this->actingAs($admin)
+            ->put(route('admin.schools.update', $school), [
+                'district_id' => $district->id,
+                'name' => 'Gayaza High School',
+                'school_code' => 'UG-SCH-0001',
+                'location' => 'Gayaza main gate',
+                'contact_person' => 'Bursar',
+                'contact_phone' => '+256700000002',
+                'distance_from_warehouse_km' => 22,
+                'delivery_fee' => 15000,
+                'is_active' => '1',
+            ])->assertRedirect(route('admin.schools.index'));
+
+        $school->refresh();
+
+        $this->assertSame('Gayaza main gate', $school->location);
+        $this->assertSame(15000, $school->delivery_fee);
+
+        $this->actingAs($admin)
+            ->get(route('admin.schools.show', $school))
+            ->assertOk()
+            ->assertSee('Gayaza High School')
+            ->assertSee('UGX 15,000');
+
+        $this->actingAs($admin)
+            ->delete(route('admin.schools.destroy', $school))
+            ->assertRedirect(route('admin.schools.index'));
+
+        $this->assertDatabaseMissing('schools', ['id' => $school->id]);
     }
 
     public function test_non_admin_cannot_access_admin_products(): void

@@ -19,7 +19,7 @@
 
                 <div>
                     <label for="reference" class="text-sm font-bold text-slate-700">Invoice reference</label>
-                    <input id="reference" name="reference" value="{{ old('reference') }}" placeholder="EDK-260912-ABCDE" required class="mt-1 w-full rounded-md border-[#d7e4ef] text-sm uppercase focus:border-emerald-600 focus:ring-emerald-600">
+                    <input id="reference" name="reference" value="{{ old('reference') }}" placeholder="EDK-260912-1000" required class="mt-1 w-full rounded-md border-[#d7e4ef] text-sm uppercase focus:border-emerald-600 focus:ring-emerald-600">
                 </div>
 
                 <div class="mt-4">

@@ -3,7 +3,7 @@
         <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">Invoice {{ $invoice->reference }}</h2>
-                <p class="mt-1 text-sm text-gray-500">Prepare, release, collect payment and track delivery confirmation.</p>
+                <p class="mt-1 text-sm text-gray-500">Monitor payment, assign a driver and track delivery confirmation.</p>
             </div>
             <a href="{{ route('admin.invoices.index') }}" class="rounded border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Back to invoices</a>
         </div>

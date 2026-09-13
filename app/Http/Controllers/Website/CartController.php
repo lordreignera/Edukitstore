@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Website;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\School;
 use App\Models\ShoppingList;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class CartController extends Controller
 {
@@ -30,8 +32,14 @@ class CartController extends Controller
             });
 
         $subtotal = $products->sum('cart_line_total');
+        $schools = School::query()
+            ->with('district')
+            ->active()
+            ->whereHas('district', fn ($query) => $query->active())
+            ->orderBy('name')
+            ->get();
 
-        return view('website.cart.index', compact('products', 'subtotal'));
+        return view('website.cart.index', compact('products', 'subtotal', 'schools'));
     }
 
     public function store(Request $request, Product $product): RedirectResponse
@@ -77,13 +85,35 @@ class CartController extends Controller
             'parent_name' => ['required', 'string', 'max:160'],
             'phone' => ['required', 'string', 'max:40'],
             'email' => ['nullable', 'email', 'max:255'],
-            'school_name' => ['nullable', 'string', 'max:160'],
-            'learner_name' => ['nullable', 'string', 'max:160'],
-            'class_level' => ['nullable', 'string', 'max:80'],
+            'school_id' => ['nullable', 'required_if:delivery_preference,school', Rule::exists('schools', 'id')->where('is_active', true)],
+            'learner_name' => ['nullable', 'required_if:delivery_preference,school', 'string', 'max:160'],
+            'class_level' => ['nullable', 'required_if:delivery_preference,school', 'string', 'max:80'],
             'delivery_location' => ['nullable', 'string', 'max:255'],
-            'delivery_preference' => ['required', 'in:school,home,pickup'],
+            'delivery_preference' => ['required', 'in:school,pickup'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
+
+        $school = null;
+        $deliveryFee = 0;
+
+        if ($data['delivery_preference'] === 'school') {
+            $school = School::query()
+                ->with('district')
+                ->active()
+                ->whereHas('district', fn ($query) => $query->active())
+                ->findOrFail($data['school_id']);
+
+            $deliveryFee = $school->delivery_fee;
+            $data['district_id'] = $school->district_id;
+            $data['school_id'] = $school->id;
+            $data['school_name'] = $school->name;
+            $data['delivery_location'] = $school->location ?: $school->district?->name;
+        } else {
+            $data['district_id'] = null;
+            $data['school_id'] = null;
+            $data['school_name'] = 'Warehouse pickup';
+            $data['delivery_location'] = $data['delivery_location'] ?: 'EduKit warehouse pickup';
+        }
 
         $products = Product::query()
             ->active()
@@ -113,7 +143,9 @@ class CartController extends Controller
             'reference' => ShoppingList::nextReference(),
             'cart_items' => $items->all(),
             'items_subtotal' => $items->sum('line_total'),
-            'status' => ShoppingList::STATUS_PENDING,
+            'delivery_fee' => $deliveryFee,
+            'estimated_total' => $items->sum('line_total') + $deliveryFee,
+            'status' => ShoppingList::STATUS_QUOTED,
             'payment_status' => ShoppingList::PAYMENT_UNPAID,
         ]);
 
@@ -121,12 +153,12 @@ class CartController extends Controller
 
         return redirect()
             ->route('website.quote.show', $shoppingList->reference)
-            ->with('status', 'Your cart has been submitted. EduKit will add the delivery fee and prepare your invoice.');
+            ->with('status', 'Your order total is ready. Review the school delivery fee and continue to payment.');
     }
 
     public function quote(string $reference): View
     {
-        $shoppingList = ShoppingList::with('assignedDriver')->where('reference', $reference)->firstOrFail();
+        $shoppingList = ShoppingList::with('assignedDriver', 'school.district')->where('reference', $reference)->firstOrFail();
 
         return view('website.quote', compact('shoppingList'));
     }

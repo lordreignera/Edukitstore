@@ -1,0 +1,32 @@
+name,district,school_code,location,contact_person,contact_phone,contact_email,distance_from_warehouse_km,delivery_fee,notes
+Gayaza High School,Wakiso,UG-SCH-0001,Gayaza,,,,21,12000,Starter service school
+King's College Budo,Wakiso,UG-SCH-0002,Budo,,,,17,10000,Starter service school
+St. Mary's College Kisubi,Wakiso,UG-SCH-0003,Kisubi,,,,24,15000,Starter service school
+Namilyango College,Mukono,UG-SCH-0004,Namilyango,,,,24,15000,Starter service school
+Seeta High School,Mukono,UG-SCH-0005,Seeta,,,,20,12000,Starter service school
+Mt. St. Mary's College Namagunga,Mukono,UG-SCH-0006,Namagunga,,,,42,22000,Starter service school
+Makerere College School,Kampala,UG-SCH-0007,Makerere,,,,5,5000,Starter service school
+Nabisunsa Girls Secondary School,Kampala,UG-SCH-0008,Ntinda,,,,8,7000,Starter service school
+Mengo Senior School,Kampala,UG-SCH-0009,Mengo,,,,5,5000,Starter service school
+Old Kampala Secondary School,Kampala,UG-SCH-0010,Old Kampala,,,,4,5000,Starter service school
+Kitante Hill School,Kampala,UG-SCH-0011,Kitante,,,,4,5000,Starter service school
+Kololo Senior Secondary School,Kampala,UG-SCH-0012,Kololo,,,,4,5000,Starter service school
+Kampala Parents School,Kampala,UG-SCH-0013,Naguru,,,,7,7000,Starter service school
+Busoga College Mwiri,Jinja,UG-SCH-0014,Mwiri,,,,85,30000,Starter service school
+Jinja College,Jinja City,UG-SCH-0015,Jinja City,,,,82,30000,Starter service school
+Tororo Girls School,Tororo,UG-SCH-0016,Tororo,,,,207,55000,Starter service school
+Nabumali High School,Mbale,UG-SCH-0017,Nabumali,,,,223,60000,Starter service school
+Teso College Aloet,Soroti,UG-SCH-0018,Aloet,,,,292,70000,Starter service school
+Lango College,Lira,UG-SCH-0019,Lira,,,,340,80000,Starter service school
+Gulu High School,Gulu City,UG-SCH-0020,Gulu City,,,,333,80000,Starter service school
+St. Joseph's College Ombaci,Arua,UG-SCH-0021,Ombaci,,,,475,100000,Starter service school
+Mvara Secondary School,Arua City,UG-SCH-0022,Arua City,,,,480,100000,Starter service school
+Kabalega Secondary School,Masindi,UG-SCH-0023,Masindi,,,,216,58000,Starter service school
+Nyakasura School,Kabarole,UG-SCH-0024,Nyakasura,,,,302,75000,Starter service school
+St. Leo's College Kyegobe,Fort Portal City,UG-SCH-0025,Fort Portal,,,,296,75000,Starter service school
+Ntare School,Mbarara City,UG-SCH-0026,Mbarara City,,,,266,68000,Starter service school
+Mbarara High School,Mbarara City,UG-SCH-0027,Mbarara City,,,,267,68000,Starter service school
+Maryhill High School,Mbarara City,UG-SCH-0028,Mbarara City,,,,268,68000,Starter service school
+Bweranyangi Girls Secondary School,Bushenyi,UG-SCH-0029,Bweranyangi,,,,331,82000,Starter service school
+St. Henry's College Kitovu,Masaka City,UG-SCH-0030,Kitovu,,,,132,42000,Starter service school
+Masaka Secondary School,Masaka City,UG-SCH-0031,Masaka City,,,,130,42000,Starter service school

@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\Models\ShoppingList;
+use App\Models\District;
 use App\Models\Driver;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\School;
+use App\Models\ShoppingList;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -13,6 +15,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -43,16 +46,16 @@ class OnboardingAndShoppingListFlowTest extends TestCase
     public function test_customer_can_upload_school_shopping_list(): void
     {
         Storage::fake('local');
+        $school = $this->createSchool();
 
         $response = $this->post(route('website.upload-list.store'), [
             'parent_name' => 'Sarah N.',
             'phone' => '+256700123456',
             'email' => 'sarah@example.test',
-            'school_name' => 'Kampala Primary School',
+            'school_id' => $school->id,
             'learner_name' => 'Ariella',
             'class_level' => 'P.5',
             'delivery_preference' => 'school',
-            'delivery_location' => 'Kampala Primary main gate',
             'notes' => 'Please quote books and toiletries first.',
             'shopping_list' => UploadedFile::fake()->create('school-list.pdf', 120, 'application/pdf'),
         ]);
@@ -64,6 +67,9 @@ class OnboardingAndShoppingListFlowTest extends TestCase
             ->assertSessionHas('status');
 
         $this->assertSame('Sarah N.', $shoppingList->parent_name);
+        $this->assertSame($school->id, $shoppingList->school_id);
+        $this->assertSame($school->district_id, $shoppingList->district_id);
+        $this->assertSame($school->delivery_fee, $shoppingList->delivery_fee);
         $this->assertSame(ShoppingList::SOURCE_UPLOAD, $shoppingList->source);
         $this->assertSame(ShoppingList::STATUS_PENDING, $shoppingList->status);
         $this->assertSame(ShoppingList::PAYMENT_UNPAID, $shoppingList->payment_status);
@@ -81,7 +87,7 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         $second = ShoppingList::create([
             'parent_name' => 'Daniel K.',
             'phone' => '+256700999888',
-            'delivery_preference' => 'home',
+            'delivery_preference' => 'pickup',
         ]);
 
         $prefix = 'EDK-'.now()->format('ymd');
@@ -217,7 +223,7 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         ]);
     }
 
-    public function test_customer_submits_cart_for_admin_invoice_review(): void
+    public function test_customer_submits_cart_and_receives_ready_to_pay_invoice(): void
     {
         Role::findOrCreate('super-admin');
         $admin = User::factory()->create();
@@ -230,6 +236,13 @@ class OnboardingAndShoppingListFlowTest extends TestCase
             'vehicle_registration' => 'UED 230A',
             'is_approved' => true,
             'is_available' => true,
+        ]);
+        $school = $this->createSchool([
+            'name' => 'Gayaza High School',
+            'slug' => 'gayaza-high-school-wakiso',
+            'location' => 'Gayaza High School reception',
+            'distance_from_warehouse_km' => 21,
+            'delivery_fee' => 15000,
         ]);
 
         $category = ProductCategory::create([
@@ -254,11 +267,10 @@ class OnboardingAndShoppingListFlowTest extends TestCase
             'parent_name' => 'Norah A.',
             'phone' => '+256700123456',
             'email' => 'norah@example.test',
-            'school_name' => 'Gayaza High School',
+            'school_id' => $school->id,
             'learner_name' => 'Sarah Nakato',
             'class_level' => 'S2',
             'delivery_preference' => 'school',
-            'delivery_location' => 'Gayaza High School reception',
             'notes' => 'Please deliver during school hours.',
         ]);
 
@@ -267,8 +279,10 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         $response->assertRedirect(route('website.quote.show', $shoppingList->reference));
         $this->assertSame(ShoppingList::SOURCE_CART, $shoppingList->source);
         $this->assertSame(120000, $shoppingList->items_subtotal);
-        $this->assertNull($shoppingList->delivery_fee);
-        $this->assertNull($shoppingList->estimated_total);
+        $this->assertSame($school->id, $shoppingList->school_id);
+        $this->assertSame(15000, $shoppingList->delivery_fee);
+        $this->assertSame(135000, $shoppingList->estimated_total);
+        $this->assertSame(ShoppingList::STATUS_QUOTED, $shoppingList->status);
         $this->assertSame(2, $shoppingList->cart_items[0]['quantity']);
         $this->assertSame(ShoppingList::PAYMENT_UNPAID, $shoppingList->payment_status);
         $this->assertFalse(session()->has('cart'));
@@ -276,7 +290,6 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         $this->actingAs($admin)
             ->patch(route('admin.invoices.update', $shoppingList), [
                 'status' => ShoppingList::STATUS_QUOTED,
-                'delivery_fee' => 15000,
                 'assigned_driver_id' => $driver->id,
             ])->assertRedirect();
 
@@ -503,5 +516,25 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         $this->assertSame(ShoppingList::PAYMENT_PAID, $shoppingList->payment_status);
         $this->assertSame(ShoppingList::STATUS_QUOTED, $shoppingList->status);
         $this->assertNotNull($shoppingList->paid_at);
+    }
+
+    private function createSchool(array $attributes = []): School
+    {
+        $district = District::firstOrCreate(
+            ['name' => $attributes['district_name'] ?? 'Wakiso'],
+            ['slug' => Str::slug($attributes['district_name'] ?? 'Wakiso'), 'is_active' => true],
+        );
+
+        unset($attributes['district_name']);
+
+        return School::create($attributes + [
+            'district_id' => $district->id,
+            'name' => 'Kampala Primary School',
+            'slug' => 'kampala-primary-school-wakiso',
+            'location' => 'Kampala Primary main gate',
+            'distance_from_warehouse_km' => 12,
+            'delivery_fee' => 10000,
+            'is_active' => true,
+        ]);
     }
 }

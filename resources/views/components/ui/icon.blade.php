@@ -72,6 +72,12 @@
             <path d="M20 13 13 20a2 2 0 0 1-2.8 0L4 13.8V4h9.8L20 10.2a2 2 0 0 1 0 2.8Z" />
             <path d="M8 8h.01" />
             @break
+        @case('school')
+            <path d="M4 21V8l8-5 8 5v13" />
+            <path d="M2 21h20" />
+            <path d="M9 21v-6h6v6" />
+            <path d="M8 10h.01M12 10h.01M16 10h.01" />
+            @break
         @case('invoice')
             <path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z" />
             <path d="M9 8h6M9 12h6M9 16h4" />

@@ -13,6 +13,8 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RolesAndSuperAdminSeeder::class,
+            UgandaDistrictSeeder::class,
+            UgandaSchoolSeeder::class,
             EduKitProductSeeder::class,
         ]);
     }
