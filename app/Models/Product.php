@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
@@ -21,8 +22,11 @@ class Product extends Model
         'description',
         'brand',
         'unit',
+        'cost_price',
         'price',
+        'warehouse_stock_quantity',
         'stock_quantity',
+        'reorder_level',
         'image_path',
         'is_active',
         'is_featured',
@@ -31,8 +35,11 @@ class Product extends Model
     protected function casts(): array
     {
         return [
+            'cost_price' => 'decimal:2',
             'price' => 'decimal:2',
+            'warehouse_stock_quantity' => 'integer',
             'stock_quantity' => 'integer',
+            'reorder_level' => 'integer',
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
         ];
@@ -41,6 +48,11 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(ProductCategory::class, 'product_category_id');
+    }
+
+    public function inventoryMovements(): HasMany
+    {
+        return $this->hasMany(InventoryMovement::class);
     }
 
     public function getRouteKeyName(): string
@@ -90,8 +102,34 @@ class Product extends Model
         return config('filesystems.product_images_disk', 'public');
     }
 
+    protected function profitPerUnit(): Attribute
+    {
+        return Attribute::get(fn (): float => max(0, (float) $this->price - (float) $this->cost_price));
+    }
+
+    protected function grossMarginPercentage(): Attribute
+    {
+        return Attribute::get(function (): float {
+            if ((float) $this->price <= 0) {
+                return 0;
+            }
+
+            return round(($this->profit_per_unit / (float) $this->price) * 100, 1);
+        });
+    }
+
+    protected function totalStockQuantity(): Attribute
+    {
+        return Attribute::get(fn (): int => (int) $this->warehouse_stock_quantity + (int) $this->stock_quantity);
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    public function scopeLowDisplayStock(Builder $query): Builder
+    {
+        return $query->whereColumn('stock_quantity', '<=', 'reorder_level');
     }
 }

@@ -1,6 +1,7 @@
 @php
     $cards = [
         ['label' => 'Total Products', 'value' => $stats['products'], 'note' => number_format($stats['active_products']).' active on website', 'icon' => 'products', 'tone' => 'border-blue-100 bg-blue-50 text-blue-700'],
+        ['label' => 'Display Stock', 'value' => $stats['display_stock'], 'note' => number_format($stats['warehouse_stock']).' warehouse, '.number_format($stats['low_display_stock']).' low', 'icon' => 'warehouse', 'tone' => 'border-sky-100 bg-sky-50 text-sky-700'],
         ['label' => 'Schools', 'value' => $stats['schools'], 'note' => number_format($stats['active_schools']).' visible at checkout', 'icon' => 'school', 'tone' => 'border-cyan-100 bg-cyan-50 text-cyan-700'],
         ['label' => 'Shopping Lists', 'value' => $stats['shopping_lists'], 'note' => number_format($stats['pending_shopping_lists']).' awaiting review', 'icon' => 'list', 'tone' => 'border-violet-100 bg-violet-50 text-violet-700'],
         ['label' => 'Approved Suppliers', 'value' => $stats['approved_suppliers'], 'note' => number_format($stats['pending_suppliers']).' pending approval', 'icon' => 'suppliers', 'tone' => 'border-emerald-100 bg-emerald-50 text-emerald-700'],
@@ -8,7 +9,7 @@
     ];
 @endphp
 
-<section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5" aria-label="Platform summary">
+<section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-6" aria-label="Platform summary">
     @foreach ($cards as $card)
         <article class="rounded-md border p-4 {{ $card['tone'] }}">
             <div class="flex items-start justify-between gap-4">

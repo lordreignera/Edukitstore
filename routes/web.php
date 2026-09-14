@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DriverController as AdminDriverController;
 use App\Http\Controllers\Admin\InvoiceController as AdminInvoiceController;
+use App\Http\Controllers\Admin\InventoryController as AdminInventoryController;
 use App\Http\Controllers\Admin\ProductCategoryController as AdminProductCategoryController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\SchoolController as AdminSchoolController;
@@ -72,6 +73,9 @@ Route::middleware([
         Route::get('invoices', [AdminInvoiceController::class, 'index'])->name('invoices.index');
         Route::get('invoices/{invoice}', [AdminInvoiceController::class, 'show'])->name('invoices.show');
         Route::patch('invoices/{invoice}', [AdminInvoiceController::class, 'update'])->name('invoices.update');
+        Route::get('inventory', [AdminInventoryController::class, 'index'])->name('inventory.index');
+        Route::post('inventory/{product}/intake', [AdminInventoryController::class, 'intake'])->name('inventory.intake');
+        Route::post('inventory/{product}/transfer', [AdminInventoryController::class, 'transfer'])->name('inventory.transfer');
         Route::resource('products', AdminProductController::class);
         Route::resource('product-categories', AdminProductCategoryController::class);
         Route::resource('schools', AdminSchoolController::class);

@@ -17,6 +17,13 @@
             <path d="M12 22V13" />
             <path d="m21 7.5-9-5-9 5v9l9 5.5 9-5.5Z" />
             @break
+        @case('warehouse')
+            <path d="M3 21V9l9-5 9 5v12" />
+            <path d="M7 21v-8h10v8" />
+            <path d="M9 17h6" />
+            <path d="M9 13h6" />
+            <path d="M3 9h18" />
+            @break
         @case('list')
             <path d="M8 6h13" />
             <path d="M8 12h13" />

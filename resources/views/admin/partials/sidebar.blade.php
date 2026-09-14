@@ -2,6 +2,7 @@
     $navigation = [
         ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'pattern' => 'admin.dashboard', 'icon' => 'home'],
         ['label' => 'Products', 'route' => 'admin.products.index', 'pattern' => 'admin.products.*', 'icon' => 'products'],
+        ['label' => 'Inventory', 'route' => 'admin.inventory.index', 'pattern' => 'admin.inventory.*', 'icon' => 'warehouse'],
         ['label' => 'Categories', 'route' => 'admin.product-categories.index', 'pattern' => 'admin.product-categories.*', 'icon' => 'tag'],
         ['label' => 'Schools', 'route' => 'admin.schools.index', 'pattern' => 'admin.schools.*', 'icon' => 'school'],
         ['label' => 'Shopping Lists', 'route' => 'admin.shopping-lists.index', 'pattern' => 'admin.shopping-lists.*', 'icon' => 'list'],
@@ -35,6 +36,8 @@
                         <span class="ml-auto rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold text-amber-950">{{ $adminNavStats['shopping_lists'] }}</span>
                     @elseif ($item['label'] === 'Invoices' && $adminNavStats['invoices'] > 0)
                         <span class="ml-auto rounded-full bg-emerald-400 px-2 py-0.5 text-[10px] font-bold text-emerald-950">{{ $adminNavStats['invoices'] }}</span>
+                    @elseif ($item['label'] === 'Inventory' && $adminNavStats['low_stock'] > 0)
+                        <span class="ml-auto rounded-full bg-red-400 px-2 py-0.5 text-[10px] font-bold text-red-950">{{ $adminNavStats['low_stock'] }}</span>
                     @endif
                 </a>
             @endforeach

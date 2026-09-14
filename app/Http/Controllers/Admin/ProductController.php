@@ -42,7 +42,7 @@ class ProductController extends Controller
 
         return view('admin.products.index', [
             'products' => $products,
-            'productForm' => new Product(['is_active' => true]),
+            'productForm' => new Product(['is_active' => true, 'cost_price' => 0, 'warehouse_stock_quantity' => 0, 'stock_quantity' => 0, 'reorder_level' => 0]),
             'categories' => $categories,
             'search' => $search,
             'categoryId' => $categoryId,
@@ -56,7 +56,7 @@ class ProductController extends Controller
         $categories = ProductCategory::where('is_active', true)->orderBy('name')->get();
 
         return view('admin.products.create', [
-            'product' => new Product(['is_active' => true]),
+            'product' => new Product(['is_active' => true, 'cost_price' => 0, 'warehouse_stock_quantity' => 0, 'stock_quantity' => 0, 'reorder_level' => 0]),
             'categories' => $categories,
         ]);
     }
@@ -126,8 +126,11 @@ class ProductController extends Controller
             'description' => ['nullable', 'string'],
             'brand' => ['nullable', 'string', 'max:120'],
             'unit' => ['nullable', 'string', 'max:80'],
+            'cost_price' => ['required', 'numeric', 'min:0'],
             'price' => ['required', 'numeric', 'min:0'],
+            'warehouse_stock_quantity' => ['required', 'integer', 'min:0'],
             'stock_quantity' => ['required', 'integer', 'min:0'],
+            'reorder_level' => ['required', 'integer', 'min:0'],
             'image' => [$product ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ]);
     }

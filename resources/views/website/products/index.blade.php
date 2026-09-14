@@ -80,12 +80,16 @@
                             <p class="mt-1 text-[11px] font-semibold text-slate-500">{{ number_format($product->stock_quantity) }} available</p>
                             <div class="mt-4 grid grid-cols-[1fr_1.15fr] gap-2">
                                 <a href="{{ route('website.products.show', $product) }}" class="grid min-h-10 place-items-center rounded-md border border-[#d7e4ef] px-3 py-2 text-xs font-extrabold text-[#07215f] hover:border-emerald-500">View</a>
-                                <form method="POST" action="{{ route('website.cart.store', $product) }}" class="grid grid-cols-[54px_1fr] gap-2">
-                                    @csrf
-                                    <label class="sr-only" for="product-quantity-{{ $product->id }}">Quantity</label>
-                                    <input id="product-quantity-{{ $product->id }}" name="quantity" type="number" min="1" max="{{ $product->stock_quantity }}" value="1" class="h-10 w-full rounded-md border-[#d7e4ef] text-center text-xs font-bold text-[#07215f] focus:border-emerald-600 focus:ring-emerald-600">
-                                    <button class="w-full rounded-md bg-emerald-600 px-3 py-2 text-xs font-extrabold text-white hover:bg-emerald-700">Add</button>
-                                </form>
+                                @if ($product->stock_quantity > 0)
+                                    <form method="POST" action="{{ route('website.cart.store', $product) }}" class="grid grid-cols-[54px_1fr] gap-2">
+                                        @csrf
+                                        <label class="sr-only" for="product-quantity-{{ $product->id }}">Quantity</label>
+                                        <input id="product-quantity-{{ $product->id }}" name="quantity" type="number" min="1" max="{{ $product->stock_quantity }}" value="1" class="h-10 w-full rounded-md border-[#d7e4ef] text-center text-xs font-bold text-[#07215f] focus:border-emerald-600 focus:ring-emerald-600">
+                                        <button class="w-full rounded-md bg-emerald-600 px-3 py-2 text-xs font-extrabold text-white hover:bg-emerald-700">Add</button>
+                                    </form>
+                                @else
+                                    <span class="grid min-h-10 place-items-center rounded-md bg-slate-100 px-3 py-2 text-xs font-extrabold text-slate-500">Out of stock</span>
+                                @endif
                             </div>
                         </div>
                     </article>

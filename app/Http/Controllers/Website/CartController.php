@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Website;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ShoppingList;
+use App\Services\InventoryService;
 use App\Services\SchoolDeliveryService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -39,6 +40,10 @@ class CartController extends Controller
     public function store(Request $request, Product $product): RedirectResponse
     {
         abort_unless($product->is_active, 404);
+
+        if ($product->stock_quantity < 1) {
+            return back()->withErrors(['cart' => "{$product->name} is currently out of stock."]);
+        }
 
         $data = $request->validate([
             'quantity' => ['nullable', 'integer', 'min:1', 'max:'.$product->stock_quantity],
@@ -97,6 +102,7 @@ class CartController extends Controller
                 'product_id' => $product->id,
                 'name' => $product->name,
                 'sku' => $product->sku,
+                'unit_cost' => (int) $product->cost_price,
                 'unit_price' => $unitPrice,
                 'quantity' => $quantity,
                 'line_total' => $unitPrice * $quantity,
@@ -105,6 +111,14 @@ class CartController extends Controller
 
         if ($items->isEmpty()) {
             return back()->withErrors(['cart' => 'The products in your cart are no longer available.']);
+        }
+
+        foreach ($items as $item) {
+            $product = $products->firstWhere('id', $item['product_id']);
+
+            if (! $product || $product->stock_quantity < $item['quantity']) {
+                return back()->withErrors(['cart' => "{$item['name']} has only ".number_format($product?->stock_quantity ?? 0).' available for sale.']);
+            }
         }
 
         $itemsSubtotal = $items->sum('line_total');
@@ -133,11 +147,13 @@ class CartController extends Controller
         return view('website.quote', compact('shoppingList'));
     }
 
-    public function pay(Request $request, string $reference): RedirectResponse
+    public function pay(Request $request, string $reference, InventoryService $inventory): RedirectResponse
     {
         $shoppingList = ShoppingList::where('reference', $reference)->firstOrFail();
 
         abort_unless($shoppingList->status === ShoppingList::STATUS_QUOTED && $shoppingList->estimated_total, 404);
+
+        $inventory->ensureInvoiceHasDisplayStock($shoppingList);
 
         $secretKey = config('services.flutterwave.secret_key');
 
@@ -183,7 +199,7 @@ class CartController extends Controller
         return redirect()->away($checkoutUrl);
     }
 
-    public function flutterwaveCallback(Request $request): RedirectResponse
+    public function flutterwaveCallback(Request $request, InventoryService $inventory): RedirectResponse
     {
         $txRef = (string) $request->query('tx_ref');
         $transactionId = (string) $request->query('transaction_id');
@@ -226,11 +242,15 @@ class CartController extends Controller
                 ->withErrors(['payment' => 'Flutterwave payment verification failed. Please contact EduKit support if money was deducted.']);
         }
 
-        $shoppingList->update([
-            'payment_status' => ShoppingList::PAYMENT_PAID,
-            'payment_provider' => 'flutterwave',
-            'paid_at' => now(),
-        ]);
+        if ($shoppingList->payment_status !== ShoppingList::PAYMENT_PAID) {
+            $inventory->recordPaidCartSale($shoppingList);
+
+            $shoppingList->update([
+                'payment_status' => ShoppingList::PAYMENT_PAID,
+                'payment_provider' => 'flutterwave',
+                'paid_at' => now(),
+            ]);
+        }
 
         return redirect()
             ->route('website.quote.show', $shoppingList->reference)

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\District;
 use App\Models\Driver;
+use App\Models\InventoryMovement;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\School;
@@ -516,6 +517,79 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         $this->assertSame(ShoppingList::PAYMENT_PAID, $shoppingList->payment_status);
         $this->assertSame(ShoppingList::STATUS_QUOTED, $shoppingList->status);
         $this->assertNotNull($shoppingList->paid_at);
+    }
+
+    public function test_verified_cart_payment_reduces_display_stock_and_records_profit(): void
+    {
+        config(['services.flutterwave.secret_key' => 'FLWSECK_TEST']);
+
+        $product = Product::create([
+            'name' => 'Exercise Book Dozen',
+            'slug' => 'exercise-book-dozen',
+            'sku' => 'EDK260900777',
+            'cost_price' => 1600,
+            'price' => 1800,
+            'stock_quantity' => 20,
+            'warehouse_stock_quantity' => 50,
+            'is_active' => true,
+        ]);
+
+        $shoppingList = ShoppingList::create([
+            'parent_name' => 'Norah A.',
+            'phone' => '+256700123456',
+            'email' => 'norah@example.test',
+            'delivery_preference' => 'school',
+            'source' => ShoppingList::SOURCE_CART,
+            'cart_items' => [
+                [
+                    'product_id' => $product->id,
+                    'name' => $product->name,
+                    'sku' => $product->sku,
+                    'unit_cost' => 1600,
+                    'unit_price' => 1800,
+                    'quantity' => 4,
+                    'line_total' => 7200,
+                ],
+            ],
+            'items_subtotal' => 7200,
+            'delivery_fee' => 3000,
+            'estimated_total' => 10200,
+            'status' => ShoppingList::STATUS_QUOTED,
+            'payment_status' => ShoppingList::PAYMENT_PENDING,
+            'payment_provider' => 'flutterwave',
+            'payment_reference' => 'EDK-260912-1000-ABCDEF',
+        ]);
+
+        Http::fake([
+            'api.flutterwave.com/v3/transactions/12345/verify' => Http::response([
+                'status' => 'success',
+                'data' => [
+                    'status' => 'successful',
+                    'tx_ref' => 'EDK-260912-1000-ABCDEF',
+                    'amount' => 10200,
+                    'currency' => 'UGX',
+                ],
+            ]),
+        ]);
+
+        $this->get(route('website.payments.flutterwave.callback', [
+            'status' => 'successful',
+            'tx_ref' => 'EDK-260912-1000-ABCDEF',
+            'transaction_id' => '12345',
+        ]))
+            ->assertRedirect(route('website.quote.show', $shoppingList->reference))
+            ->assertSessionHas('status');
+
+        $product->refresh();
+
+        $this->assertSame(16, $product->stock_quantity);
+        $this->assertDatabaseHas('inventory_movements', [
+            'product_id' => $product->id,
+            'shopping_list_id' => $shoppingList->id,
+            'type' => InventoryMovement::TYPE_SALE_PAID,
+            'quantity' => 4,
+            'profit' => 800,
+        ]);
     }
 
     private function createSchool(array $attributes = []): School

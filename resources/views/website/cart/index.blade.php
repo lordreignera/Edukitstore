@@ -99,7 +99,7 @@
                             <span class="font-black text-[#07215f]">Total to pay</span>
                             <span class="font-black text-[#07215f]" data-grand-total>UGX {{ number_format($subtotal) }}</span>
                         </div>
-                        <p class="mt-3 text-xs leading-5 text-slate-500">The delivery fee is pulled from the selected school record set by EduKit admin.</p>
+                        <p class="mt-3 text-xs leading-5 text-slate-500">The delivery fee is pulled from the selected school record before payment.</p>
                     </div>
 
                     <form method="POST" action="{{ route('website.cart.submit') }}" class="mt-5 grid gap-4 sm:grid-cols-2">

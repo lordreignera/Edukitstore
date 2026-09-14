@@ -3,6 +3,7 @@
 namespace App\View\Components;
 
 use App\Models\Driver;
+use App\Models\Product;
 use App\Models\ShoppingList;
 use App\Models\Supplier;
 use Illuminate\Contracts\View\View;
@@ -21,6 +22,7 @@ class AdminLayout extends Component
                 ->count(),
             'suppliers' => Supplier::where('is_approved', false)->count(),
             'drivers' => Driver::where('is_approved', false)->count(),
+            'low_stock' => Product::whereColumn('stock_quantity', '<=', 'reorder_level')->count(),
         ];
     }
 

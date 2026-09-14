@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\District;
+use App\Models\InventoryMovement;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\School;
@@ -39,8 +40,11 @@ class AdminProductManagementTest extends TestCase
             'description' => 'Revision book for Ugandan primary candidates.',
             'brand' => 'EduKit Books',
             'unit' => 'Book',
+            'cost_price' => 22000,
             'price' => 28000,
+            'warehouse_stock_quantity' => 40,
             'stock_quantity' => 25,
+            'reorder_level' => 8,
             'image' => UploadedFile::fake()->image('science-revision.jpg', 900, 700),
             'is_active' => '1',
             'is_featured' => '1',
@@ -120,8 +124,11 @@ class AdminProductManagementTest extends TestCase
             ->put(route('admin.products.update', $product), [
                 'name' => 'Counter Book A4',
                 'sku' => 'DO-NOT-CHANGE-ME',
+                'cost_price' => 4500,
                 'price' => 6000,
+                'warehouse_stock_quantity' => 25,
                 'stock_quantity' => 75,
+                'reorder_level' => 10,
                 'image' => UploadedFile::fake()->image('new-cover.png', 800, 800),
                 'is_active' => '1',
             ])->assertRedirect(route('admin.products.index'));
@@ -193,6 +200,68 @@ class AdminProductManagementTest extends TestCase
 
         $this->assertDatabaseMissing('product_categories', ['id' => $category->id]);
         $this->assertNull($product->fresh()->product_category_id);
+    }
+
+    public function test_admin_can_record_stock_intake_and_move_stock_to_display(): void
+    {
+        Role::findOrCreate('super-admin');
+        $admin = User::factory()->create();
+        $admin->assignRole('super-admin');
+
+        $product = Product::create([
+            'name' => 'Exercise Book Dozen',
+            'slug' => 'exercise-book-dozen',
+            'sku' => 'EDK260900888',
+            'cost_price' => 1600,
+            'price' => 1800,
+            'warehouse_stock_quantity' => 0,
+            'stock_quantity' => 2,
+            'reorder_level' => 5,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.inventory.intake', $product), [
+                'quantity' => 24,
+                'unit_cost' => 1600,
+                'unit_price' => 1800,
+                'notes' => 'Opening Kikuubo stock.',
+            ])
+            ->assertRedirect();
+
+        $product->refresh();
+
+        $this->assertSame(24, $product->warehouse_stock_quantity);
+        $this->assertSame(2, $product->stock_quantity);
+        $this->assertSame(1800, (int) $product->price);
+        $this->assertDatabaseHas('inventory_movements', [
+            'product_id' => $product->id,
+            'type' => InventoryMovement::TYPE_STOCK_INTAKE,
+            'quantity' => 24,
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.inventory.transfer', $product), [
+                'quantity' => 10,
+                'notes' => 'Move to website shelf.',
+            ])
+            ->assertRedirect();
+
+        $product->refresh();
+
+        $this->assertSame(14, $product->warehouse_stock_quantity);
+        $this->assertSame(12, $product->stock_quantity);
+        $this->assertDatabaseHas('inventory_movements', [
+            'product_id' => $product->id,
+            'type' => InventoryMovement::TYPE_TRANSFER_TO_DISPLAY,
+            'quantity' => 10,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.inventory.index'))
+            ->assertOk()
+            ->assertSee('Exercise Book Dozen')
+            ->assertSee('UGX 200');
     }
 
     public function test_super_admin_can_manage_schools_and_delivery_fees(): void

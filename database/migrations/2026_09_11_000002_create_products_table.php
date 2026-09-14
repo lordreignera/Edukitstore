@@ -17,8 +17,11 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('brand')->nullable();
             $table->string('unit')->nullable();
+            $table->decimal('cost_price', 12, 2)->default(0);
             $table->decimal('price', 12, 2);
+            $table->unsignedInteger('warehouse_stock_quantity')->default(0);
             $table->unsignedInteger('stock_quantity')->default(0);
+            $table->unsignedInteger('reorder_level')->default(0);
             $table->string('image_path')->nullable();
             $table->boolean('is_active')->default(true);
             $table->boolean('is_featured')->default(false);

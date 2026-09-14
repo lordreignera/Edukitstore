@@ -26,6 +26,9 @@ class DashboardController extends Controller
             'active_schools' => School::where('is_active', true)->count(),
             'pending_drivers' => Driver::where('is_approved', false)->count(),
             'approved_drivers' => Driver::where('is_approved', true)->count(),
+            'display_stock' => Product::sum('stock_quantity'),
+            'warehouse_stock' => Product::sum('warehouse_stock_quantity'),
+            'low_display_stock' => Product::whereColumn('stock_quantity', '<=', 'reorder_level')->count(),
         ];
 
         $latestProducts = Product::with('category')->latest()->take(5)->get();

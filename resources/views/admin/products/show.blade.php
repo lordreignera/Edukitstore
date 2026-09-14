@@ -29,8 +29,8 @@
 
             <section class="rounded border border-slate-200 bg-white shadow-sm">
                 <div class="border-b border-slate-100 px-5 py-4">
-                    <h2 class="text-lg font-extrabold text-slate-950">Catalogue Information</h2>
-                    <p class="mt-1 text-sm text-slate-500">These details power the public product listing.</p>
+                    <h2 class="text-lg font-extrabold text-slate-950">Catalogue and Inventory</h2>
+                    <p class="mt-1 text-sm text-slate-500">These details power the public listing and warehouse decisions.</p>
                 </div>
                 <dl class="grid gap-px bg-slate-100 sm:grid-cols-2">
                     <div class="bg-white p-5">
@@ -42,12 +42,32 @@
                         <dd class="mt-1 text-sm font-semibold text-slate-900">{{ $product->category?->name ?? 'Uncategorised' }}</dd>
                     </div>
                     <div class="bg-white p-5">
-                        <dt class="text-xs font-bold uppercase text-slate-500">Price</dt>
+                        <dt class="text-xs font-bold uppercase text-slate-500">Wholesale cost</dt>
+                        <dd class="mt-1 text-sm font-semibold text-slate-900">UGX {{ number_format($product->cost_price) }}</dd>
+                    </div>
+                    <div class="bg-white p-5">
+                        <dt class="text-xs font-bold uppercase text-slate-500">Customer price</dt>
                         <dd class="mt-1 text-sm font-semibold text-slate-900">UGX {{ number_format($product->price) }}</dd>
                     </div>
                     <div class="bg-white p-5">
-                        <dt class="text-xs font-bold uppercase text-slate-500">Stock</dt>
+                        <dt class="text-xs font-bold uppercase text-slate-500">Profit per unit</dt>
+                        <dd class="mt-1 text-sm font-semibold text-emerald-700">UGX {{ number_format($product->profit_per_unit) }} ({{ $product->gross_margin_percentage }}%)</dd>
+                    </div>
+                    <div class="bg-white p-5">
+                        <dt class="text-xs font-bold uppercase text-slate-500">Website/display stock</dt>
                         <dd class="mt-1 text-sm font-semibold text-slate-900">{{ number_format($product->stock_quantity) }}</dd>
+                    </div>
+                    <div class="bg-white p-5">
+                        <dt class="text-xs font-bold uppercase text-slate-500">Warehouse stock</dt>
+                        <dd class="mt-1 text-sm font-semibold text-slate-900">{{ number_format($product->warehouse_stock_quantity) }}</dd>
+                    </div>
+                    <div class="bg-white p-5">
+                        <dt class="text-xs font-bold uppercase text-slate-500">Total stock</dt>
+                        <dd class="mt-1 text-sm font-semibold text-slate-900">{{ number_format($product->total_stock_quantity) }}</dd>
+                    </div>
+                    <div class="bg-white p-5">
+                        <dt class="text-xs font-bold uppercase text-slate-500">Reorder level</dt>
+                        <dd class="mt-1 text-sm font-semibold text-slate-900">{{ number_format($product->reorder_level) }}</dd>
                     </div>
                     <div class="bg-white p-5">
                         <dt class="text-xs font-bold uppercase text-slate-500">Brand</dt>

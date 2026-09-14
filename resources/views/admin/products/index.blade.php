@@ -3,9 +3,12 @@
         <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">Master Product List</h2>
-                <p class="mt-1 text-sm text-gray-500">Super admin sets customer-facing prices for the website catalogue.</p>
+                <p class="mt-1 text-sm text-gray-500">Manage catalogue details, customer prices and stock visible on the website.</p>
             </div>
             <div class="flex flex-wrap gap-3">
+                <a href="{{ route('admin.inventory.index') }}" class="inline-flex items-center gap-2 rounded border border-blue-700 px-4 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-50">
+                    <x-ui.icon name="warehouse" size="size-4" /> Inventory
+                </a>
                 <a href="{{ route('admin.product-categories.create') }}" class="inline-flex items-center gap-2 rounded border border-emerald-700 px-4 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-50">
                     <x-ui.icon name="tag" size="size-4" /> Add category
                 </a>
@@ -31,7 +34,7 @@
                     @if (session('status'))
                         <p class="text-sm font-medium text-emerald-700">{{ session('status') }}</p>
                     @else
-                        <p class="text-sm text-gray-500">Products marked active appear on the public website.</p>
+                        <p class="text-sm text-gray-500">Website/display stock is the quantity parents can buy. Warehouse stock is moved through the inventory module.</p>
                     @endif
                 </div>
                 <div class="overflow-x-auto">
@@ -40,8 +43,11 @@
                             <tr>
                                 <th class="px-5 py-3">Product</th>
                                 <th class="px-5 py-3">Product code</th>
-                                <th class="px-5 py-3">Price</th>
-                                <th class="px-5 py-3">Stock</th>
+                                <th class="px-5 py-3">Cost</th>
+                                <th class="px-5 py-3">Customer price</th>
+                                <th class="px-5 py-3">Display</th>
+                                <th class="px-5 py-3">Warehouse</th>
+                                <th class="px-5 py-3">Profit/unit</th>
                                 <th class="px-5 py-3">Status</th>
                                 <th class="px-5 py-3"></th>
                             </tr>
@@ -54,8 +60,16 @@
                                         <p class="text-xs text-gray-500">{{ $product->category?->name ?? 'Uncategorised' }}</p>
                                     </td>
                                     <td class="px-5 py-4 text-gray-600">{{ $product->sku }}</td>
+                                    <td class="px-5 py-4 font-semibold text-gray-700">UGX {{ number_format($product->cost_price) }}</td>
                                     <td class="px-5 py-4 font-semibold text-gray-950">UGX {{ number_format($product->price) }}</td>
-                                    <td class="px-5 py-4 text-gray-600">{{ $product->stock_quantity }}</td>
+                                    <td class="px-5 py-4">
+                                        <p class="font-semibold text-gray-950">{{ number_format($product->stock_quantity) }}</p>
+                                        @if ($product->stock_quantity <= $product->reorder_level)
+                                            <p class="mt-1 text-[11px] font-bold text-amber-700">Low display stock</p>
+                                        @endif
+                                    </td>
+                                    <td class="px-5 py-4 text-gray-600">{{ number_format($product->warehouse_stock_quantity) }}</td>
+                                    <td class="px-5 py-4 font-semibold text-emerald-700">UGX {{ number_format($product->profit_per_unit) }}</td>
                                     <td class="px-5 py-4">
                                         <span class="rounded px-2 py-1 text-xs font-semibold {{ $product->is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600' }}">
                                             {{ $product->is_active ? 'Active' : 'Hidden' }}
@@ -81,7 +95,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="px-5 py-8 text-center text-gray-500">No products have been added.</td>
+                                    <td colspan="9" class="px-5 py-8 text-center text-gray-500">No products have been added.</td>
                                 </tr>
                             @endforelse
                         </tbody>

@@ -26,15 +26,35 @@
     </div>
 
     <div>
+        <label class="text-sm font-medium text-gray-700" for="{{ $prefix }}-cost-price">Wholesale cost (UGX)</label>
+        <input id="{{ $prefix }}-cost-price" name="cost_price" type="number" min="0" step="1" value="{{ old('cost_price', $product->cost_price ?? 0) }}" required class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+        @error('cost_price') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+    </div>
+
+    <div>
         <label class="text-sm font-medium text-gray-700" for="{{ $prefix }}-price">Customer price (UGX)</label>
         <input id="{{ $prefix }}-price" name="price" type="number" min="0" step="1" value="{{ old('price', $product->price) }}" required class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
         @error('price') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
     </div>
 
     <div>
-        <label class="text-sm font-medium text-gray-700" for="{{ $prefix }}-stock">Available stock</label>
+        <label class="text-sm font-medium text-gray-700" for="{{ $prefix }}-warehouse-stock">Warehouse stock</label>
+        <input id="{{ $prefix }}-warehouse-stock" name="warehouse_stock_quantity" type="number" min="0" step="1" value="{{ old('warehouse_stock_quantity', $product->warehouse_stock_quantity ?? 0) }}" required class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+        <p class="mt-1 text-xs text-gray-500">Back-room quantity not yet shown for public purchase.</p>
+        @error('warehouse_stock_quantity') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+    </div>
+
+    <div>
+        <label class="text-sm font-medium text-gray-700" for="{{ $prefix }}-stock">Website/display stock</label>
         <input id="{{ $prefix }}-stock" name="stock_quantity" type="number" min="0" step="1" value="{{ old('stock_quantity', $product->stock_quantity ?? 0) }}" required class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+        <p class="mt-1 text-xs text-gray-500">This is what parents can add to cart.</p>
         @error('stock_quantity') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+    </div>
+
+    <div>
+        <label class="text-sm font-medium text-gray-700" for="{{ $prefix }}-reorder-level">Reorder level</label>
+        <input id="{{ $prefix }}-reorder-level" name="reorder_level" type="number" min="0" step="1" value="{{ old('reorder_level', $product->reorder_level ?? 0) }}" required class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+        @error('reorder_level') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
     </div>
 
     <div>
