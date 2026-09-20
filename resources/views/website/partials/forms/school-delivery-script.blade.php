@@ -10,6 +10,8 @@
 
         document.querySelectorAll('[data-school-delivery]').forEach((container) => {
             const subtotal = Number(container.dataset.subtotal || 0);
+            const hasEdukitItems = container.dataset.hasEdukitItems !== '0';
+            const supplierFees = JSON.parse(container.dataset.supplierFees || '[]');
             const deliveryPreference = container.querySelector('[data-delivery-preference]');
             const schoolSelect = container.querySelector('[data-school-select]');
             const schoolFields = container.querySelectorAll('[data-school-fields]');
@@ -22,7 +24,12 @@
             const syncTotals = () => {
                 const isSchoolDelivery = deliveryPreference?.value === 'school';
                 const selectedSchool = schoolSelect?.selectedOptions?.[0];
-                const fee = isSchoolDelivery ? Number(selectedSchool?.dataset.fee || 0) : 0;
+                const schoolDistrict = selectedSchool?.dataset.district || '';
+                const edukitFee = isSchoolDelivery && hasEdukitItems ? Number(selectedSchool?.dataset.fee || 0) : 0;
+                const supplierFee = isSchoolDelivery && selectedSchool?.value
+                    ? supplierFees.reduce((total, supplier) => total + (String(supplier.district).toLowerCase() === schoolDistrict.toLowerCase() ? Number(supplier.local_fee || 0) : Number(supplier.other_fee || 0)), 0)
+                    : 0;
+                const fee = edukitFee + supplierFee;
                 const location = selectedSchool?.dataset.location || selectedSchool?.dataset.district || '';
 
                 schoolFields.forEach((field) => field.classList.toggle('hidden', ! isSchoolDelivery));

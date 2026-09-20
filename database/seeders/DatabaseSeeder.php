@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             UgandaDistrictSeeder::class,
             UgandaSchoolSeeder::class,
             EduKitProductSeeder::class,
+            OpeningStockSeeder::class,
         ]);
     }
 }

@@ -30,14 +30,18 @@
                 <div class="border-b border-slate-100 px-5 py-4">
                     <h2 class="text-lg font-black text-[#07215f]">Items requested</h2>
                 </div>
+                @php
+                    $lineItems = $shoppingList->relationLoaded('lineItems') ? $shoppingList->lineItems : collect();
+                    $legacyItems = collect($shoppingList->cart_items ?? []);
+                @endphp
                 <div class="divide-y divide-slate-100">
-                    @forelse ($shoppingList->cart_items ?? [] as $item)
+                    @forelse ($lineItems->isNotEmpty() ? $lineItems : $legacyItems as $item)
                         <div class="grid gap-3 px-5 py-4 text-sm sm:grid-cols-[1fr_auto]">
                             <div>
-                                <p class="font-black text-slate-950">{{ $item['name'] }}</p>
-                                <p class="mt-1 text-xs text-slate-500">{{ $item['sku'] }} | Qty {{ $item['quantity'] }} | UGX {{ number_format($item['unit_price']) }} each</p>
+                                <p class="font-black text-slate-950">{{ data_get($item, 'product_name') ?? data_get($item, 'name') }}</p>
+                                <p class="mt-1 text-xs text-slate-500">{{ data_get($item, 'sku') }} | Qty {{ data_get($item, 'quantity') }} | UGX {{ number_format(data_get($item, 'unit_price')) }} each</p>
                             </div>
-                            <p class="font-black text-slate-950">UGX {{ number_format($item['line_total']) }}</p>
+                            <p class="font-black text-slate-950">UGX {{ number_format(data_get($item, 'line_total')) }}</p>
                         </div>
                     @empty
                         <p class="px-5 py-8 text-sm text-slate-500">This request was submitted as an uploaded shopping list.</p>

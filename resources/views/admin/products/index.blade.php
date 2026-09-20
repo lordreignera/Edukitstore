@@ -6,8 +6,11 @@
                 <p class="mt-1 text-sm text-gray-500">Manage catalogue details, customer prices and stock visible on the website.</p>
             </div>
             <div class="flex flex-wrap gap-3">
-                <a href="{{ route('admin.inventory.index') }}" class="inline-flex items-center gap-2 rounded border border-blue-700 px-4 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-50">
-                    <x-ui.icon name="warehouse" size="size-4" /> Inventory
+                <a href="{{ route('admin.inventory.index', ['open_import' => 1]) }}" class="inline-flex items-center gap-2 rounded border border-blue-700 px-4 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-50">
+                    <x-ui.icon name="upload" size="size-4" /> Import CSV
+                </a>
+                <a href="{{ route('admin.inventory.export') }}" class="inline-flex items-center gap-2 rounded border border-blue-700 px-4 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-50">
+                    <x-ui.icon name="download" size="size-4" /> Export CSV
                 </a>
                 <a href="{{ route('admin.product-categories.create') }}" class="inline-flex items-center gap-2 rounded border border-emerald-700 px-4 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-50">
                     <x-ui.icon name="tag" size="size-4" /> Add category

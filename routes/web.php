@@ -6,11 +6,18 @@ use App\Http\Controllers\Admin\InvoiceController as AdminInvoiceController;
 use App\Http\Controllers\Admin\InventoryController as AdminInventoryController;
 use App\Http\Controllers\Admin\ProductCategoryController as AdminProductCategoryController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\ProfitReportController as AdminProfitReportController;
 use App\Http\Controllers\Admin\SchoolController as AdminSchoolController;
 use App\Http\Controllers\Admin\ShoppingListController as AdminShoppingListController;
 use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
+use App\Http\Controllers\Admin\SupplierOfferController as AdminSupplierOfferController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Driver\DeliveryController as DriverDeliveryController;
+use App\Http\Controllers\Driver\DashboardController as DriverDashboardController;
+use App\Http\Controllers\Supplier\DashboardController as SupplierDashboardController;
+use App\Http\Controllers\Supplier\StockController as SupplierStockController;
+use App\Http\Controllers\Supplier\OfferController as SupplierOfferController;
+use App\Http\Controllers\Supplier\EarningsController as SupplierEarningsController;
 use App\Http\Controllers\Website\CartController as WebsiteCartController;
 use App\Http\Controllers\Website\DriverOnboardingController as WebsiteDriverOnboardingController;
 use App\Http\Controllers\Website\HomeController;
@@ -57,15 +64,31 @@ Route::middleware([
         }
 
         if (auth()->user()?->hasRole('delivery-person')) {
-            return redirect()->route('driver.deliveries.index');
+            return redirect()->route('driver.dashboard');
+        }
+
+        if (auth()->user()?->hasRole('supplier')) {
+            return redirect()->route('supplier.dashboard');
         }
 
         return view('dashboard');
     })->name('dashboard');
 
     Route::middleware('role:delivery-person')->prefix('driver')->name('driver.')->group(function () {
+        Route::get('/', DriverDashboardController::class)->name('dashboard');
+        Route::patch('availability', [DriverDashboardController::class, 'availability'])->name('availability');
         Route::get('deliveries', [DriverDeliveryController::class, 'index'])->name('deliveries.index');
         Route::patch('deliveries/{shoppingList}/confirm', [DriverDeliveryController::class, 'confirm'])->name('deliveries.confirm');
+    });
+
+    Route::middleware('role:supplier')->prefix('supplier')->name('supplier.')->group(function () {
+        Route::get('/', SupplierDashboardController::class)->name('dashboard');
+        Route::get('stock', [SupplierStockController::class, 'index'])->name('stock.index');
+        Route::get('products', [SupplierOfferController::class, 'index'])->name('offers.index');
+        Route::get('products/create', [SupplierOfferController::class, 'create'])->name('offers.create');
+        Route::post('products', [SupplierOfferController::class, 'store'])->name('offers.store');
+        Route::post('products/{offer}/restock', [SupplierOfferController::class, 'restock'])->name('offers.restock');
+        Route::get('earnings', [SupplierEarningsController::class, 'index'])->name('earnings.index');
     });
 
     Route::middleware('role:super-admin|admin')->prefix('admin')->name('admin.')->group(function () {
@@ -74,8 +97,15 @@ Route::middleware([
         Route::get('invoices/{invoice}', [AdminInvoiceController::class, 'show'])->name('invoices.show');
         Route::patch('invoices/{invoice}', [AdminInvoiceController::class, 'update'])->name('invoices.update');
         Route::get('inventory', [AdminInventoryController::class, 'index'])->name('inventory.index');
+        Route::get('reports/profit', AdminProfitReportController::class)->name('reports.profit');
+        Route::get('inventory/export', [AdminInventoryController::class, 'export'])->name('inventory.export');
+        Route::get('inventory/import-template', [AdminInventoryController::class, 'template'])->name('inventory.template');
+        Route::post('inventory/import', [AdminInventoryController::class, 'import'])->name('inventory.import');
+        Route::post('inventory/{product}/opening', [AdminInventoryController::class, 'opening'])->name('inventory.opening');
         Route::post('inventory/{product}/intake', [AdminInventoryController::class, 'intake'])->name('inventory.intake');
         Route::post('inventory/{product}/transfer', [AdminInventoryController::class, 'transfer'])->name('inventory.transfer');
+        Route::patch('inventory/movements/{inventoryMovement}', [AdminInventoryController::class, 'updateMovement'])->name('inventory.movements.update');
+        Route::delete('inventory/movements/{inventoryMovement}', [AdminInventoryController::class, 'destroyMovement'])->name('inventory.movements.destroy');
         Route::resource('products', AdminProductController::class);
         Route::resource('product-categories', AdminProductCategoryController::class);
         Route::resource('schools', AdminSchoolController::class);
@@ -85,6 +115,9 @@ Route::middleware([
         Route::patch('suppliers/{supplier}/suspend', [AdminSupplierController::class, 'suspend'])->name('suppliers.suspend');
         Route::patch('suppliers/{supplier}/reinstate', [AdminSupplierController::class, 'reinstate'])->name('suppliers.reinstate');
         Route::get('suppliers/{supplier}/download', [AdminSupplierController::class, 'download'])->name('suppliers.download');
+        Route::get('supplier-products', [AdminSupplierOfferController::class, 'index'])->name('supplier-offers.index');
+        Route::patch('supplier-products/{offer}/approve', [AdminSupplierOfferController::class, 'approve'])->name('supplier-offers.approve');
+        Route::patch('supplier-products/{offer}/reject', [AdminSupplierOfferController::class, 'reject'])->name('supplier-offers.reject');
         Route::get('shopping-lists', [AdminShoppingListController::class, 'index'])->name('shopping-lists.index');
         Route::get('shopping-lists/{shoppingList}', [AdminShoppingListController::class, 'show'])->name('shopping-lists.show');
         Route::get('shopping-lists/{shoppingList}/download', [AdminShoppingListController::class, 'download'])->name('shopping-lists.download');

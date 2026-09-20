@@ -32,7 +32,8 @@
                     <div>
                         <p class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ $product->category?->name ?? 'School supply' }}</p>
                         <h2 class="mt-1 text-lg font-black text-[#07215f]">{{ $product->name }}</h2>
-                        <p class="mt-2 text-sm text-slate-600">UGX {{ number_format($product->price) }} each</p>
+                        <p class="mt-2 text-sm text-slate-600">UGX {{ number_format($product->cart_unit_price) }} each</p>
+                        <p class="mt-1 text-xs font-bold {{ $product->cart_source['type'] === 'supplier' ? 'text-violet-700' : 'text-emerald-700' }}">{{ $product->cart_source['label'] }}</p>
                     </div>
                     <div class="space-y-3 sm:text-right">
                         <p class="font-black text-slate-950">UGX {{ number_format($product->cart_line_total) }}</p>
@@ -40,7 +41,7 @@
                             @csrf
                             @method('PATCH')
                             <label class="sr-only" for="cart-quantity-{{ $product->id }}">Quantity</label>
-                            <input id="cart-quantity-{{ $product->id }}" name="quantity" type="number" min="1" max="{{ $product->stock_quantity }}" value="{{ $product->cart_quantity }}" class="h-10 w-20 rounded-md border-[#d7e4ef] text-center text-sm font-bold text-[#07215f] focus:border-emerald-600 focus:ring-emerald-600">
+                            <input id="cart-quantity-{{ $product->id }}" name="quantity" type="number" min="1" max="{{ $product->cart_source['quantity'] }}" value="{{ $product->cart_quantity }}" class="h-10 w-20 rounded-md border-[#d7e4ef] text-center text-sm font-bold text-[#07215f] focus:border-emerald-600 focus:ring-emerald-600">
                             <button class="rounded-md border border-[#d7e4ef] px-3 py-2 text-xs font-bold text-[#07215f] hover:border-emerald-500">Update</button>
                         </form>
                         <form method="POST" action="{{ route('website.cart.destroy', $product) }}">
@@ -74,7 +75,7 @@
 
     @if ($products->isNotEmpty())
         <dialog data-order-summary-dialog class="w-[min(94vw,720px)] rounded-md border border-[#dbe8f3] bg-white p-0 text-slate-950 shadow-2xl backdrop:bg-[#03133d]/60">
-            <div class="max-h-[90vh] overflow-y-auto" data-school-delivery data-subtotal="{{ $subtotal }}">
+            <div class="max-h-[90vh] overflow-y-auto" data-school-delivery data-subtotal="{{ $subtotal }}" data-has-edukit-items="{{ $hasEdukitItems ? '1' : '0' }}" data-supplier-fees='@json($supplierFeeProfiles)'>
                 <div class="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
                     <div>
                         <p class="text-xs font-black uppercase tracking-wide text-emerald-700">Order summary</p>
@@ -92,14 +93,14 @@
                             <span class="font-black text-slate-950">UGX {{ number_format($subtotal) }}</span>
                         </div>
                         <div class="mt-3 flex justify-between text-sm">
-                            <span class="font-semibold text-slate-600">School delivery fee</span>
+                            <span class="font-semibold text-slate-600">Combined delivery fee</span>
                             <span class="font-black text-slate-950" data-delivery-fee>UGX 0</span>
                         </div>
                         <div class="mt-3 flex justify-between border-t border-slate-200 pt-3 text-base">
                             <span class="font-black text-[#07215f]">Total to pay</span>
                             <span class="font-black text-[#07215f]" data-grand-total>UGX {{ number_format($subtotal) }}</span>
                         </div>
-                        <p class="mt-3 text-xs leading-5 text-slate-500">The delivery fee is pulled from the selected school record before payment.</p>
+                        <p class="mt-3 text-xs leading-5 text-slate-500">EduKit warehouse and supplier-direct delivery charges are calculated for the selected school.</p>
                     </div>
 
                     <form method="POST" action="{{ route('website.cart.submit') }}" class="mt-5 grid gap-4 sm:grid-cols-2">

@@ -1,0 +1,39 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('inventory_batches', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
+            $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->nullOnDelete();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('batch_reference')->unique();
+            $table->string('source')->default('stock_intake');
+            $table->date('received_at');
+            $table->unsignedInteger('quantity_received');
+            $table->unsignedInteger('remaining_quantity');
+            $table->unsignedInteger('warehouse_remaining_quantity')->default(0);
+            $table->unsignedInteger('display_remaining_quantity')->default(0);
+            $table->decimal('unit_cost', 12, 2)->default(0);
+            $table->decimal('unit_price', 12, 2)->default(0);
+            $table->text('notes')->nullable();
+            $table->timestamps();
+
+            $table->index(['product_id', 'received_at']);
+            $table->index(['product_id', 'warehouse_remaining_quantity']);
+            $table->index(['product_id', 'display_remaining_quantity']);
+            $table->index(['source', 'received_at']);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('inventory_batches');
+    }
+};

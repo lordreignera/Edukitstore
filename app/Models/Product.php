@@ -55,6 +55,49 @@ class Product extends Model
         return $this->hasMany(InventoryMovement::class);
     }
 
+    public function inventoryBatches(): HasMany
+    {
+        return $this->hasMany(InventoryBatch::class);
+    }
+
+    public function shoppingListItems(): HasMany
+    {
+        return $this->hasMany(ShoppingListItem::class);
+    }
+
+    public function supplierOffers(): HasMany
+    {
+        return $this->hasMany(SupplierOffer::class);
+    }
+
+    public function approvedSupplierOffers(): HasMany
+    {
+        return $this->supplierOffers()
+            ->where('status', SupplierOffer::STATUS_APPROVED)
+            ->where('direct_fulfilment', true)
+            ->where('quantity_available', '>', 0)
+            ->whereHas('supplier', fn ($query) => $query->where('is_approved', true)->where('is_active', true));
+    }
+
+    protected function marketplaceStockQuantity(): Attribute
+    {
+        return Attribute::get(fn (): int => (int) $this->stock_quantity
+            + (int) ($this->relationLoaded('approvedSupplierOffers')
+                ? $this->approvedSupplierOffers->sum('quantity_available')
+                : $this->approvedSupplierOffers()->sum('quantity_available')));
+    }
+
+    protected function marketplacePrice(): Attribute
+    {
+        return Attribute::get(function (): float {
+            if ($this->stock_quantity > 0) return (float) $this->price;
+            $offers = $this->relationLoaded('approvedSupplierOffers')
+                ? $this->approvedSupplierOffers
+                : $this->approvedSupplierOffers()->get();
+            return (float) ($offers->pluck('customer_price')->filter()->min() ?? $this->price);
+        });
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';

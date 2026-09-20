@@ -19,6 +19,8 @@ return new class extends Migration
             $table->string('address')->nullable();
             $table->text('product_categories')->nullable();
             $table->string('supply_capacity')->nullable();
+            $table->unsignedInteger('local_delivery_fee')->default(0);
+            $table->unsignedInteger('other_district_delivery_fee')->default(0);
             $table->text('notes')->nullable();
             $table->string('verification_document_path')->nullable();
             $table->string('verification_document_name')->nullable();

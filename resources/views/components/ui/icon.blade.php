@@ -24,6 +24,9 @@
             <path d="M9 13h6" />
             <path d="M3 9h18" />
             @break
+        @case('chart')
+            <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+            @break
         @case('list')
             <path d="M8 6h13" />
             <path d="M8 12h13" />
@@ -74,6 +77,21 @@
             @break
         @case('plus')
             <path d="M12 5v14M5 12h14" />
+            @break
+        @case('upload')
+            <path d="M12 3v12" />
+            <path d="m7 8 5-5 5 5" />
+            <path d="M5 15v4h14v-4" />
+            @break
+        @case('download')
+            <path d="M12 3v12" />
+            <path d="m7 10 5 5 5-5" />
+            <path d="M5 19h14" />
+            @break
+        @case('file')
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+            <path d="M14 2v6h6" />
+            <path d="M8 13h8M8 17h5" />
             @break
         @case('tag')
             <path d="M20 13 13 20a2 2 0 0 1-2.8 0L4 13.8V4h9.8L20 10.2a2 2 0 0 1 0 2.8Z" />

@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Services\InventoryService;
+use App\Services\ProductCodeGenerator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -42,7 +44,6 @@ class ProductController extends Controller
 
         return view('admin.products.index', [
             'products' => $products,
-            'productForm' => new Product(['is_active' => true, 'cost_price' => 0, 'warehouse_stock_quantity' => 0, 'stock_quantity' => 0, 'reorder_level' => 0]),
             'categories' => $categories,
             'search' => $search,
             'categoryId' => $categoryId,
@@ -56,23 +57,40 @@ class ProductController extends Controller
         $categories = ProductCategory::where('is_active', true)->orderBy('name')->get();
 
         return view('admin.products.create', [
-            'product' => new Product(['is_active' => true, 'cost_price' => 0, 'warehouse_stock_quantity' => 0, 'stock_quantity' => 0, 'reorder_level' => 0]),
+            'product' => new Product(['is_active' => true, 'cost_price' => 0, 'price' => 0, 'reorder_level' => 0]),
             'categories' => $categories,
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, InventoryService $inventory, ProductCodeGenerator $codes): RedirectResponse
     {
         $data = $this->validatedData($request);
+        $openingStock = $this->openingStockData($data);
         unset($data['image']);
+        unset($data['opening_stock_date'], $data['opening_warehouse_quantity'], $data['opening_display_quantity']);
 
-        $data['slug'] = $this->uniqueSlug($data['name']);
-        $data['sku'] = $this->nextProductCode();
+        $data['slug'] = $codes->uniqueSlug($data['name']);
+        $data['sku'] = $codes->next();
         $data['is_active'] = $request->boolean('is_active');
         $data['is_featured'] = $request->boolean('is_featured');
         $data['image_path'] = $this->storeImage($request);
+        $data['warehouse_stock_quantity'] = 0;
+        $data['stock_quantity'] = 0;
 
-        Product::create($data);
+        DB::transaction(function () use ($data, $openingStock, $inventory): void {
+            $product = Product::create($data);
+
+            if ($openingStock['warehouse_quantity'] + $openingStock['display_quantity'] > 0) {
+                $inventory->recordOpeningStock($product, [
+                    'warehouse_quantity' => $openingStock['warehouse_quantity'],
+                    'display_quantity' => $openingStock['display_quantity'],
+                    'unit_cost' => $data['cost_price'],
+                    'unit_price' => $data['price'],
+                    'occurred_at' => $openingStock['occurred_at'],
+                    'notes' => 'Opening stock recorded during product setup.',
+                ], auth()->id());
+            }
+        });
 
         return redirect()->route('admin.products.index')->with('status', 'Product added to the master list.');
     }
@@ -91,12 +109,13 @@ class ProductController extends Controller
         return view('admin.products.edit', compact('product', 'categories'));
     }
 
-    public function update(Request $request, Product $product): RedirectResponse
+    public function update(Request $request, Product $product, ProductCodeGenerator $codes): RedirectResponse
     {
         $data = $this->validatedData($request, $product);
         unset($data['image']);
+        unset($data['opening_stock_date'], $data['opening_warehouse_quantity'], $data['opening_display_quantity']);
 
-        $data['slug'] = $product->name === $data['name'] ? $product->slug : $this->uniqueSlug($data['name'], $product);
+        $data['slug'] = $product->name === $data['name'] ? $product->slug : $codes->uniqueSlug($data['name'], $product);
         $data['is_active'] = $request->boolean('is_active');
         $data['is_featured'] = $request->boolean('is_featured');
 
@@ -128,11 +147,21 @@ class ProductController extends Controller
             'unit' => ['nullable', 'string', 'max:80'],
             'cost_price' => ['required', 'numeric', 'min:0'],
             'price' => ['required', 'numeric', 'min:0'],
-            'warehouse_stock_quantity' => ['required', 'integer', 'min:0'],
-            'stock_quantity' => ['required', 'integer', 'min:0'],
             'reorder_level' => ['required', 'integer', 'min:0'],
+            'opening_stock_date' => ['nullable', 'date'],
+            'opening_warehouse_quantity' => ['nullable', 'integer', 'min:0'],
+            'opening_display_quantity' => ['nullable', 'integer', 'min:0'],
             'image' => [$product ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ]);
+    }
+
+    private function openingStockData(array $data): array
+    {
+        return [
+            'occurred_at' => $data['opening_stock_date'] ?? now()->toDateString(),
+            'warehouse_quantity' => (int) ($data['opening_warehouse_quantity'] ?? 0),
+            'display_quantity' => (int) ($data['opening_display_quantity'] ?? 0),
+        ];
     }
 
     private function storeImage(Request $request): ?string
@@ -147,26 +176,4 @@ class ProductController extends Controller
         }
     }
 
-    private function nextProductCode(): string
-    {
-        $prefix = 'EDK'.now()->format('ym');
-        $latest = Product::where('sku', 'like', "{$prefix}%")->orderByDesc('sku')->value('sku');
-        $next = $latest ? ((int) substr($latest, strlen($prefix))) + 1 : 1;
-
-        return $prefix.str_pad((string) $next, 5, '0', STR_PAD_LEFT);
-    }
-
-    private function uniqueSlug(string $name, ?Product $product = null): string
-    {
-        $base = Str::slug($name);
-        $slug = $base;
-        $count = 2;
-
-        while (Product::where('slug', $slug)->when($product, fn ($query) => $query->whereKeyNot($product->id))->exists()) {
-            $slug = "{$base}-{$count}";
-            $count++;
-        }
-
-        return $slug;
-    }
 }

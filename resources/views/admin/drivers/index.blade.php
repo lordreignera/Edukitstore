@@ -61,6 +61,12 @@
                                             <span class="ml-1 rounded bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-600">Unavailable</span>
                                         @endunless
                                         <p class="mt-2 text-xs {{ $driver->user?->is_active ? 'text-emerald-700' : 'text-slate-500' }}">{{ $driver->user ? ($driver->user->is_active ? 'Account active' : 'Account inactive') : 'No account yet' }}</p>
+                                        @if ($driver->availability_updated_at)
+                                            <p class="mt-1 text-xs text-slate-500">Updated {{ $driver->availability_updated_at->diffForHumans() }}</p>
+                                        @endif
+                                        @if (! $driver->is_available && $driver->availability_note)
+                                            <p class="mt-1 max-w-52 text-xs text-slate-500">{{ $driver->availability_note }}</p>
+                                        @endif
                                     </td>
                                     <td class="px-5 py-4 text-right">
                                         <div class="flex justify-end gap-2">

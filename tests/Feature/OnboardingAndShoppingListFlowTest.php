@@ -27,11 +27,14 @@ class OnboardingAndShoppingListFlowTest extends TestCase
     public function test_delivery_partner_can_submit_an_application_for_admin_review(): void
     {
         Storage::fake('local');
+        District::create(['name' => 'Wakiso', 'slug' => 'wakiso', 'is_active' => true]);
 
         $this->post(route('website.drivers.store'), [
             'name' => 'Moses Kato',
             'phone' => '+256700000001',
             'email' => 'moses.driver@example.com',
+            'password' => 'DriverPass123!',
+            'password_confirmation' => 'DriverPass123!',
             'district' => 'Wakiso',
             'vehicle_type' => 'Motorcycle',
             'vehicle_registration' => 'UEX 123A',
@@ -41,7 +44,23 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         $driver = Driver::where('email', 'moses.driver@example.com')->firstOrFail();
         $this->assertFalse($driver->is_approved);
         $this->assertSame('website', $driver->source);
+        $this->assertNotNull($driver->user_id);
+        $this->assertFalse($driver->user->is_active);
+        $this->assertTrue($driver->user->hasRole('delivery-person'));
+        $this->assertTrue(Hash::check('DriverPass123!', $driver->user->password));
         Storage::disk('local')->assertExists($driver->verification_document_path);
+
+        $this->post('/login', ['email' => 'moses.driver@example.com', 'password' => 'DriverPass123!'])
+            ->assertSessionHasErrors('email');
+
+        Role::findOrCreate('super-admin');
+        $admin = User::factory()->create();
+        $admin->assignRole('super-admin');
+        $this->actingAs($admin)->patch(route('admin.drivers.approve', $driver))->assertRedirect();
+        $this->post(route('logout'));
+
+        $this->post('/login', ['email' => 'moses.driver@example.com', 'password' => 'DriverPass123!'])
+            ->assertRedirect(route('dashboard'));
     }
 
     public function test_customer_can_upload_school_shopping_list(): void
@@ -100,6 +119,7 @@ class OnboardingAndShoppingListFlowTest extends TestCase
     public function test_supplier_can_submit_onboarding_application(): void
     {
         Storage::fake('local');
+        District::create(['name' => 'Kampala', 'slug' => 'kampala', 'is_active' => true]);
 
         $books = ProductCategory::create([
             'name' => 'Books',
@@ -160,6 +180,7 @@ class OnboardingAndShoppingListFlowTest extends TestCase
     {
         Storage::fake('s3');
         config(['filesystems.documents_disk' => 's3']);
+        District::create(['name' => 'Kampala', 'slug' => 'kampala', 'is_active' => true]);
 
         $category = ProductCategory::create([
             'name' => 'Books',
@@ -529,9 +550,15 @@ class OnboardingAndShoppingListFlowTest extends TestCase
             'sku' => 'EDK260900777',
             'cost_price' => 1600,
             'price' => 1800,
-            'stock_quantity' => 20,
-            'warehouse_stock_quantity' => 50,
             'is_active' => true,
+        ]);
+        app(\App\Services\InventoryService::class)->recordOpeningStock($product, [
+            'warehouse_quantity' => 50,
+            'display_quantity' => 20,
+            'unit_cost' => 1600,
+            'unit_price' => 1800,
+            'occurred_at' => now()->toDateString(),
+            'notes' => 'Opening test stock.',
         ]);
 
         $shoppingList = ShoppingList::create([
@@ -589,6 +616,13 @@ class OnboardingAndShoppingListFlowTest extends TestCase
             'type' => InventoryMovement::TYPE_SALE_PAID,
             'quantity' => 4,
             'profit' => 800,
+        ]);
+        $this->assertDatabaseHas('shopping_list_items', [
+            'shopping_list_id' => $shoppingList->id,
+            'product_id' => $product->id,
+            'quantity' => 4,
+            'cost_total' => 6400,
+            'profit_total' => 800,
         ]);
     }
 

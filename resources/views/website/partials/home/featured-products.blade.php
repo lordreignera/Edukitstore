@@ -28,13 +28,13 @@
                     </a>
                     <div class="p-3">
                         <a href="{{ route('website.products.show', $product) }}" class="line-clamp-2 block min-h-10 text-[12px] font-black leading-5 text-[#07215f] group-hover:text-emerald-700 sm:text-[13px]">{{ $product->name }}</a>
-                        <p class="mt-2 text-[15px] font-black text-slate-950">UGX {{ number_format($product->price) }}</p>
-                        <p class="mt-0.5 text-[11px] font-semibold text-slate-500">{{ number_format($product->stock_quantity) }} available</p>
-                        @if ($product->stock_quantity > 0)
+                        <p class="mt-2 text-[15px] font-black text-slate-950">UGX {{ number_format($product->marketplace_price) }}</p>
+                        <p class="mt-0.5 text-[11px] font-semibold text-slate-500">{{ number_format($product->marketplace_stock_quantity) }} available</p>
+                        @if ($product->marketplace_stock_quantity > 0)
                             <form method="POST" action="{{ route('website.cart.store', $product) }}" class="mt-3 grid grid-cols-[64px_1fr] gap-2">
                                 @csrf
                                 <label class="sr-only" for="featured-quantity-{{ $product->id }}">Quantity</label>
-                                <input id="featured-quantity-{{ $product->id }}" name="quantity" type="number" min="1" max="{{ $product->stock_quantity }}" value="1" class="h-9 w-full rounded-md border-[#d7e4ef] text-center text-xs font-bold text-[#07215f] focus:border-emerald-600 focus:ring-emerald-600">
+                                <input id="featured-quantity-{{ $product->id }}" name="quantity" type="number" min="1" max="{{ $product->marketplace_stock_quantity }}" value="1" class="h-9 w-full rounded-md border-[#d7e4ef] text-center text-xs font-bold text-[#07215f] focus:border-emerald-600 focus:ring-emerald-600">
                                 <button class="w-full rounded-md bg-emerald-600 px-3 py-2 text-[11px] font-black text-white hover:bg-emerald-700">Add</button>
                             </form>
                         @else

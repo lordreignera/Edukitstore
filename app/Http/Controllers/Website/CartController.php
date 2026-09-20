@@ -6,62 +6,78 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ShoppingList;
 use App\Services\InventoryService;
+use App\Services\MarketplaceSourceService;
 use App\Services\SchoolDeliveryService;
+use App\Services\SupplierSaleService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class CartController extends Controller
 {
-    public function index(SchoolDeliveryService $delivery): View
+    public function index(SchoolDeliveryService $delivery, MarketplaceSourceService $sources): View
     {
         $cart = session('cart', []);
         $productIds = array_keys($cart);
 
         $products = Product::query()
-            ->with('category')
+            ->with('category', 'approvedSupplierOffers.supplier')
             ->whereIn('id', $productIds)
             ->get()
-            ->map(function (Product $product) use ($cart) {
+            ->map(function (Product $product) use ($cart, $sources) {
+                $offerId = session('cart_sources.'.$product->id);
+                $source = $sources->source($product, $offerId ? (int) $offerId : null);
                 $product->cart_quantity = $cart[$product->id] ?? 0;
-                $product->cart_line_total = $product->price * $product->cart_quantity;
+                $product->cart_source = $source;
+                $product->cart_unit_price = $source['price'];
+                $product->cart_line_total = $source['price'] * $product->cart_quantity;
 
                 return $product;
             });
 
         $subtotal = $products->sum('cart_line_total');
         $schools = $delivery->activeSchools();
+        $supplierFeeProfiles = $products->filter(fn ($product) => $product->cart_source['type'] === 'supplier')
+            ->map(fn ($product) => $product->cart_source['offer']->supplier)
+            ->unique('id')->values()->map(fn ($supplier) => [
+                'district' => $supplier->district,
+                'local_fee' => $supplier->local_delivery_fee,
+                'other_fee' => $supplier->other_district_delivery_fee,
+            ]);
+        $hasEdukitItems = $products->contains(fn ($product) => $product->cart_source['type'] === 'edukit');
 
-        return view('website.cart.index', compact('products', 'subtotal', 'schools'));
+        return view('website.cart.index', compact('products', 'subtotal', 'schools', 'supplierFeeProfiles', 'hasEdukitItems'));
     }
 
-    public function store(Request $request, Product $product): RedirectResponse
+    public function store(Request $request, Product $product, MarketplaceSourceService $sources): RedirectResponse
     {
         abort_unless($product->is_active, 404);
 
-        if ($product->stock_quantity < 1) {
-            return back()->withErrors(['cart' => "{$product->name} is currently out of stock."]);
-        }
+        $source = $sources->source($product, $request->integer('supplier_offer_id') ?: null);
 
         $data = $request->validate([
-            'quantity' => ['nullable', 'integer', 'min:1', 'max:'.$product->stock_quantity],
+            'quantity' => ['nullable', 'integer', 'min:1', 'max:'.$source['quantity']],
+            'supplier_offer_id' => ['nullable', 'integer'],
         ]);
         $quantity = (int) ($data['quantity'] ?? 1);
 
         $cart = session('cart', []);
-        $cart[$product->id] = min($product->stock_quantity, ($cart[$product->id] ?? 0) + $quantity);
+        $cart[$product->id] = min($source['quantity'], ($cart[$product->id] ?? 0) + $quantity);
 
         session(['cart' => $cart]);
+        session(['cart_sources.'.$product->id => $source['offer']?->id]);
 
         return back()->with('status', "{$product->name} added to cart.");
     }
 
-    public function update(Request $request, Product $product): RedirectResponse
+    public function update(Request $request, Product $product, MarketplaceSourceService $sources): RedirectResponse
     {
+        $source = $sources->source($product, session('cart_sources.'.$product->id));
         $data = $request->validate([
-            'quantity' => ['required', 'integer', 'min:1', 'max:'.$product->stock_quantity],
+            'quantity' => ['required', 'integer', 'min:1', 'max:'.$source['quantity']],
         ]);
 
         $cart = session('cart', []);
@@ -91,19 +107,26 @@ class CartController extends Controller
 
         $products = Product::query()
             ->active()
+            ->with('approvedSupplierOffers.supplier')
             ->whereIn('id', array_keys($cart))
             ->get();
 
-        $items = $products->map(function (Product $product) use ($cart): array {
+        $sourceService = app(MarketplaceSourceService::class);
+        $items = $products->map(function (Product $product) use ($cart, $sourceService): array {
             $quantity = (int) ($cart[$product->id] ?? 0);
-            $unitPrice = (int) $product->price;
+            $source = $sourceService->source($product, session('cart_sources.'.$product->id));
+            $unitPrice = (int) $source['price'];
 
             return [
                 'product_id' => $product->id,
                 'name' => $product->name,
                 'sku' => $product->sku,
-                'unit_cost' => (int) $product->cost_price,
+                'unit_cost' => (int) ($source['offer']?->supplier_price ?? $product->cost_price),
                 'unit_price' => $unitPrice,
+                'fulfilment_source' => $source['type'],
+                'supplier_offer_id' => $source['offer']?->id,
+                'supplier_id' => $source['offer']?->supplier_id,
+                'source_label' => $source['label'],
                 'quantity' => $quantity,
                 'line_total' => $unitPrice * $quantity,
             ];
@@ -116,10 +139,28 @@ class CartController extends Controller
         foreach ($items as $item) {
             $product = $products->firstWhere('id', $item['product_id']);
 
-            if (! $product || $product->stock_quantity < $item['quantity']) {
-                return back()->withErrors(['cart' => "{$item['name']} has only ".number_format($product?->stock_quantity ?? 0).' available for sale.']);
+            $available = $item['fulfilment_source'] === 'supplier'
+                ? (int) $product?->approvedSupplierOffers->firstWhere('id', $item['supplier_offer_id'])?->quantity_available
+                : (int) $product?->stock_quantity;
+
+            if (! $product || $available < $item['quantity']) {
+                return back()->withErrors(['cart' => "{$item['name']} has only ".number_format($available).' available from the selected source.']);
             }
         }
+
+        if ($items->contains(fn ($item) => $item['fulfilment_source'] === 'supplier') && $data['delivery_preference'] !== 'school') {
+            return back()->withErrors(['delivery_preference' => 'Supplier-direct products must be delivered to a selected school.']);
+        }
+
+        $hasEdukitItems = $items->contains(fn ($item) => $item['fulfilment_source'] === 'edukit');
+        $supplierIds = $items->where('fulfilment_source', 'supplier')->pluck('supplier_id')->unique();
+        $destinationDistrict = \App\Models\District::find($data['district_id']);
+        $supplierDeliveryFee = \App\Models\Supplier::whereIn('id', $supplierIds)->get()->sum(
+            fn ($supplier) => strcasecmp((string) $supplier->district, (string) $destinationDistrict?->name) === 0
+                ? $supplier->local_delivery_fee
+                : $supplier->other_district_delivery_fee
+        );
+        $data['delivery_fee'] = ($hasEdukitItems ? (int) $data['delivery_fee'] : 0) + $supplierDeliveryFee;
 
         $itemsSubtotal = $items->sum('line_total');
 
@@ -133,7 +174,23 @@ class CartController extends Controller
             'payment_status' => ShoppingList::PAYMENT_UNPAID,
         ]);
 
+        $shoppingList->lineItems()->createMany($items->map(fn (array $item): array => [
+            'product_id' => $item['product_id'],
+            'supplier_offer_id' => $item['supplier_offer_id'],
+            'supplier_id' => $item['supplier_id'],
+            'fulfilment_source' => $item['fulfilment_source'],
+            'product_name' => $item['name'],
+            'sku' => $item['sku'],
+            'quantity' => $item['quantity'],
+            'unit_cost' => $item['unit_cost'],
+            'unit_price' => $item['unit_price'],
+            'line_total' => $item['line_total'],
+            'cost_total' => 0,
+            'profit_total' => 0,
+        ])->all());
+
         session()->forget('cart');
+        session()->forget('cart_sources');
 
         return redirect()
             ->route('website.quote.show', $shoppingList->reference)
@@ -142,18 +199,19 @@ class CartController extends Controller
 
     public function quote(string $reference): View
     {
-        $shoppingList = ShoppingList::with('assignedDriver', 'school.district')->where('reference', $reference)->firstOrFail();
+        $shoppingList = ShoppingList::with('assignedDriver', 'school.district', 'lineItems')->where('reference', $reference)->firstOrFail();
 
         return view('website.quote', compact('shoppingList'));
     }
 
-    public function pay(Request $request, string $reference, InventoryService $inventory): RedirectResponse
+    public function pay(Request $request, string $reference, InventoryService $inventory, SupplierSaleService $supplierSales): RedirectResponse
     {
         $shoppingList = ShoppingList::where('reference', $reference)->firstOrFail();
 
         abort_unless($shoppingList->status === ShoppingList::STATUS_QUOTED && $shoppingList->estimated_total, 404);
 
         $inventory->ensureInvoiceHasDisplayStock($shoppingList);
+        $supplierSales->ensureStock($shoppingList);
 
         $secretKey = config('services.flutterwave.secret_key');
 
@@ -199,7 +257,7 @@ class CartController extends Controller
         return redirect()->away($checkoutUrl);
     }
 
-    public function flutterwaveCallback(Request $request, InventoryService $inventory): RedirectResponse
+    public function flutterwaveCallback(Request $request, InventoryService $inventory, SupplierSaleService $supplierSales): RedirectResponse
     {
         $txRef = (string) $request->query('tx_ref');
         $transactionId = (string) $request->query('transaction_id');
@@ -243,13 +301,20 @@ class CartController extends Controller
         }
 
         if ($shoppingList->payment_status !== ShoppingList::PAYMENT_PAID) {
-            $inventory->recordPaidCartSale($shoppingList);
+            DB::transaction(function () use ($shoppingList, $inventory, $supplierSales): void {
+                $lockedInvoice = ShoppingList::whereKey($shoppingList->id)->lockForUpdate()->firstOrFail();
+                if ($lockedInvoice->payment_status === ShoppingList::PAYMENT_PAID) {
+                    return;
+                }
 
-            $shoppingList->update([
-                'payment_status' => ShoppingList::PAYMENT_PAID,
-                'payment_provider' => 'flutterwave',
-                'paid_at' => now(),
-            ]);
+                $inventory->recordPaidCartSale($lockedInvoice);
+                $supplierSales->recordPaidSale($lockedInvoice);
+                $lockedInvoice->update([
+                    'payment_status' => ShoppingList::PAYMENT_PAID,
+                    'payment_provider' => 'flutterwave',
+                    'paid_at' => now(),
+                ]);
+            });
         }
 
         return redirect()
@@ -261,6 +326,7 @@ class CartController extends Controller
     {
         $cart = session('cart', []);
         unset($cart[$product->id]);
+        session()->forget('cart_sources.'.$product->id);
 
         session(['cart' => $cart]);
 

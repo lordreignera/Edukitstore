@@ -25,6 +25,8 @@ return new class extends Migration
             $table->timestamp('submitted_at')->nullable();
             $table->boolean('is_approved')->default(false);
             $table->boolean('is_available')->default(true);
+            $table->string('availability_note')->nullable();
+            $table->timestamp('availability_updated_at')->nullable();
             $table->timestamp('approved_at')->nullable();
             $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();

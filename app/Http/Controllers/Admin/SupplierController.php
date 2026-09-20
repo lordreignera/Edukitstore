@@ -157,6 +157,8 @@ class SupplierController extends Controller
             'address' => ['nullable', 'string', 'max:255'],
             'product_categories' => ['nullable', 'string', 'max:1000'],
             'supply_capacity' => ['nullable', 'string', 'max:160'],
+            'local_delivery_fee' => ['nullable', 'integer', 'min:0'],
+            'other_district_delivery_fee' => ['nullable', 'integer', 'min:0'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
     }

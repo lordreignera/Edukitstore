@@ -11,7 +11,7 @@
             <p class="mt-4 max-w-xl text-base leading-7 text-slate-600">Tell us about your operating area and vehicle. EduKit verifies every application before activating a delivery-partner account.</p>
             <div class="mt-8 space-y-3 text-sm text-slate-700">
                 <div class="border border-slate-200 bg-[#f8fbff] p-4"><p class="font-black text-[#07215f]">Application review</p><p class="mt-1">Your identity, contact details and vehicle information are reviewed by an administrator.</p></div>
-                <div class="border border-slate-200 bg-[#f8fbff] p-4"><p class="font-black text-[#07215f]">Account activation</p><p class="mt-1">Approved partners receive a secure password setup link by email.</p></div>
+                <div class="border border-slate-200 bg-[#f8fbff] p-4"><p class="font-black text-[#07215f]">Account activation</p><p class="mt-1">Create your password now. Once approved, sign in with the same email and password.</p></div>
             </div>
         </div>
 
@@ -39,10 +39,21 @@
                     @error('email') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label class="text-sm font-bold text-slate-700" for="district">Operating district</label>
-                    <input id="district" name="district" value="{{ old('district') }}" required class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
-                    @error('district') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    <label class="text-sm font-bold text-slate-700" for="driver_password">Create password</label>
+                    <div class="relative mt-1">
+                        <input id="driver_password" name="password" type="password" required autocomplete="new-password" class="w-full rounded border-slate-300 pr-12 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                        <button type="button" data-password-toggle data-password-target="driver_password" class="absolute inset-y-0 right-0 grid w-11 place-items-center text-slate-500 hover:text-[#07215f]" aria-label="Show password" aria-pressed="false"><x-ui.icon name="eye" size="size-5" /></button>
+                    </div>
+                    @error('password') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
+                <div>
+                    <label class="text-sm font-bold text-slate-700" for="driver_password_confirmation">Confirm password</label>
+                    <div class="relative mt-1">
+                        <input id="driver_password_confirmation" name="password_confirmation" type="password" required autocomplete="new-password" class="w-full rounded border-slate-300 pr-12 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                        <button type="button" data-password-toggle data-password-target="driver_password_confirmation" class="absolute inset-y-0 right-0 grid w-11 place-items-center text-slate-500 hover:text-[#07215f]" aria-label="Show password confirmation" aria-pressed="false"><x-ui.icon name="eye" size="size-5" /></button>
+                    </div>
+                </div>
+                <x-district-select :districts="$districts" label="Operating district" />
                 <div>
                     <label class="text-sm font-bold text-slate-700" for="vehicle_type">Vehicle type</label>
                     <input id="vehicle_type" name="vehicle_type" value="{{ old('vehicle_type') }}" placeholder="Motorcycle, van or car" required class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">

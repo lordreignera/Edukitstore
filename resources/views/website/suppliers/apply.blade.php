@@ -67,11 +67,7 @@
                         @error('email') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 
-                    <div>
-                        <label class="text-sm font-bold text-slate-700" for="district">District</label>
-                        <input id="district" name="district" value="{{ old('district') }}" required class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
-                        @error('district') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                    </div>
+                    <x-district-select :districts="$districts" label="District" />
 
                     <div>
                         <label class="text-sm font-bold text-slate-700" for="password">Create password</label>
@@ -159,20 +155,6 @@
 
 @push('scripts')
     <script>
-        document.querySelectorAll('[data-password-toggle]').forEach((button) => {
-            button.addEventListener('click', () => {
-                const input = document.getElementById(button.dataset.passwordTarget);
-                const showing = input.type === 'text';
-
-                input.type = showing ? 'password' : 'text';
-                button.setAttribute('aria-pressed', showing ? 'false' : 'true');
-                button.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
-                button.innerHTML = showing
-                    ? '<svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.5"></circle></svg>'
-                    : '<svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 3 18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.8 5.2A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-2 2.8"></path><path d="M6.6 6.6C3.6 8.5 2 12 2 12s3.5 7 10 7a9.8 9.8 0 0 0 4.2-.9"></path></svg>';
-            });
-        });
-
         const otherToggle = document.getElementById('other_category_toggle');
         const otherWrap = document.getElementById('other_category_wrap');
         const otherInput = document.getElementById('other_product_categories');

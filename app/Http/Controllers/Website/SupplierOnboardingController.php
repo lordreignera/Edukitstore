@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Website;
 use App\Http\Controllers\Controller;
 use App\Models\Supplier;
 use App\Models\ProductCategory;
+use App\Models\District;
 use App\Services\AccountProvisioner;
 use App\Support\DocumentStorage;
 use Illuminate\Contracts\View\View;
@@ -12,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\Rule;
 
 class SupplierOnboardingController extends Controller
 {
@@ -19,6 +21,7 @@ class SupplierOnboardingController extends Controller
     {
         return view('website.suppliers.apply', [
             'productCategories' => ProductCategory::where('is_active', true)->orderBy('name')->get(),
+            'districts' => District::active()->orderBy('name')->get(['name']),
         ]);
     }
 
@@ -30,7 +33,7 @@ class SupplierOnboardingController extends Controller
             'phone' => ['required', 'string', 'max:40'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email', 'unique:suppliers,email'],
             'password' => ['required', 'confirmed', Password::defaults()],
-            'district' => ['required', 'string', 'max:120'],
+            'district' => ['required', 'string', 'max:120', Rule::exists('districts', 'name')->where('is_active', true)],
             'address' => ['nullable', 'string', 'max:255'],
             'product_category_ids' => ['nullable', 'array', 'required_without:other_product_categories'],
             'product_category_ids.*' => ['integer', 'exists:product_categories,id'],

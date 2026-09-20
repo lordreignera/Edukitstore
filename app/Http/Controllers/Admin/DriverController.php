@@ -81,6 +81,7 @@ class DriverController extends Controller
             return back()->withErrors(['driver' => 'Add an email address before approving this delivery partner.']);
         }
 
+        $driverChosePassword = (bool) $driver->user_id;
         $user = $provisioner->provision($driver->email, $driver->name, 'delivery-person', auth()->id(), $driver->user_id);
 
         $driver->update([
@@ -91,16 +92,24 @@ class DriverController extends Controller
             'approved_by' => auth()->id(),
         ]);
 
-        $message = $provisioner->sendSetupLink($user)
-            ? 'Delivery partner approved and a password setup link was sent.'
-            : 'Delivery partner approved. Send the password setup link from Users & Roles.';
+        if ($driverChosePassword) {
+            $message = 'Delivery partner approved. Their existing login is now active.';
+        } else {
+            $message = $provisioner->sendSetupLink($user)
+                ? 'Delivery partner approved and a password setup link was sent.'
+                : 'Delivery partner approved. Send the password setup link from Users & Roles.';
+        }
 
         return back()->with('status', $message);
     }
 
     public function markUnavailable(Driver $driver): RedirectResponse
     {
-        $driver->update(['is_available' => false]);
+        $driver->update([
+            'is_available' => false,
+            'availability_note' => 'Marked unavailable by administrator',
+            'availability_updated_at' => now(),
+        ]);
 
         return back()->with('status', 'Driver marked unavailable.');
     }
@@ -109,7 +118,11 @@ class DriverController extends Controller
     {
         abort_unless($driver->is_approved && $driver->user?->is_active, 422, 'Activate the approved delivery partner account before making them available.');
 
-        $driver->update(['is_available' => true]);
+        $driver->update([
+            'is_available' => true,
+            'availability_note' => null,
+            'availability_updated_at' => now(),
+        ]);
 
         return back()->with('status', 'Delivery partner marked available.');
     }

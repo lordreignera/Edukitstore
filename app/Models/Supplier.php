@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Supplier extends Model
 {
@@ -19,6 +20,8 @@ class Supplier extends Model
         'address',
         'product_categories',
         'supply_capacity',
+        'local_delivery_fee',
+        'other_district_delivery_fee',
         'notes',
         'verification_document_path',
         'verification_document_name',
@@ -38,11 +41,18 @@ class Supplier extends Model
             'is_active' => 'boolean',
             'approved_at' => 'datetime',
             'submitted_at' => 'datetime',
+            'local_delivery_fee' => 'integer',
+            'other_district_delivery_fee' => 'integer',
         ];
     }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function offers(): HasMany
+    {
+        return $this->hasMany(SupplierOffer::class);
     }
 }

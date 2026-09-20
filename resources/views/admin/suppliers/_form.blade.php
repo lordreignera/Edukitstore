@@ -34,6 +34,14 @@
         <label class="text-sm font-bold text-slate-700" for="{{ $prefix }}-capacity">Supply capacity</label>
         <input id="{{ $prefix }}-capacity" name="supply_capacity" value="{{ old('supply_capacity', $supplier->supply_capacity) }}" class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
     </div>
+    <div>
+        <label class="text-sm font-bold text-slate-700" for="{{ $prefix }}-local-fee">Same-district delivery fee</label>
+        <input id="{{ $prefix }}-local-fee" name="local_delivery_fee" type="number" min="0" value="{{ old('local_delivery_fee', $supplier->local_delivery_fee) }}" class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+    </div>
+    <div>
+        <label class="text-sm font-bold text-slate-700" for="{{ $prefix }}-other-fee">Other-district delivery fee</label>
+        <input id="{{ $prefix }}-other-fee" name="other_district_delivery_fee" type="number" min="0" value="{{ old('other_district_delivery_fee', $supplier->other_district_delivery_fee) }}" class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+    </div>
     <div class="sm:col-span-2">
         <label class="text-sm font-bold text-slate-700" for="{{ $prefix }}-notes">Internal notes</label>
         <textarea id="{{ $prefix }}-notes" name="notes" rows="3" class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">{{ old('notes', $supplier->notes) }}</textarea>

@@ -76,15 +76,15 @@
                         </a>
                         <div class="p-3">
                             <a href="{{ route('website.products.show', $product) }}" class="line-clamp-2 block min-h-10 text-[14px] font-extrabold leading-5 text-[#07215f] group-hover:text-emerald-700">{{ $product->name }}</a>
-                            <p class="mt-3 text-[16px] font-black text-slate-950">UGX {{ number_format($product->price) }}</p>
-                            <p class="mt-1 text-[11px] font-semibold text-slate-500">{{ number_format($product->stock_quantity) }} available</p>
+                            <p class="mt-3 text-[16px] font-black text-slate-950">UGX {{ number_format($product->marketplace_price) }}</p>
+                            <p class="mt-1 text-[11px] font-semibold text-slate-500">{{ number_format($product->marketplace_stock_quantity) }} available</p>
                             <div class="mt-4 grid grid-cols-[1fr_1.15fr] gap-2">
                                 <a href="{{ route('website.products.show', $product) }}" class="grid min-h-10 place-items-center rounded-md border border-[#d7e4ef] px-3 py-2 text-xs font-extrabold text-[#07215f] hover:border-emerald-500">View</a>
-                                @if ($product->stock_quantity > 0)
+                                @if ($product->marketplace_stock_quantity > 0)
                                     <form method="POST" action="{{ route('website.cart.store', $product) }}" class="grid grid-cols-[54px_1fr] gap-2">
                                         @csrf
                                         <label class="sr-only" for="product-quantity-{{ $product->id }}">Quantity</label>
-                                        <input id="product-quantity-{{ $product->id }}" name="quantity" type="number" min="1" max="{{ $product->stock_quantity }}" value="1" class="h-10 w-full rounded-md border-[#d7e4ef] text-center text-xs font-bold text-[#07215f] focus:border-emerald-600 focus:ring-emerald-600">
+                                        <input id="product-quantity-{{ $product->id }}" name="quantity" type="number" min="1" max="{{ $product->marketplace_stock_quantity }}" value="1" class="h-10 w-full rounded-md border-[#d7e4ef] text-center text-xs font-bold text-[#07215f] focus:border-emerald-600 focus:ring-emerald-600">
                                         <button class="w-full rounded-md bg-emerald-600 px-3 py-2 text-xs font-extrabold text-white hover:bg-emerald-700">Add</button>
                                     </form>
                                 @else

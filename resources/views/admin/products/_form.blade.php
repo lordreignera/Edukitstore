@@ -38,20 +38,6 @@
     </div>
 
     <div>
-        <label class="text-sm font-medium text-gray-700" for="{{ $prefix }}-warehouse-stock">Warehouse stock</label>
-        <input id="{{ $prefix }}-warehouse-stock" name="warehouse_stock_quantity" type="number" min="0" step="1" value="{{ old('warehouse_stock_quantity', $product->warehouse_stock_quantity ?? 0) }}" required class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
-        <p class="mt-1 text-xs text-gray-500">Back-room quantity not yet shown for public purchase.</p>
-        @error('warehouse_stock_quantity') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-    </div>
-
-    <div>
-        <label class="text-sm font-medium text-gray-700" for="{{ $prefix }}-stock">Website/display stock</label>
-        <input id="{{ $prefix }}-stock" name="stock_quantity" type="number" min="0" step="1" value="{{ old('stock_quantity', $product->stock_quantity ?? 0) }}" required class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
-        <p class="mt-1 text-xs text-gray-500">This is what parents can add to cart.</p>
-        @error('stock_quantity') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-    </div>
-
-    <div>
         <label class="text-sm font-medium text-gray-700" for="{{ $prefix }}-reorder-level">Reorder level</label>
         <input id="{{ $prefix }}-reorder-level" name="reorder_level" type="number" min="0" step="1" value="{{ old('reorder_level', $product->reorder_level ?? 0) }}" required class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
         @error('reorder_level') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
@@ -68,6 +54,39 @@
         <input id="{{ $prefix }}-unit" name="unit" value="{{ old('unit', $product->unit) }}" placeholder="Piece, pack, pair" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
         @error('unit') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
     </div>
+
+    @if (! $product->exists)
+        <div class="sm:col-span-2 rounded-md border border-emerald-100 bg-emerald-50 p-4">
+            <h3 class="text-sm font-extrabold text-[#071d4f]">Opening stock</h3>
+            <p class="mt-1 text-xs font-semibold text-slate-600">Record the starting balance and date. After saving, use Inventory for new intake, transfers, edits and deletions.</p>
+            <div class="mt-4 grid gap-4 sm:grid-cols-3">
+                <div>
+                    <label class="text-sm font-medium text-gray-700" for="{{ $prefix }}-opening-date">Opening stock date</label>
+                    <input id="{{ $prefix }}-opening-date" name="opening_stock_date" type="date" value="{{ old('opening_stock_date', now()->toDateString()) }}" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                    @error('opening_stock_date') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-700" for="{{ $prefix }}-opening-warehouse">Warehouse stock</label>
+                    <input id="{{ $prefix }}-opening-warehouse" name="opening_warehouse_quantity" type="number" min="0" step="1" value="{{ old('opening_warehouse_quantity', 0) }}" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                    @error('opening_warehouse_quantity') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-700" for="{{ $prefix }}-opening-display">Website/display stock</label>
+                    <input id="{{ $prefix }}-opening-display" name="opening_display_quantity" type="number" min="0" step="1" value="{{ old('opening_display_quantity', 0) }}" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                    @error('opening_display_quantity') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                </div>
+            </div>
+        </div>
+    @else
+        <div class="sm:col-span-2 rounded-md border border-blue-100 bg-blue-50 p-4">
+            <h3 class="text-sm font-extrabold text-[#071d4f]">Current stock balance</h3>
+            <div class="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+                <p class="rounded border border-blue-100 bg-white px-3 py-2 font-bold text-slate-700">Display: <span class="text-slate-950">{{ number_format($product->stock_quantity) }}</span></p>
+                <p class="rounded border border-blue-100 bg-white px-3 py-2 font-bold text-slate-700">Warehouse: <span class="text-slate-950">{{ number_format($product->warehouse_stock_quantity) }}</span></p>
+                <a href="{{ route('admin.inventory.index', ['q' => $product->sku]) }}" class="grid rounded bg-[#07215f] px-3 py-2 text-center text-sm font-bold text-white hover:bg-[#0b2f7c]">Manage in Inventory</a>
+            </div>
+        </div>
+    @endif
 
     <div class="sm:col-span-2">
         <label class="text-sm font-medium text-gray-700" for="{{ $prefix }}-image">Product image</label>

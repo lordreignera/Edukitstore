@@ -64,7 +64,7 @@ class InvoiceController extends Controller
     public function show(ShoppingList $invoice): View
     {
         return view('admin.invoices.show', [
-            'invoice' => $invoice->load('assignedDriver', 'deliveryConfirmer', 'school.district'),
+            'invoice' => $invoice->load('assignedDriver', 'deliveryConfirmer', 'school.district', 'lineItems'),
             'statuses' => ShoppingList::statuses(),
             'drivers' => Driver::query()
                 ->where('is_approved', true)

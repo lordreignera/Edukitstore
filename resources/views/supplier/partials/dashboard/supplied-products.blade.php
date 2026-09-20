@@ -1,0 +1,4 @@
+<section class="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+    <h2 class="font-extrabold text-[#071d4f]">Direct fulfilment stock</h2><p class="mt-1 text-xs text-slate-500">Supplier warehouse quantities approved for the website.</p>
+    <div class="mt-4 space-y-3">@forelse ($suppliedProducts as $row)<div class="flex items-center justify-between gap-4 border-b border-slate-100 pb-3 last:border-0"><div class="min-w-0"><p class="truncate text-sm font-bold">{{ $row->product?->name ?? $row->submitted_name }}</p><p class="text-xs text-slate-500">{{ number_format($row->quantity_sold) }} sold</p></div><span class="shrink-0 rounded bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700">{{ number_format($row->quantity_available) }} available</span></div>@empty<p class="py-8 text-center text-sm text-slate-500">No approved direct stock yet.</p>@endforelse</div>
+</section>

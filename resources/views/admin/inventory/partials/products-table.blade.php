@@ -46,6 +46,7 @@
                         <td class="px-5 py-4">
                             <p class="font-bold text-slate-900">{{ number_format($product->stock_quantity) }} display</p>
                             <p class="mt-1 text-xs font-semibold text-slate-500">{{ number_format($product->warehouse_stock_quantity) }} warehouse</p>
+                            <p class="mt-1 text-xs font-semibold text-slate-500">{{ number_format($product->costed_stock_remaining ?? 0) }} costed remaining</p>
                             <p class="mt-1 text-xs font-semibold text-slate-500">{{ number_format($product->reorder_level) }} reorder level</p>
                         </td>
                         <td class="px-5 py-4">
@@ -59,10 +60,21 @@
                             <p class="mt-1 text-xs text-slate-500">{{ $product->gross_margin_percentage }}% current margin</p>
                         </td>
                         <td class="px-5 py-4">
-                            <div class="flex min-w-[210px] flex-wrap justify-end gap-2">
+                            <div class="flex min-w-[260px] flex-wrap justify-end gap-2">
+                                @if ($product->has_opening_stock)
+                                    <span class="rounded border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-500">Opening set</span>
+                                @else
+                                    <button type="button" @click="$dispatch('open-admin-modal', 'opening-product-{{ $product->id }}')" class="rounded border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100">Opening stock</button>
+                                @endif
                                 <button type="button" @click="$dispatch('open-admin-modal', 'intake-product-{{ $product->id }}')" class="rounded bg-emerald-700 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-800">Stock intake</button>
                                 <button type="button" @click="$dispatch('open-admin-modal', 'transfer-product-{{ $product->id }}')" @disabled($product->warehouse_stock_quantity < 1) class="rounded border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">Move to display</button>
                                 <a href="{{ route('admin.products.show', $product) }}" class="rounded border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">View</a>
+                                <a href="{{ route('admin.products.edit', $product) }}" class="rounded border border-blue-200 px-3 py-2 text-xs font-bold text-blue-800 hover:bg-blue-50">Edit</a>
+                                <form method="POST" action="{{ route('admin.products.destroy', $product) }}" onsubmit="return confirm('Delete this product from the master list?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="rounded border border-red-200 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-50">Delete</button>
+                                </form>
                             </div>
                         </td>
                     </tr>

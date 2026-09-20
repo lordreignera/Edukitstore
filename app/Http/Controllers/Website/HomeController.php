@@ -13,7 +13,7 @@ class HomeController extends Controller
     {
         $featuredProducts = Product::query()
             ->active()
-            ->with('category')
+            ->with('category', 'approvedSupplierOffers.supplier')
             ->where('is_featured', true)
             ->latest()
             ->take(8)

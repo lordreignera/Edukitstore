@@ -19,7 +19,7 @@ class InvoiceWorkflow
 
         $assignedDriverId = $data['assigned_driver_id'] ?? $invoice->assigned_driver_id;
 
-        if ($assignedDriverId) {
+        if ($assignedDriverId && (int) $assignedDriverId !== (int) $invoice->assigned_driver_id) {
             $driverIsAssignable = Driver::whereKey($assignedDriverId)
                 ->where('is_approved', true)
                 ->where('is_available', true)

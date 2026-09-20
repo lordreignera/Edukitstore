@@ -24,7 +24,7 @@ class ProductController extends Controller
 
         $products = Product::query()
             ->active()
-            ->with('category')
+            ->with('category', 'approvedSupplierOffers.supplier')
             ->when($selectedCategory !== '', function ($query) use ($selectedCategory) {
                 $query->whereHas('category', fn ($category) => $category->where('slug', $selectedCategory));
             })
@@ -50,7 +50,7 @@ class ProductController extends Controller
     {
         abort_unless($product->is_active, 404);
 
-        $product->load('category');
+        $product->load('category', 'approvedSupplierOffers.supplier');
 
         return view('website.products.show', compact('product'));
     }

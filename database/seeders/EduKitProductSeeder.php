@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Services\ProductCodeGenerator;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -18,6 +19,7 @@ class EduKitProductSeeder extends Seeder
             512,
             JSON_THROW_ON_ERROR
         ));
+        $codes = app(ProductCodeGenerator::class);
 
         $categories = collect([
             'School Uniforms',
@@ -60,14 +62,14 @@ class EduKitProductSeeder extends Seeder
                 'slug' => $slug,
                 'product_category_id' => $categories[$product['category']],
                 'name' => $product['name'],
-                'sku' => $this->nextProductCode(),
+                'sku' => $codes->next(),
                 'description' => $product['description'],
                 'brand' => $product['brand'],
                 'unit' => $product['unit'],
                 'cost_price' => $product['cost_price'] ?? $this->estimatedCostPrice((int) $product['price']),
                 'price' => $product['price'],
-                'warehouse_stock_quantity' => $product['warehouse_stock_quantity'] ?? $this->estimatedWarehouseStock((int) $product['stock_quantity']),
-                'stock_quantity' => $product['stock_quantity'],
+                'warehouse_stock_quantity' => 0,
+                'stock_quantity' => 0,
                 'reorder_level' => $product['reorder_level'] ?? $this->estimatedReorderLevel((int) $product['stock_quantity']),
                 'image_path' => $imagePath,
                 'is_active' => true,
@@ -105,23 +107,9 @@ class EduKitProductSeeder extends Seeder
             || str_starts_with($path, 'products/seed/');
     }
 
-    private function nextProductCode(): string
-    {
-        $prefix = 'EDK'.now()->format('ym');
-        $latest = Product::where('sku', 'like', "{$prefix}%")->orderByDesc('sku')->value('sku');
-        $next = $latest ? ((int) substr($latest, strlen($prefix))) + 1 : 1;
-
-        return $prefix.str_pad((string) $next, 5, '0', STR_PAD_LEFT);
-    }
-
     private function estimatedCostPrice(int $price): int
     {
         return (int) max(0, round(($price * 0.8) / 100) * 100);
-    }
-
-    private function estimatedWarehouseStock(int $displayStock): int
-    {
-        return (int) max(10, round($displayStock * 0.6));
     }
 
     private function estimatedReorderLevel(int $displayStock): int

@@ -21,6 +21,8 @@ class Driver extends Model
         'payment_phone',
         'is_approved',
         'is_available',
+        'availability_note',
+        'availability_updated_at',
         'approved_at',
         'approved_by',
         'user_id',
@@ -36,6 +38,7 @@ class Driver extends Model
         return [
             'is_approved' => 'boolean',
             'is_available' => 'boolean',
+            'availability_updated_at' => 'datetime',
             'approved_at' => 'datetime',
             'submitted_at' => 'datetime',
         ];

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ShoppingList extends Model
 {
@@ -102,6 +103,11 @@ class ShoppingList extends Model
     public function deliveryConfirmer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'delivery_confirmed_by');
+    }
+
+    public function lineItems(): HasMany
+    {
+        return $this->hasMany(ShoppingListItem::class);
     }
 
     public static function statuses(): array
