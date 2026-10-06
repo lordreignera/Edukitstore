@@ -2,9 +2,9 @@
     'schools',
     'inputClass' => 'mt-1 w-full rounded-md border-[#d7e4ef] text-sm focus:border-emerald-600 focus:ring-emerald-600',
     'feeCardClass' => 'rounded-md border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-950',
-    'feeLabel' => 'Selected school fee',
-    'schoolHelp' => 'Select a school to show the destination fee.',
-    'pickupHelp' => 'Pickup from the EduKit warehouse has no delivery fee.',
+    'feeLabel' => 'Convenience fee',
+    'schoolHelp' => 'Select a school to show the convenience fee.',
+    'pickupHelp' => 'Pickup from the EduKit warehouse has no convenience fee.',
 ])
 
 <div>

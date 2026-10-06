@@ -44,7 +44,7 @@ class SchoolDeliveryService
         $data['district_id'] = null;
         $data['school_id'] = null;
         $data['school_name'] = 'Warehouse pickup';
-        $data['delivery_location'] = $data['delivery_location'] ?: 'EduKit warehouse pickup';
+        $data['delivery_location'] = ($data['delivery_location'] ?? null) ?: 'EduKit warehouse pickup';
         $data['delivery_fee'] = 0;
 
         return $data;

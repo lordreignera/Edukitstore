@@ -21,6 +21,7 @@ class DashboardController extends Controller
             'pending_suppliers' => Supplier::where('is_approved', false)->count(),
             'approved_suppliers' => Supplier::where('is_approved', true)->count(),
             'pending_shopping_lists' => ShoppingList::where('status', ShoppingList::STATUS_PENDING)->count(),
+            'payment_exceptions' => ShoppingList::whereNotNull('payment_exception')->count(),
             'shopping_lists' => ShoppingList::count(),
             'schools' => School::count(),
             'active_schools' => School::where('is_active', true)->count(),

@@ -30,7 +30,7 @@
                     <div><dt class="font-bold text-slate-500">District</dt><dd class="mt-1 text-slate-950">{{ $school->district?->name ?? '-' }}</dd></div>
                     <div><dt class="font-bold text-slate-500">School code</dt><dd class="mt-1 text-slate-950">{{ $school->school_code ?: '-' }}</dd></div>
                     <div><dt class="font-bold text-slate-500">Distance</dt><dd class="mt-1 text-slate-950">{{ number_format((float) $school->distance_from_warehouse_km, 2) }} km</dd></div>
-                    <div><dt class="font-bold text-slate-500">Delivery fee</dt><dd class="mt-1 font-black text-slate-950">UGX {{ number_format($school->delivery_fee) }}</dd></div>
+                    <div><dt class="font-bold text-slate-500">Convenience fee</dt><dd class="mt-1 font-black text-slate-950">UGX {{ number_format($school->delivery_fee) }}</dd></div>
                     <div class="sm:col-span-2"><dt class="font-bold text-slate-500">Location</dt><dd class="mt-1 text-slate-950">{{ $school->location ?: '-' }}</dd></div>
                     <div><dt class="font-bold text-slate-500">Contact person</dt><dd class="mt-1 text-slate-950">{{ $school->contact_person ?: '-' }}</dd></div>
                     <div><dt class="font-bold text-slate-500">Contact phone</dt><dd class="mt-1 text-slate-950">{{ $school->contact_phone ?: '-' }}</dd></div>

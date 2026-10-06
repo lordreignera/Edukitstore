@@ -32,7 +32,21 @@
                 </div>
 
                 @include('admin.invoices.partials.customer-summary', ['invoice' => $invoice])
+                @if ($invoice->payment_provider === 'demo')
+                    <p class="mt-4 rounded border border-amber-300 bg-amber-50 p-3 text-sm font-bold text-amber-900">Demo payment only. No money was collected.</p>
+                @endif
                 @include('admin.invoices.partials.items', ['invoice' => $invoice])
+                @if ($invoice->payment_exception)
+                    <div class="mt-5 rounded border border-red-300 bg-red-50 p-4 text-sm font-bold text-red-800">Payment needs review: {{ $invoice->payment_exception }}</div>
+                    @if ($invoice->payment_exception_type === 'stock')
+                        <form method="POST" action="{{ route('admin.invoices.resolve-paid-stock', $invoice) }}" class="mt-3">@csrf @method('PATCH')<button class="rounded bg-emerald-700 px-4 py-2 text-sm font-bold text-white">Recheck and allocate stock</button></form>
+                    @endif
+                @endif
+                @if ($invoice->paymentAttempts->isNotEmpty())
+                    <div class="mt-5 overflow-x-auto rounded border border-slate-200">
+                        <table class="min-w-full text-left text-xs"><thead class="bg-slate-50"><tr><th class="px-3 py-2">Checkout reference</th><th class="px-3 py-2">Provider transaction</th><th class="px-3 py-2">Amount</th><th class="px-3 py-2">State</th></tr></thead><tbody class="divide-y divide-slate-100">@foreach ($invoice->paymentAttempts as $attempt)<tr><td class="px-3 py-2">{{ $attempt->tx_ref }}</td><td class="px-3 py-2">{{ $attempt->provider_transaction_id ?: '-' }}</td><td class="px-3 py-2">UGX {{ number_format($attempt->amount) }}</td><td class="px-3 py-2 font-bold">{{ str($attempt->status)->replace('_', ' ')->title() }}</td></tr>@endforeach</tbody></table>
+                    </div>
+                @endif
 
                 @if ($invoice->file_path)
                     <div class="mt-6 border-t border-gray-100 pt-5">

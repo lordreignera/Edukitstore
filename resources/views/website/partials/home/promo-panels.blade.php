@@ -13,7 +13,7 @@
         <div class="p-5">
             <p class="text-[11px] font-black uppercase text-blue-700">List service</p>
             <p class="mt-1 text-[20px] font-black leading-7 text-[#07215f]">Upload and let us price</p>
-            <p class="mt-2 text-sm font-semibold leading-6 text-slate-600">School delivery fee is selected before review.</p>
+            <p class="mt-2 text-sm font-semibold leading-6 text-slate-600">The convenience fee is shown before review.</p>
             <span class="mt-4 inline-flex rounded-md bg-[#1674d1] px-4 py-2 text-xs font-black text-white group-hover:bg-[#07215f]">Upload list</span>
         </div>
         <div class="h-full w-full bg-cover bg-center" style="background-image: url('/images/products/shoopinggcart.jpeg')"></div>

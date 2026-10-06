@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Website;
 
 use App\Http\Controllers\Controller;
 use App\Models\ShoppingList;
+use App\Support\InvoiceAccess;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -38,6 +39,8 @@ class TrackOrderController extends Controller
                 ->withErrors(['reference' => 'We could not find an invoice with that reference and phone/email.'])
                 ->withInput();
         }
+
+        InvoiceAccess::grant($invoice);
 
         return redirect()->route('website.quote.show', $invoice->reference);
     }

@@ -10,7 +10,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
     </head>
-    <body class="bg-slate-50 font-sans text-slate-900 antialiased">
+    <body data-private-page class="bg-slate-50 font-sans text-slate-900 antialiased">
         <x-banner />
         <div x-data="{ adminMenuOpen: false }" class="min-h-screen">
             <div x-cloak x-show="adminMenuOpen" x-transition.opacity class="fixed inset-0 z-40 bg-slate-950/55 lg:hidden" @click="adminMenuOpen = false"></div>

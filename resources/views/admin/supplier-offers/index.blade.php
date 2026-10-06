@@ -30,7 +30,7 @@
                         @if($offer->submitted_description)<p class="mt-4 text-sm text-slate-600">{{ $offer->submitted_description }}</p>@endif
                     </div>
                     <div>
-                        @if($offer->status === 'pending')
+                        @if($offer->pending_quantity > 0)
                             <form method="POST" action="{{ route('admin.supplier-offers.approve', $offer) }}" class="grid gap-3 sm:grid-cols-2">@csrf @method('PATCH')
                                 <div class="sm:col-span-2"><label class="text-xs font-bold">Master catalogue mapping</label><select name="product_id" class="mt-1 w-full rounded-md border-slate-300 text-sm"><option value="">Approve as a new master product</option>@foreach($products as $product)<option value="{{ $product->id }}" @selected($offer->product_id === $product->id)>{{ $product->name }} ({{ $product->sku }})</option>@endforeach</select><p class="mt-1 text-xs text-slate-500">New proposals retain the reviewed supplier image. Existing products always retain the master image.</p></div>
                                 <div><label class="text-xs font-bold">Approved quantity</label><input name="approved_quantity" type="number" min="1" max="{{ $offer->pending_quantity }}" value="{{ $offer->pending_quantity }}" required class="mt-1 w-full rounded-md border-slate-300 text-sm"></div>

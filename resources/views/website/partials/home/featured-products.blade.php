@@ -31,11 +31,12 @@
                         <p class="mt-2 text-[15px] font-black text-slate-950">UGX {{ number_format($product->marketplace_price) }}</p>
                         <p class="mt-0.5 text-[11px] font-semibold text-slate-500">{{ number_format($product->marketplace_stock_quantity) }} available</p>
                         @if ($product->marketplace_stock_quantity > 0)
-                            <form method="POST" action="{{ route('website.cart.store', $product) }}" class="mt-3 grid grid-cols-[64px_1fr] gap-2">
+                            <form method="POST" action="{{ route('website.cart.store', $product) }}" class="mt-3 grid grid-cols-2 gap-2">
                                 @csrf
                                 <label class="sr-only" for="featured-quantity-{{ $product->id }}">Quantity</label>
-                                <input id="featured-quantity-{{ $product->id }}" name="quantity" type="number" min="1" max="{{ $product->marketplace_stock_quantity }}" value="1" class="h-9 w-full rounded-md border-[#d7e4ef] text-center text-xs font-bold text-[#07215f] focus:border-emerald-600 focus:ring-emerald-600">
-                                <button class="w-full rounded-md bg-emerald-600 px-3 py-2 text-[11px] font-black text-white hover:bg-emerald-700">Add</button>
+                                <input id="featured-quantity-{{ $product->id }}" name="quantity" type="number" min="1" max="{{ $product->marketplace_stock_quantity }}" value="1" class="col-span-2 h-9 w-full rounded-md border-[#d7e4ef] text-center text-xs font-bold text-[#07215f] focus:border-emerald-600 focus:ring-emerald-600">
+                                <button class="w-full rounded-md bg-emerald-600 px-1 py-2 text-[11px] font-black text-white hover:bg-emerald-700">Add to cart</button>
+                                <button name="checkout" value="1" class="w-full rounded-md bg-[#07215f] px-1 py-2 text-[11px] font-black text-white hover:bg-emerald-700">Checkout</button>
                             </form>
                         @else
                             <span class="mt-3 grid h-9 place-items-center rounded-md bg-slate-100 px-3 py-2 text-[11px] font-black text-slate-500">Out of stock</span>

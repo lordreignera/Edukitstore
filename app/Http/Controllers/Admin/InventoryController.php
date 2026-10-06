@@ -266,13 +266,20 @@ class InventoryController extends Controller
         $metrics = [];
 
         $invoices = ShoppingList::query()
-            ->where('source', ShoppingList::SOURCE_CART)
+            ->with('lineItems')
             ->whereNull('delivery_confirmed_at')
-            ->whereNotNull('cart_items')
-            ->get(['cart_items', 'payment_status', 'assigned_driver_id']);
+            ->whereNotIn('status', [ShoppingList::STATUS_REJECTED, ShoppingList::STATUS_CANCELLED, ShoppingList::STATUS_FULFILLED])
+            ->where(function ($query) {
+                $query->where('status', ShoppingList::STATUS_QUOTED)
+                    ->orWhere('payment_status', ShoppingList::PAYMENT_PAID);
+            })
+            ->get();
 
         foreach ($invoices as $invoice) {
-            foreach ($invoice->cart_items ?? [] as $item) {
+            foreach ($invoice->fulfilmentItems() as $item) {
+                if (($item['fulfilment_source'] ?? 'edukit') !== 'edukit') {
+                    continue;
+                }
                 $productId = (int) ($item['product_id'] ?? 0);
                 $quantity = (int) ($item['quantity'] ?? 0);
 
@@ -282,7 +289,7 @@ class InventoryController extends Controller
 
                 $metrics[$productId] ??= ['ordered' => 0, 'paid_pending' => 0, 'in_transit' => 0];
 
-                if ($invoice->payment_status === ShoppingList::PAYMENT_PAID && $invoice->assigned_driver_id) {
+                if ($invoice->payment_status === ShoppingList::PAYMENT_PAID && $invoice->assigned_driver_id && ! $invoice->payment_exception) {
                     $metrics[$productId]['in_transit'] += $quantity;
                 } elseif ($invoice->payment_status === ShoppingList::PAYMENT_PAID) {
                     $metrics[$productId]['paid_pending'] += $quantity;

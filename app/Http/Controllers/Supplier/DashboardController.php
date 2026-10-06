@@ -23,7 +23,10 @@ class DashboardController extends Controller
             'products' => $supplier->offers()->where('status', SupplierOffer::STATUS_APPROVED)->count(),
             'units_supplied' => $supplier->offers()->where('status', SupplierOffer::STATUS_APPROVED)->sum('quantity_submitted'),
             'units_remaining' => $supplier->offers()->where('status', SupplierOffer::STATUS_APPROVED)->sum('quantity_available'),
-            'purchase_value' => ShoppingListItem::where('supplier_id', $supplier->id)->sum('supplier_payable'),
+            'purchase_value' => ShoppingListItem::where('supplier_id', $supplier->id)
+                ->whereHas('shoppingList', fn ($query) => $query->where('payment_status', \App\Models\ShoppingList::PAYMENT_PAID)
+                    ->where(fn ($provider) => $provider->whereNull('payment_provider')->orWhere('payment_provider', '!=', 'demo')))
+                ->sum('supplier_payable'),
         ];
 
         $recentBatches = (clone $batches)

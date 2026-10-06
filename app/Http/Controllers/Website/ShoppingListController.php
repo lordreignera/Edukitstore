@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ShoppingList;
 use App\Services\SchoolDeliveryService;
 use App\Support\DocumentStorage;
+use App\Support\InvoiceAccess;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -44,6 +45,7 @@ class ShoppingListController extends Controller
         $shoppingList = ShoppingList::create($data + [
             'payment_status' => ShoppingList::PAYMENT_UNPAID,
         ]);
+        InvoiceAccess::grant($shoppingList);
 
         return redirect()
             ->route('website.quote.show', $shoppingList->reference)

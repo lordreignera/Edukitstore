@@ -18,7 +18,9 @@ class SupplierOfferController extends Controller
     {
         $status = (string) $request->query('status');
         $offers = SupplierOffer::with('supplier', 'product', 'category')
-            ->when(in_array($status, ['pending', 'approved', 'rejected'], true), fn ($query) => $query->where('status', $status))
+            ->when($status === 'pending', fn ($query) => $query->where('pending_quantity', '>', 0))
+            ->when($status === 'approved', fn ($query) => $query->where('status', SupplierOffer::STATUS_APPROVED))
+            ->when($status === 'rejected', fn ($query) => $query->where('status', SupplierOffer::STATUS_REJECTED))
             ->latest()->paginate(15)->withQueryString();
 
         return view('admin.supplier-offers.index', [
@@ -43,7 +45,7 @@ class SupplierOfferController extends Controller
 
         DB::transaction(function () use ($offer, $data, $codes): void {
             $offer = SupplierOffer::whereKey($offer->id)->lockForUpdate()->firstOrFail();
-            if ($offer->status !== SupplierOffer::STATUS_PENDING || $offer->pending_quantity < $data['approved_quantity']) {
+            if ($offer->pending_quantity < $data['approved_quantity'] || $offer->status === SupplierOffer::STATUS_REJECTED) {
                 throw ValidationException::withMessages(['approved_quantity' => 'This stock request has already changed. Refresh and try again.']);
             }
 
@@ -78,9 +80,7 @@ class SupplierOfferController extends Controller
                 'customer_price' => $data['customer_price'],
                 'quantity_available' => $newQuantity,
                 'pending_quantity' => $offer->pending_quantity - (int) $data['approved_quantity'],
-                'status' => $offer->pending_quantity === (int) $data['approved_quantity']
-                    ? SupplierOffer::STATUS_APPROVED
-                    : SupplierOffer::STATUS_PENDING,
+                'status' => $newQuantity > 0 ? SupplierOffer::STATUS_APPROVED : SupplierOffer::STATUS_PENDING,
                 'review_notes' => $data['review_notes'] ?? null,
                 'approved_at' => now(),
                 'approved_by' => auth()->id(),
@@ -97,7 +97,12 @@ class SupplierOfferController extends Controller
     public function reject(Request $request, SupplierOffer $offer): RedirectResponse
     {
         $data = $request->validate(['review_notes' => ['required', 'string', 'max:1000']]);
-        $offer->update(['status' => SupplierOffer::STATUS_REJECTED, 'review_notes' => $data['review_notes']]);
+        abort_unless($offer->pending_quantity > 0, 422);
+        $offer->update([
+            'pending_quantity' => 0,
+            'status' => $offer->quantity_available > 0 ? SupplierOffer::STATUS_APPROVED : SupplierOffer::STATUS_REJECTED,
+            'review_notes' => $data['review_notes'],
+        ]);
         return back()->with('status', 'Supplier submission rejected.');
     }
 }

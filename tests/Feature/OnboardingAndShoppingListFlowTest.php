@@ -228,11 +228,21 @@ class OnboardingAndShoppingListFlowTest extends TestCase
             'original_filename' => 'school-list.pdf',
         ]);
 
+        $product = Product::create([
+            'name' => 'Quoted school supplies',
+            'slug' => 'quoted-school-supplies',
+            'sku' => 'EDK-QUOTE-001',
+            'price' => 145000,
+            'is_active' => true,
+        ]);
+
         $this->actingAs($admin)
             ->patch(route('admin.invoices.update', $shoppingList), [
                 'status' => ShoppingList::STATUS_QUOTED,
                 'estimated_total' => 145000,
                 'assigned_driver_id' => $driver->id,
+                'items_present' => 1,
+                'items' => [['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 145000]],
             ])
             ->assertRedirect();
 
@@ -448,6 +458,16 @@ class OnboardingAndShoppingListFlowTest extends TestCase
     {
         config(['services.flutterwave.secret_key' => 'FLWSECK_TEST']);
 
+        $product = Product::create([
+            'name' => 'School Backpack', 'slug' => 'school-backpack-checkout',
+            'sku' => 'EDK260900001', 'price' => 60000, 'is_active' => true,
+        ]);
+        app(\App\Services\InventoryService::class)->recordOpeningStock($product, [
+            'warehouse_quantity' => 0, 'display_quantity' => 2,
+            'unit_cost' => 40000, 'unit_price' => 60000,
+            'occurred_at' => now()->toDateString(),
+        ]);
+
         Http::fake([
             'api.flutterwave.com/v3/payments' => Http::response([
                 'status' => 'success',
@@ -465,7 +485,7 @@ class OnboardingAndShoppingListFlowTest extends TestCase
             'source' => ShoppingList::SOURCE_CART,
             'cart_items' => [
                 [
-                    'product_id' => 1,
+                    'product_id' => $product->id,
                     'name' => 'School Backpack',
                     'sku' => 'EDK260900001',
                     'unit_price' => 60000,
@@ -480,7 +500,8 @@ class OnboardingAndShoppingListFlowTest extends TestCase
             'payment_status' => ShoppingList::PAYMENT_UNPAID,
         ]);
 
-        $this->post(route('website.quote.pay', $shoppingList->reference))
+        $this->withSession(['invoice_access' => [$shoppingList->id => true]])
+            ->post(route('website.quote.pay', $shoppingList->reference), ['confirm_items' => '1'])
             ->assertRedirect('https://checkout.flutterwave.com/pay/edukit-test');
 
         $shoppingList->refresh();

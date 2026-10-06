@@ -52,7 +52,7 @@
                         <td class="px-5 py-4">
                             <p class="text-xs font-semibold text-slate-500">{{ number_format($product->ordered_units) }} awaiting payment</p>
                             <p class="mt-1 text-xs font-semibold text-slate-500">{{ number_format($product->paid_pending_units) }} paid, needs driver</p>
-                            <p class="mt-1 text-xs font-semibold text-slate-500">{{ number_format($product->in_transit_units) }} in transit</p>
+                            <p class="mt-1 text-xs font-semibold text-slate-500">{{ number_format($product->in_transit_units) }} assigned to driver</p>
                             <p class="mt-1 text-xs font-semibold text-slate-500">{{ number_format($product->sold_units ?? 0) }} sold</p>
                         </td>
                         <td class="px-5 py-4">
@@ -70,10 +70,10 @@
                                 <button type="button" @click="$dispatch('open-admin-modal', 'transfer-product-{{ $product->id }}')" @disabled($product->warehouse_stock_quantity < 1) class="rounded border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">Move to display</button>
                                 <a href="{{ route('admin.products.show', $product) }}" class="rounded border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">View</a>
                                 <a href="{{ route('admin.products.edit', $product) }}" class="rounded border border-blue-200 px-3 py-2 text-xs font-bold text-blue-800 hover:bg-blue-50">Edit</a>
-                                <form method="POST" action="{{ route('admin.products.destroy', $product) }}" onsubmit="return confirm('Delete this product from the master list?')">
+                                <form method="POST" action="{{ route('admin.products.destroy', $product) }}" onsubmit="return confirm('Archive this product from the public catalogue?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button class="rounded border border-red-200 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-50">Delete</button>
+                                    <button class="rounded border border-red-200 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-50">Archive</button>
                                 </form>
                             </div>
                         </td>

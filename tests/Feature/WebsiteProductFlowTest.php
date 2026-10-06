@@ -7,6 +7,8 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\School;
 use App\Models\ShoppingList;
+use App\Models\Supplier;
+use App\Models\SupplierOffer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -14,6 +16,23 @@ use Tests\TestCase;
 class WebsiteProductFlowTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_price_sort_uses_the_price_shown_for_supplier_stock(): void
+    {
+        $owned = Product::create(['name' => 'Own stock', 'slug' => 'own-stock', 'sku' => 'OWN-1', 'price' => 3000, 'stock_quantity' => 2, 'is_active' => true]);
+        $supplied = Product::create(['name' => 'Supplier stock', 'slug' => 'supplier-stock', 'sku' => 'SUP-1', 'price' => 1000, 'is_active' => true]);
+        $supplier = Supplier::create(['business_name' => 'Book supplier', 'is_approved' => true, 'is_active' => true]);
+        SupplierOffer::create([
+            'supplier_id' => $supplier->id, 'product_id' => $supplied->id,
+            'submitted_name' => $supplied->name, 'supplier_price' => 4000,
+            'customer_price' => 5000, 'quantity_submitted' => 2,
+            'quantity_available' => 2, 'status' => SupplierOffer::STATUS_APPROVED,
+            'direct_fulfilment' => true,
+        ]);
+
+        $this->get(route('website.products.index', ['sort' => 'price_low']))
+            ->assertOk()->assertSeeInOrder([$owned->name, $supplied->name]);
+    }
 
     public function test_homepage_displays_featured_admin_products(): void
     {
@@ -67,6 +86,17 @@ class WebsiteProductFlowTest extends TestCase
             ->assertOk()
             ->assertSee('Black Leather School Shoes')
             ->assertSee('UGX 45,000');
+    }
+
+    public function test_live_suggestions_include_only_active_matching_products(): void
+    {
+        Product::create(['name' => 'Black School Shoes', 'slug' => 'black-school-shoes', 'sku' => 'SHOES-1', 'price' => 45000, 'stock_quantity' => 2, 'is_active' => true]);
+        Product::create(['name' => 'Old School Shoes', 'slug' => 'old-school-shoes', 'sku' => 'SHOES-2', 'price' => 30000, 'stock_quantity' => 0, 'is_active' => false]);
+
+        $this->getJson(route('website.products.suggest', ['search' => 'shoes']))
+            ->assertOk()
+            ->assertJsonCount(1, 'products')
+            ->assertJsonPath('products.0.name', 'Black School Shoes');
     }
 
     public function test_product_catalogue_can_sort_by_lowest_price(): void
@@ -146,13 +176,115 @@ class WebsiteProductFlowTest extends TestCase
         ]);
 
         $this->post(route('website.cart.store', $product))
-            ->assertSessionHas('cart.'.$product->id, 1);
+            ->assertSessionHas('cart.'.$product->id, 1)
+            ->assertSessionHas('cart_added');
+
+        $this->get(route('website.products.index'))
+            ->assertOk()
+            ->assertSee('Checkout')
+            ->assertSee(route('website.cart.index').'#order-details', false);
 
         $this->get(route('website.cart.index'))
             ->assertOk()
             ->assertSee('Blue School Bag')
             ->assertSee('UGX 60,000')
-            ->assertSee('View order summary');
+            ->assertSee('Create and view invoice');
+    }
+
+    public function test_checkout_button_adds_product_and_opens_cart_details(): void
+    {
+        $product = Product::create([
+            'name' => 'Canvas School Shoes', 'slug' => 'canvas-school-shoes',
+            'sku' => 'SHOES-CANVAS', 'price' => 35000,
+            'stock_quantity' => 5, 'is_active' => true,
+        ]);
+
+        $this->get(route('website.products.show', $product))
+            ->assertOk()
+            ->assertSee('name="checkout" value="1"', false);
+
+        $this->post(route('website.cart.store', $product), ['quantity' => 2, 'checkout' => '1'])
+            ->assertRedirect(route('website.cart.index').'#order-details')
+            ->assertSessionHas('cart.'.$product->id, 2);
+
+        $this->get(route('website.cart.index'))
+            ->assertOk()
+            ->assertSee('Canvas School Shoes')
+            ->assertSee('Convenience fee')
+            ->assertSee('Create and view invoice');
+    }
+
+    public function test_switching_fulfilment_source_replaces_the_old_cart_quantity(): void
+    {
+        $product = Product::create([
+            'name' => 'School Bag', 'slug' => 'school-bag-sources',
+            'sku' => 'BAG-SOURCES', 'price' => 60000,
+            'stock_quantity' => 5, 'is_active' => true,
+        ]);
+        $supplier = Supplier::create([
+            'business_name' => 'Bag Supplier', 'is_approved' => true, 'is_active' => true,
+        ]);
+        $offer = SupplierOffer::create([
+            'supplier_id' => $supplier->id, 'product_id' => $product->id,
+            'submitted_name' => $product->name, 'supplier_price' => 40000,
+            'customer_price' => 55000, 'quantity_submitted' => 4,
+            'quantity_available' => 4, 'status' => SupplierOffer::STATUS_APPROVED,
+            'direct_fulfilment' => true,
+        ]);
+
+        $this->post(route('website.cart.store', $product), ['quantity' => 3])
+            ->assertSessionHas('cart.'.$product->id, 3);
+        $this->post(route('website.cart.store', $product), [
+            'quantity' => 1, 'supplier_offer_id' => $offer->id,
+        ])->assertSessionHas('cart.'.$product->id, 1)
+            ->assertSessionHas('cart_sources.'.$product->id, $offer->id);
+        $this->post(route('website.cart.store', $product), [
+            'quantity' => 1, 'supplier_offer_id' => $offer->id,
+        ])->assertSessionHas('cart.'.$product->id, 2);
+        $this->post(route('website.cart.store', $product), ['quantity' => 1])
+            ->assertSessionHas('cart.'.$product->id, 1);
+    }
+
+    public function test_cart_removes_unavailable_items_and_reduces_quantity_to_live_stock(): void
+    {
+        $available = Product::create([
+            'name' => 'Available Book', 'slug' => 'available-book-cart',
+            'sku' => 'BOOK-CART', 'price' => 5000, 'stock_quantity' => 2,
+            'is_active' => true,
+        ]);
+        $archived = Product::create([
+            'name' => 'Archived Bag', 'slug' => 'archived-bag-cart',
+            'sku' => 'BAG-ARCHIVED', 'price' => 10000,
+            'stock_quantity' => 3, 'is_active' => false,
+        ]);
+
+        $this->withSession(['cart' => [$available->id => 4, $archived->id => 1]])
+            ->get(route('website.cart.index'))
+            ->assertOk()
+            ->assertSee('Available Book')
+            ->assertDontSee('Archived Bag')
+            ->assertSee('Some cart items or quantities changed')
+            ->assertSessionHas('cart.'.$available->id, 2)
+            ->assertSessionMissing('cart.'.$archived->id);
+    }
+
+    public function test_pickup_checkout_does_not_require_a_delivery_location(): void
+    {
+        $product = Product::create([
+            'name' => 'Pickup Book', 'slug' => 'pickup-book',
+            'sku' => 'BOOK-PICKUP', 'price' => 5000,
+            'stock_quantity' => 2, 'is_active' => true,
+        ]);
+        $this->post(route('website.cart.store', $product), ['quantity' => 1]);
+
+        $this->post(route('website.cart.submit'), [
+            'parent_name' => 'Pickup Parent', 'phone' => '0700000001',
+            'delivery_preference' => 'pickup',
+        ])->assertRedirect();
+
+        $invoice = ShoppingList::firstOrFail();
+        $this->assertSame('EduKit warehouse pickup', $invoice->delivery_location);
+        $this->assertSame(0, $invoice->delivery_fee);
     }
 
     public function test_cart_checkout_uses_selected_school_fee_and_is_ready_for_payment(): void
@@ -207,6 +339,7 @@ class WebsiteProductFlowTest extends TestCase
         $this->get(route('website.quote.show', $invoice->reference))
             ->assertOk()
             ->assertSee('Gayaza High School')
+            ->assertSee('Convenience fee')
             ->assertSee('UGX 72,000')
             ->assertSee('Pay with Flutterwave');
     }
@@ -278,10 +411,14 @@ class WebsiteProductFlowTest extends TestCase
             'status' => ShoppingList::STATUS_QUOTED,
         ]);
 
+        $this->get(route('website.quote.show', $invoice->reference))->assertNotFound();
+
         $this->post(route('website.track-order.lookup'), [
             'reference' => strtolower($invoice->reference),
             'contact' => '+256700123456',
         ])->assertRedirect(route('website.quote.show', $invoice->reference));
+
+        $this->get(route('website.quote.show', $invoice->reference))->assertOk();
 
         $this->post(route('website.track-order.lookup'), [
             'reference' => $invoice->reference,

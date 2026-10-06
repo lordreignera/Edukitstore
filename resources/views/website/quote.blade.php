@@ -3,13 +3,14 @@
 @section('title', 'Invoice '.$shoppingList->reference.' - EduKit')
 
 @section('content')
+    @php($payableItems = $shoppingList->lineItems->isNotEmpty() ? $shoppingList->lineItems : collect($shoppingList->cart_items ?? []))
     <section class="bg-white">
         <div class="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-            <p class="text-sm font-black uppercase tracking-wide text-emerald-700">Invoice request</p>
+            <p class="text-sm font-black uppercase tracking-wide text-emerald-700">Your invoice</p>
             <h1 class="mt-2 text-3xl font-black text-[#07215f]">{{ $shoppingList->reference }}</h1>
             <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
                 @if ($shoppingList->source === \App\Models\ShoppingList::SOURCE_CART)
-                    Your order total includes the school delivery fee selected at checkout. Pay securely, then EduKit assigns delivery.
+                    Your order total includes the convenience fee shown at checkout. Review it below before paying.
                 @else
                     EduKit reviews uploaded school lists, prepares the item total, then releases the invoice for payment.
                 @endif
@@ -30,12 +31,8 @@
                 <div class="border-b border-slate-100 px-5 py-4">
                     <h2 class="text-lg font-black text-[#07215f]">Items requested</h2>
                 </div>
-                @php
-                    $lineItems = $shoppingList->relationLoaded('lineItems') ? $shoppingList->lineItems : collect();
-                    $legacyItems = collect($shoppingList->cart_items ?? []);
-                @endphp
                 <div class="divide-y divide-slate-100">
-                    @forelse ($lineItems->isNotEmpty() ? $lineItems : $legacyItems as $item)
+                    @forelse ($payableItems as $item)
                         <div class="grid gap-3 px-5 py-4 text-sm sm:grid-cols-[1fr_auto]">
                             <div>
                                 <p class="font-black text-slate-950">{{ data_get($item, 'product_name') ?? data_get($item, 'name') }}</p>
@@ -75,26 +72,61 @@
         </div>
 
         <aside class="h-fit rounded-md border border-[#dbe8f3] bg-white p-5 shadow-sm">
-            <h2 class="text-lg font-black text-[#07215f]">Invoice total</h2>
+            <h2 class="text-lg font-black text-[#07215f]">Review your payment</h2>
+            <p class="mt-1 text-xs text-slate-500">Check the items and quantities before paying.</p>
+            <div class="mt-4 divide-y divide-slate-100 border-y border-slate-100 text-sm">
+                @foreach ($payableItems as $item)
+                    <div class="flex justify-between gap-3 py-2">
+                        <span class="text-slate-700">{{ data_get($item, 'product_name') ?? data_get($item, 'name') }} × {{ data_get($item, 'quantity') }}</span>
+                        <span class="shrink-0 font-bold">UGX {{ number_format(data_get($item, 'line_total')) }}</span>
+                    </div>
+                @endforeach
+            </div>
             <div class="mt-5 space-y-3 border-t border-slate-100 pt-4 text-sm">
                 <div class="flex justify-between"><span class="font-semibold text-slate-600">Items subtotal</span><span class="font-black text-slate-950">UGX {{ number_format($shoppingList->items_subtotal) }}</span></div>
-                <div class="flex justify-between"><span class="font-semibold text-slate-600">Delivery/convenience</span><span class="font-black text-slate-950">{{ $shoppingList->delivery_fee === null ? 'Pending' : 'UGX '.number_format($shoppingList->delivery_fee) }}</span></div>
+                <div class="flex justify-between"><span class="font-semibold text-slate-600">Convenience fee</span><span class="font-black text-slate-950">{{ $shoppingList->delivery_fee === null ? 'Pending' : 'UGX '.number_format($shoppingList->delivery_fee) }}</span></div>
                 <div class="flex justify-between border-t border-slate-100 pt-3 text-base"><span class="font-black text-[#07215f]">Total</span><span class="font-black text-[#07215f]">{{ $shoppingList->estimated_total ? 'UGX '.number_format($shoppingList->estimated_total) : 'Pending' }}</span></div>
             </div>
 
             <div class="mt-5 rounded-md border border-slate-200 bg-slate-50 p-4 text-sm">
                 <p class="font-black text-slate-900">Status: {{ \App\Models\ShoppingList::statuses()[$shoppingList->status] ?? ucfirst($shoppingList->status) }}</p>
-                <p class="mt-1 text-xs leading-5 text-slate-500">Payment: {{ ucfirst($shoppingList->payment_status) }}</p>
+                <p class="mt-1 text-xs leading-5 text-slate-500">Payment: {{ $shoppingList->payment_provider === 'demo' ? 'Demo paid — no money collected' : ucfirst($shoppingList->payment_status) }}</p>
                 <p class="mt-1 text-xs leading-5 text-slate-500">Delivery: {{ $shoppingList->delivery_confirmed_at ? 'Confirmed '.$shoppingList->delivery_confirmed_at->format('M d, Y') : 'Awaiting driver confirmation' }}</p>
             </div>
 
-            @if ($shoppingList->status === \App\Models\ShoppingList::STATUS_QUOTED && $shoppingList->estimated_total)
+            @if ($shoppingList->payment_exception)
+                <p class="mt-4 rounded-md border border-amber-200 bg-amber-50 p-4 text-xs font-semibold text-amber-900">
+                    @switch($shoppingList->payment_exception_type)
+                        @case('stock')
+                            Payment was received. Your order needs a stock review before delivery. EduKit will contact you.
+                            @break
+                        @case('duplicate')
+                            An additional payment needs review. EduKit will contact you about the duplicate charge.
+                            @break
+                        @case('late_payment')
+                            Payment arrived after this order closed. EduKit will contact you about the next steps or a refund.
+                            @break
+                        @default
+                            Payment details need review. Please do not retry payment until EduKit confirms the transaction.
+                    @endswitch
+                </p>
+            @endif
+
+            @if ($shoppingList->status === \App\Models\ShoppingList::STATUS_QUOTED && $shoppingList->estimated_total && $shoppingList->payment_status !== \App\Models\ShoppingList::PAYMENT_PAID)
                 <form method="POST" action="{{ route('website.quote.pay', $shoppingList->reference) }}" class="mt-5">
                     @csrf
-                    <button class="flex w-full justify-center rounded-md bg-emerald-600 px-5 py-3 text-sm font-black text-white hover:bg-emerald-700">Pay with Flutterwave</button>
+                    <label class="mb-3 flex items-start gap-2 text-xs font-semibold text-slate-700">
+                        <input type="checkbox" name="confirm_items" value="1" required class="mt-0.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-600">
+                        <span>I checked the items, quantities, convenience fee and total above.</span>
+                    </label>
+                    @error('confirm_items') <p class="mb-3 text-xs font-semibold text-red-700">{{ $message }}</p> @enderror
+                    @if (\App\Support\PaymentMode::demoEnabled())
+                        <p class="mb-3 rounded border border-amber-200 bg-amber-50 p-3 text-xs font-bold text-amber-900">Demo mode: this records a test payment and collects no money.</p>
+                    @endif
+                    <button class="flex w-full justify-center rounded-md bg-emerald-600 px-5 py-3 text-sm font-black text-white hover:bg-emerald-700">{{ \App\Support\PaymentMode::demoEnabled() ? 'Complete demo payment' : 'Pay with Flutterwave' }}</button>
                 </form>
             @else
-                <p class="mt-5 rounded-md border border-amber-200 bg-amber-50 p-4 text-xs font-semibold leading-5 text-amber-900">Payment opens when this invoice is ready for payment.</p>
+                <p class="mt-5 rounded-md border border-amber-200 bg-amber-50 p-4 text-xs font-semibold leading-5 text-amber-900">{{ $shoppingList->payment_status === \App\Models\ShoppingList::PAYMENT_PAID ? ($shoppingList->payment_provider === 'demo' ? 'Demo payment recorded. No money was collected.' : 'Payment received.') : 'Payment opens when this invoice is ready for payment.' }}</p>
             @endif
         </aside>
     </section>

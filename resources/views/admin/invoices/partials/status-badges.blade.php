@@ -16,6 +16,7 @@
     $deliveryTone = match ($invoice->deliveryStatus()) {
         'delivered' => 'bg-emerald-50 text-emerald-700',
         'ready_for_delivery' => 'bg-blue-50 text-blue-700',
+        'under_review' => 'bg-red-50 text-red-700',
         'awaiting_payment' => 'bg-amber-50 text-amber-700',
         default => 'bg-slate-100 text-slate-700',
     };

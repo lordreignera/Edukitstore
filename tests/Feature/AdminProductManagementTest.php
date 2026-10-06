@@ -114,7 +114,40 @@ class AdminProductManagementTest extends TestCase
             ->delete(route('admin.products.destroy', $product))
             ->assertRedirect(route('admin.products.index'));
 
-        $this->assertDatabaseMissing('products', ['sku' => 'EDK260900001']);
+        $this->assertDatabaseHas('products', ['sku' => 'EDK260900001', 'is_active' => false, 'stock_quantity' => 30]);
+        $this->get(route('website.products.show', $product))->assertNotFound();
+    }
+
+    public function test_archiving_product_preserves_costed_stock_and_order_lines(): void
+    {
+        Role::findOrCreate('super-admin');
+        $admin = User::factory()->create();
+        $admin->assignRole('super-admin');
+        $product = Product::create([
+            'name' => 'History Book', 'slug' => 'history-book-archive',
+            'sku' => 'EDK-ARCHIVE-1', 'price' => 5000, 'is_active' => true,
+        ]);
+        app(\App\Services\InventoryService::class)->recordOpeningStock($product, [
+            'warehouse_quantity' => 0, 'display_quantity' => 2,
+            'unit_cost' => 3000, 'unit_price' => 5000,
+            'occurred_at' => now()->toDateString(),
+        ]);
+        $invoice = \App\Models\ShoppingList::create([
+            'parent_name' => 'Parent', 'phone' => '0700000000',
+            'source' => \App\Models\ShoppingList::SOURCE_CART,
+            'status' => \App\Models\ShoppingList::STATUS_QUOTED,
+        ]);
+        $item = $invoice->lineItems()->create([
+            'product_id' => $product->id, 'fulfilment_source' => 'edukit',
+            'product_name' => $product->name, 'quantity' => 1,
+            'unit_price' => 5000, 'line_total' => 5000,
+        ]);
+
+        $this->actingAs($admin)->delete(route('admin.products.destroy', $product))->assertRedirect();
+
+        $this->assertFalse($product->fresh()->is_active);
+        $this->assertDatabaseHas('inventory_batches', ['product_id' => $product->id, 'remaining_quantity' => 2]);
+        $this->assertSame($product->id, $item->fresh()->product_id);
     }
 
     public function test_admin_can_replace_product_image_without_changing_generated_code(): void

@@ -55,8 +55,8 @@
                 }
 
                 if (schoolLocationText) {
-                    const schoolHelp = schoolLocationText.dataset.schoolHelp || 'Select a school to show the destination fee.';
-                    const pickupHelp = schoolLocationText.dataset.pickupHelp || 'Pickup from the EduKit warehouse has no delivery fee.';
+                    const schoolHelp = schoolLocationText.dataset.schoolHelp || 'Select a school to show the convenience fee.';
+                    const pickupHelp = schoolLocationText.dataset.pickupHelp || 'Pickup from the EduKit warehouse has no convenience fee.';
 
                     schoolLocationText.textContent = isSchoolDelivery
                         ? (selectedSchool?.value ? `Delivery to ${location || selectedSchool.textContent.trim()}.` : schoolHelp)

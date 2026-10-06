@@ -4,7 +4,7 @@
             <div>
                 <p class="text-sm font-bold text-emerald-700">Delivery Setup</p>
                 <h1 class="mt-1 text-2xl font-extrabold text-[#071d4f]">Schools</h1>
-                <p class="mt-1 text-sm text-slate-500">Set school locations, contacts, warehouse distance and delivery fees used at checkout.</p>
+                <p class="mt-1 text-sm text-slate-500">Set school locations, contacts, warehouse distance and convenience fees used at checkout.</p>
             </div>
             <a href="{{ route('admin.schools.create') }}" class="inline-flex items-center gap-2 rounded bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800">
                 <x-ui.icon name="plus" size="size-4" /> Add school
@@ -46,7 +46,7 @@
                                 <th class="px-5 py-3">School</th>
                                 <th class="px-5 py-3">District</th>
                                 <th class="px-5 py-3">Distance</th>
-                                <th class="px-5 py-3">Delivery fee</th>
+                                <th class="px-5 py-3">Convenience fee</th>
                                 <th class="px-5 py-3">Status</th>
                                 <th class="px-5 py-3"></th>
                             </tr>

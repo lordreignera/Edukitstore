@@ -3,13 +3,6 @@
         <div>
             <img src="/images/website/edukit-store-logo.png" alt="EduKit Store" class="h-14 w-auto sm:h-16">
             <p class="mt-3 max-w-xs text-slate-600">EduKit connects parents, schools, suppliers and delivery partners to make education more accessible for every child in Uganda.</p>
-            <div class="mt-4 flex gap-3 text-[#07215f]">
-                <a href="#" class="grid size-8 place-items-center rounded-full bg-[#f1f7fc] hover:bg-emerald-50 hover:text-emerald-700" aria-label="Facebook"><x-ui.icon name="facebook" size="size-4" /></a>
-                <a href="#" class="grid size-8 place-items-center rounded-full bg-[#f1f7fc] hover:bg-emerald-50 hover:text-emerald-700" aria-label="X"><x-ui.icon name="x-social" size="size-4" /></a>
-                <a href="#" class="grid size-8 place-items-center rounded-full bg-[#f1f7fc] hover:bg-emerald-50 hover:text-emerald-700" aria-label="Instagram"><x-ui.icon name="instagram" size="size-4" /></a>
-                <a href="#" class="grid size-8 place-items-center rounded-full bg-[#f1f7fc] hover:bg-emerald-50 hover:text-emerald-700" aria-label="YouTube"><x-ui.icon name="youtube" size="size-4" /></a>
-                <a href="#" class="grid size-8 place-items-center rounded-full bg-[#f1f7fc] hover:bg-emerald-50 hover:text-emerald-700" aria-label="LinkedIn"><x-ui.icon name="linkedin" size="size-4" /></a>
-            </div>
         </div>
 
         <div>
@@ -29,7 +22,7 @@
             <div class="mt-3 grid gap-1.5">
                 <a href="{{ route('website.suppliers') }}" class="hover:text-emerald-700">Become a Supplier</a>
                 <a href="{{ route('login') }}" class="hover:text-emerald-700">Supplier Login</a>
-                <a href="{{ route('website.suppliers') }}" class="hover:text-emerald-700">Supplier Guide</a>
+                <a href="{{ route('website.suppliers') }}" class="hover:text-emerald-700">Supplier application details</a>
                 <a href="{{ route('website.drivers') }}" class="hover:text-emerald-700">Become a Delivery Partner</a>
             </div>
         </div>
@@ -37,9 +30,8 @@
         <div>
             <p class="font-black text-[#07215f]">For Schools</p>
             <div class="mt-3 grid gap-1.5">
-                <a href="{{ route('login') }}" class="hover:text-emerald-700">School Login</a>
-                <a href="{{ route('website.schools') }}" class="hover:text-emerald-700">Partnerships</a>
-                <a href="{{ route('website.schools') }}" class="hover:text-emerald-700">Delivery Information</a>
+                <a href="{{ route('website.schools') }}" class="hover:text-emerald-700">School partnerships (coming soon)</a>
+                <a href="{{ route('login') }}" class="hover:text-emerald-700">Staff sign in</a>
             </div>
         </div>
 

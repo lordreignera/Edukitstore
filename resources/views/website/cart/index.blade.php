@@ -18,6 +18,9 @@
             @if ($errors->any())
                 <div class="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">Please check the highlighted cart details.</div>
             @endif
+            @if ($cartNotice)
+                <div role="status" class="rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">{{ $cartNotice }}</div>
+            @endif
 
             @forelse ($products as $product)
                 <article class="grid gap-4 rounded-md border border-[#dbe8f3] bg-white p-4 shadow-sm sm:grid-cols-[120px_1fr_220px]">
@@ -66,41 +69,44 @@
                     <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Cart subtotal</p>
                     <p class="mt-1 text-xl font-black text-[#07215f]">UGX {{ number_format($subtotal) }}</p>
                 </div>
-                <button type="button" data-open-order-summary class="inline-flex min-h-12 items-center justify-center rounded-md bg-[#07215f] px-5 py-3 text-sm font-black text-white hover:bg-emerald-700">
-                    View order summary
-                </button>
+                <p class="text-sm font-bold text-slate-600">Enter delivery details below to create your invoice.</p>
             </div>
         @endif
     </section>
 
     @if ($products->isNotEmpty())
-        <dialog data-order-summary-dialog class="w-[min(94vw,720px)] rounded-md border border-[#dbe8f3] bg-white p-0 text-slate-950 shadow-2xl backdrop:bg-[#03133d]/60">
-            <div class="max-h-[90vh] overflow-y-auto" data-school-delivery data-subtotal="{{ $subtotal }}" data-has-edukit-items="{{ $hasEdukitItems ? '1' : '0' }}" data-supplier-fees='@json($supplierFeeProfiles)'>
+        <section id="order-details" class="mx-auto mb-14 max-w-5xl rounded-md border border-[#dbe8f3] bg-white text-slate-950 shadow-sm" data-school-delivery data-subtotal="{{ $subtotal }}" data-has-edukit-items="{{ $hasEdukitItems ? '1' : '0' }}" data-supplier-fees='@json($supplierFeeProfiles)'>
                 <div class="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
                     <div>
-                        <p class="text-xs font-black uppercase tracking-wide text-emerald-700">Order summary</p>
-                        <h2 class="mt-1 text-2xl font-black text-[#07215f]">Review and pay</h2>
+                        <p class="text-xs font-black uppercase tracking-wide text-emerald-700">One step to your invoice</p>
+                        <h2 class="mt-1 text-2xl font-black text-[#07215f]">Delivery details and total</h2>
                     </div>
-                    <button type="button" data-close-order-summary class="grid size-10 shrink-0 place-items-center rounded-md border border-slate-200 text-slate-500 hover:border-emerald-500 hover:text-[#07215f]" aria-label="Close order summary">
-                        <x-ui.icon name="close" size="size-5" />
-                    </button>
                 </div>
 
                 <div class="px-5 py-5 sm:px-6">
                     <div class="rounded-md bg-[#f6fbff] p-4">
+                        <h3 class="mb-2 text-sm font-black text-[#07215f]">Items on your invoice</h3>
+                        <div class="mb-3 divide-y divide-slate-200 border-y border-slate-200">
+                            @foreach ($products as $product)
+                                <div class="flex justify-between gap-3 py-2 text-sm">
+                                    <span>{{ $product->name }} × {{ $product->cart_quantity }}</span>
+                                    <span class="shrink-0 font-bold">UGX {{ number_format($product->cart_line_total) }}</span>
+                                </div>
+                            @endforeach
+                        </div>
                         <div class="flex justify-between text-sm">
                             <span class="font-semibold text-slate-600">Items subtotal</span>
                             <span class="font-black text-slate-950">UGX {{ number_format($subtotal) }}</span>
                         </div>
                         <div class="mt-3 flex justify-between text-sm">
-                            <span class="font-semibold text-slate-600">Combined delivery fee</span>
+                            <span class="font-semibold text-slate-600">Convenience fee</span>
                             <span class="font-black text-slate-950" data-delivery-fee>UGX 0</span>
                         </div>
                         <div class="mt-3 flex justify-between border-t border-slate-200 pt-3 text-base">
                             <span class="font-black text-[#07215f]">Total to pay</span>
                             <span class="font-black text-[#07215f]" data-grand-total>UGX {{ number_format($subtotal) }}</span>
                         </div>
-                        <p class="mt-3 text-xs leading-5 text-slate-500">EduKit warehouse and supplier-direct delivery charges are calculated for the selected school.</p>
+                        <p class="mt-3 text-xs leading-5 text-slate-500">The convenience fee is calculated for the selected school and items.</p>
                     </div>
 
                     <form method="POST" action="{{ route('website.cart.submit') }}" class="mt-5 grid gap-4 sm:grid-cols-2">
@@ -126,42 +132,17 @@
                             <textarea id="notes" name="notes" rows="3" class="mt-1 w-full rounded-md border-[#d7e4ef] text-sm focus:border-emerald-600 focus:ring-emerald-600">{{ old('notes') }}</textarea>
                         </div>
                         <div class="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
-                            <p class="text-xs leading-5 text-slate-500">After submission, the invoice is ready for payment. Driver details appear after admin assignment.</p>
-                            <button class="inline-flex min-h-12 justify-center rounded-md bg-[#07215f] px-5 py-3 text-sm font-bold text-white hover:bg-emerald-700">Proceed to payment</button>
+                            <p class="text-xs leading-5 text-slate-500">Your itemized invoice opens automatically after this step. You can check it before paying.</p>
+                            <button class="inline-flex min-h-12 justify-center rounded-md bg-[#07215f] px-5 py-3 text-sm font-bold text-white hover:bg-emerald-700">Create and view invoice</button>
                         </div>
                     </form>
                 </div>
-            </div>
-        </dialog>
+        </section>
     @endif
 @endsection
 
 @push('scripts')
     @if ($products->isNotEmpty())
-        <script>
-            const orderSummaryDialog = document.querySelector('[data-order-summary-dialog]');
-
-            document.querySelector('[data-open-order-summary]')?.addEventListener('click', () => {
-                if (orderSummaryDialog?.showModal) {
-                    orderSummaryDialog.showModal();
-                }
-            });
-
-            document.querySelector('[data-close-order-summary]')?.addEventListener('click', () => {
-                orderSummaryDialog?.close();
-            });
-
-            orderSummaryDialog?.addEventListener('click', (event) => {
-                if (event.target === orderSummaryDialog) {
-                    orderSummaryDialog.close();
-                }
-            });
-
-            @if ($errors->any())
-                orderSummaryDialog?.showModal();
-            @endif
-        </script>
-
         @include('website.partials.forms.school-delivery-script')
     @endif
 @endpush

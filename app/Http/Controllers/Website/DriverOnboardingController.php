@@ -35,7 +35,7 @@ class DriverOnboardingController extends Controller
             'vehicle_registration' => ['required', 'string', 'max:120'],
             'payment_phone' => ['nullable', 'string', 'max:40'],
             'notes' => ['nullable', 'string', 'max:2000'],
-            'verification_document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:8192'],
+            'verification_document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:'.config('uploads.verification_document_max_kb')],
         ]);
 
         if ($request->hasFile('verification_document')) {

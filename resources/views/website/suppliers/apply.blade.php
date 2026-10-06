@@ -137,6 +137,7 @@
                     <div>
                         <label class="text-sm font-bold text-slate-700" for="verification_document">Verification document</label>
                         <input id="verification_document" name="verification_document" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" class="mt-1 block w-full rounded border border-slate-300 bg-white p-2 text-sm text-slate-700 file:mr-3 file:rounded file:border-0 file:bg-emerald-600 file:px-3 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-emerald-700">
+                        <p class="mt-1 text-xs text-slate-500">PDF, image or Word document. Maximum 30 MB.</p>
                         @error('verification_document') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 

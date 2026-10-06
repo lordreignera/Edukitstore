@@ -40,7 +40,7 @@ class SupplierOnboardingController extends Controller
             'other_product_categories' => ['nullable', 'string', 'max:500', 'required_without:product_category_ids'],
             'supply_capacity' => ['nullable', 'string', 'max:160'],
             'notes' => ['nullable', 'string', 'max:2000'],
-            'verification_document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:8192'],
+            'verification_document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:'.config('uploads.verification_document_max_kb')],
         ]);
 
         if ($request->hasFile('verification_document')) {

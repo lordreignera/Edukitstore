@@ -98,6 +98,34 @@ class SupplierMarketplaceFlowTest extends TestCase
         $this->assertDatabaseCount('supplier_offers', 1);
     }
 
+    public function test_restock_and_partial_approval_keep_existing_stock_available(): void
+    {
+        [$supplierUser, $supplier, $category] = $this->supplierContext();
+        $product = Product::create([
+            'product_category_id' => $category->id, 'name' => 'Live book',
+            'slug' => 'live-book', 'sku' => 'EDK-LIVE-1', 'price' => 2000,
+            'is_active' => true,
+        ]);
+        $offer = SupplierOffer::create([
+            'supplier_id' => $supplier->id, 'product_id' => $product->id,
+            'submitted_name' => 'Live book', 'supplier_price' => 1000,
+            'customer_price' => 2000, 'quantity_submitted' => 10,
+            'pending_quantity' => 0, 'quantity_available' => 10,
+            'status' => SupplierOffer::STATUS_APPROVED, 'direct_fulfilment' => true,
+        ]);
+
+        $this->actingAs($supplierUser)->post(route('supplier.offers.restock', $offer), ['quantity' => 5])->assertRedirect();
+        $this->assertSame(SupplierOffer::STATUS_APPROVED, $offer->fresh()->status);
+        $this->assertSame(10, $product->fresh()->marketplace_stock_quantity);
+
+        $this->actingAs($this->admin())->patch(route('admin.supplier-offers.approve', $offer), [
+            'customer_price' => 2000, 'approved_quantity' => 2,
+        ])->assertRedirect();
+        $this->assertSame(12, $offer->fresh()->quantity_available);
+        $this->assertSame(3, $offer->fresh()->pending_quantity);
+        $this->assertSame(SupplierOffer::STATUS_APPROVED, $offer->fresh()->status);
+    }
+
     public function test_supplier_sale_tracks_supplier_payable_and_edukit_margin_without_touching_edukit_stock(): void
     {
         [, $supplier, $category] = $this->supplierContext();

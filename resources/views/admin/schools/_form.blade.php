@@ -39,7 +39,7 @@
     </div>
 
     <div>
-        <label class="text-sm font-bold text-slate-700" for="{{ $prefix }}-fee">Convenience / delivery fee (UGX)</label>
+        <label class="text-sm font-bold text-slate-700" for="{{ $prefix }}-fee">Convenience fee (UGX)</label>
         <input id="{{ $prefix }}-fee" name="delivery_fee" type="number" min="0" step="1" value="{{ old('delivery_fee', $school->delivery_fee) }}" required class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
         @error('delivery_fee') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
     </div>

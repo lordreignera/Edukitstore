@@ -10,6 +10,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 class OfferController extends Controller
 {
@@ -82,12 +83,15 @@ class OfferController extends Controller
         abort_unless($offer->supplier_id === $supplier->id && $offer->status === SupplierOffer::STATUS_APPROVED, 403);
         $data = $request->validate(['quantity' => ['required', 'integer', 'min:1']]);
 
-        $offer->update([
-            'quantity_submitted' => $offer->quantity_submitted + $data['quantity'],
-            'pending_quantity' => $offer->pending_quantity + $data['quantity'],
-            'status' => SupplierOffer::STATUS_PENDING,
-            'review_notes' => 'Restock request: '.number_format($data['quantity']).' units.',
-        ]);
+        DB::transaction(function () use ($offer, $data): void {
+            $offer = SupplierOffer::whereKey($offer->id)->lockForUpdate()->firstOrFail();
+            abort_unless($offer->status === SupplierOffer::STATUS_APPROVED, 403);
+            $offer->update([
+                'quantity_submitted' => $offer->quantity_submitted + $data['quantity'],
+                'pending_quantity' => $offer->pending_quantity + $data['quantity'],
+                'review_notes' => 'Restock request: '.number_format($data['quantity']).' units.',
+            ]);
+        });
 
         return back()->with('status', 'Restock submitted for approval. Existing available stock remains live.');
     }

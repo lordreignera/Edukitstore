@@ -56,6 +56,7 @@ class SupplierOffer extends Model
         return $this->status === self::STATUS_APPROVED
             && $this->direct_fulfilment
             && $this->quantity_available > 0
-            && $this->supplier?->is_active;
+            && $this->supplier?->is_active
+            && $this->supplier?->is_approved;
     }
 }

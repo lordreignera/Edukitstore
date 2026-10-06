@@ -13,7 +13,7 @@
             <form method="POST" action="{{ route('admin.products.destroy', $product) }}" class="mt-4">
                 @csrf
                 @method('DELETE')
-                <button class="text-sm font-semibold text-red-700 hover:text-red-900">Delete product</button>
+                <button class="text-sm font-semibold text-red-700 hover:text-red-900">Archive product</button>
             </form>
         </div>
     </div>

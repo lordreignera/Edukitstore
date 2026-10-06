@@ -1,59 +1,37 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# EduKit
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+EduKit is a Laravel application for school supplies, supplier products, uploaded shopping lists, payments, inventory, and delivery.
 
-## About Laravel
+## Local setup
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+1. Run `composer install` and `npm install`.
+2. Copy `.env.example` to `.env`, set the database and mail settings, then run `php artisan key:generate`.
+3. Optionally set `EDUKIT_INITIAL_ADMIN_EMAIL` and `EDUKIT_INITIAL_ADMIN_PASSWORD` before seeding. The default seeded login remains `superadmin@edukit.test` / `password` for existing setup workflows. The account must change its password after signing in. Re-running the seeder does not reset an existing password.
+4. Run `php artisan migrate --seed`, `php artisan storage:link`, and `npm run build`.
+5. Run `php artisan test`.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+The default seeded password is retained as requested. For production, set a unique password of at least 16 characters before the first seed, or change the password through the profile immediately after first sign-in. No migration changes existing admin passwords.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Payments
 
-## Learning Laravel
+For local testing before Flutterwave credentials are available, set `EDUKIT_PAYMENT_MODE=demo` in `.env` and run `php artisan config:clear`. The invoice then offers **Complete demo payment** after the customer reviews and confirms the itemized total. Demo payments collect no money, are labeled on the invoice, and are excluded from financial reports. Demo mode runs only when `APP_ENV` is `local` or `testing`; production cannot enable it. Demo orders consume test inventory, so use local test data.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+When credentials arrive, set `EDUKIT_PAYMENT_MODE=flutterwave`, add the Flutterwave secret key and webhook hash, and run `php artisan config:clear`. Flutterwave also provides its own [test mode](https://developer.flutterwave.com/docs/testing) for testing the real checkout integration without real money.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Set `FLUTTERWAVE_SECRET_KEY` and `FLUTTERWAVE_SECRET_HASH`. Configure the Flutterwave dashboard webhook URL as `/api/payments/flutterwave/webhook` with the same secret hash. Flutterwave's [webhook guide](https://developer.flutterwave.com/docs/webhooks) describes the `verif-hash` header. The callback and webhook both re-query the transaction verification API before marking an invoice paid.
 
-## Laravel Sponsors
+Each checkout has a separate payment-attempt record, so a late callback from an earlier attempt can still be reconciled. The verified amount and currency must match the checkout exactly. Stock failures, mismatches, duplicate charges, and payments arriving after an order closes are flagged in the admin invoice view. Do not dispatch orders with an unresolved payment exception. The webhook must be configured for payments to complete when the customer does not return to the site.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Sessions and invoice access
 
-### Premium Partners
+Use the configured database session driver (`SESSION_DRIVER=database`). Signing out deletes that user's browser sessions, including sessions in other browsers, and revokes API tokens. Deactivating an account also rotates its remember-me token. Authenticated page responses use no-store headers.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Customers receive invoice access in the submitting browser session. To reopen an invoice later or in another browser, use **Track Order** with the reference and matching phone number or email. A reference alone cannot open an invoice.
 
-## Contributing
+## Operational flows
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- Uploaded lists require itemized catalogue lines and prices before an admin can release a quote. Totals are calculated from the lines and convenience fee.
+- Supplier restock submissions keep existing approved stock available while the new quantity is reviewed.
+- Drivers can confirm only paid orders that are ready for delivery and have no payment exception.
+- Paid orders cannot be cancelled through the ordinary status form. Refunds require a separate verified provider process.
+- Archiving a product removes it from the public catalogue while retaining stock batches and invoice history. Admins can reactivate it by editing the product.

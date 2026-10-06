@@ -196,7 +196,7 @@ class InventoryService
 
     public function recordPaidCartSale(ShoppingList $shoppingList, ?int $userId = null): void
     {
-        if ($shoppingList->source !== ShoppingList::SOURCE_CART || empty($shoppingList->cart_items)) {
+        if ($shoppingList->fulfilmentItems()->isEmpty()) {
             return;
         }
 
@@ -822,8 +822,8 @@ class InventoryService
 
     private function cartProducts(ShoppingList $shoppingList, bool $lockProducts = false): array
     {
-        $items = collect($shoppingList->cart_items ?? [])
-            ->filter(fn (array $item): bool => ! empty($item['product_id']) && (int) ($item['quantity'] ?? 0) > 0)
+        $items = $shoppingList->fulfilmentItems()
+            ->filter(fn (array $item): bool => (int) ($item['quantity'] ?? 0) > 0)
             ->filter(fn (array $item): bool => ($item['fulfilment_source'] ?? 'edukit') === 'edukit')
             ->values();
 
@@ -841,10 +841,12 @@ class InventoryService
 
         return $items
             ->map(function (array $item) use ($products): ?array {
-                $product = $products[(int) $item['product_id']] ?? null;
+                $product = $products[(int) ($item['product_id'] ?? 0)] ?? null;
 
                 if (! $product) {
-                    return null;
+                    throw ValidationException::withMessages([
+                        'payment' => ($item['name'] ?? 'A product').' is no longer linked to an available catalogue product.',
+                    ]);
                 }
 
                 return [

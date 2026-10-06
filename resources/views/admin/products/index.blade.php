@@ -86,10 +86,10 @@
                                             <a href="{{ route('admin.products.edit', $product) }}" class="grid size-9 place-items-center rounded border border-slate-200 text-slate-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700" title="Edit product" aria-label="Edit {{ $product->name }}">
                                                 <x-ui.icon name="edit" size="size-4" />
                                             </a>
-                                            <form method="POST" action="{{ route('admin.products.destroy', $product) }}" onsubmit="return confirm('Delete this product from the master list?')">
+                                            <form method="POST" action="{{ route('admin.products.destroy', $product) }}" onsubmit="return confirm('Archive this product from the public catalogue?')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button class="grid size-9 place-items-center rounded border border-slate-200 text-slate-600 hover:border-red-200 hover:bg-red-50 hover:text-red-700" title="Delete product" aria-label="Delete {{ $product->name }}">
+                                                <button class="grid size-9 place-items-center rounded border border-slate-200 text-slate-600 hover:border-red-200 hover:bg-red-50 hover:text-red-700" title="Archive product" aria-label="Archive {{ $product->name }}">
                                                     <x-ui.icon name="trash" size="size-4" />
                                                 </button>
                                             </form>

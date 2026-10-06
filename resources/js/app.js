@@ -1,5 +1,19 @@
 import './bootstrap';
 
+if (document.body?.hasAttribute('data-private-page')) {
+    // A browser may restore a dashboard from its back/forward cache without a request.
+    // Hide that snapshot when leaving and ask the server to authorize it again on return.
+    window.addEventListener('pagehide', () => {
+        document.documentElement.style.visibility = 'hidden';
+    });
+
+    window.addEventListener('pageshow', (event) => {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
+}
+
 document.querySelectorAll('[data-password-toggle]').forEach((button) => {
     button.addEventListener('click', () => {
         const input = document.getElementById(button.dataset.passwordTarget);

@@ -8,8 +8,8 @@
             <p class="text-[11px] font-extrabold uppercase text-emerald-700">EduKit marketplace</p>
             <h1 class="mt-2 text-[28px] font-extrabold leading-tight text-[#07215f] sm:text-[34px]">Shop school supplies</h1>
 
-            <form method="GET" action="{{ route('website.products.index') }}" class="mt-5 grid gap-3 rounded-md border border-[#dbe8f3] bg-[#f7fbff] p-3 shadow-sm md:grid-cols-[1fr_220px_170px_auto_auto]">
-                <input name="search" value="{{ $search }}" placeholder="Search products, code or brand" class="rounded-md border-[#d7e4ef] text-sm font-medium focus:border-emerald-600 focus:ring-emerald-600">
+            <form id="product-filter-form" method="GET" action="{{ route('website.products.index') }}" class="mt-5 grid gap-3 rounded-md border border-[#dbe8f3] bg-[#f7fbff] p-3 shadow-sm md:grid-cols-[1fr_220px_170px_auto_auto]">
+                <input name="search" value="{{ $search }}" maxlength="100" autocomplete="off" placeholder="Search products, code or brand" class="rounded-md border-[#d7e4ef] text-sm font-medium focus:border-emerald-600 focus:ring-emerald-600">
                 <select name="category" class="rounded-md border-[#d7e4ef] text-sm font-medium focus:border-emerald-600 focus:ring-emerald-600">
                     <option value="">All categories</option>
                     @foreach ($categories as $category)
@@ -47,7 +47,7 @@
             </nav>
         </aside>
 
-        <div>
+        <div id="product-results" aria-live="polite" aria-busy="false">
             <div class="mb-4 flex flex-col gap-3 rounded-md border border-[#dbe8f3] bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
                 <p class="text-sm font-bold text-slate-600">
                     <span class="text-[#07215f]">{{ number_format($products->total()) }}</span> products found
@@ -78,14 +78,14 @@
                             <a href="{{ route('website.products.show', $product) }}" class="line-clamp-2 block min-h-10 text-[14px] font-extrabold leading-5 text-[#07215f] group-hover:text-emerald-700">{{ $product->name }}</a>
                             <p class="mt-3 text-[16px] font-black text-slate-950">UGX {{ number_format($product->marketplace_price) }}</p>
                             <p class="mt-1 text-[11px] font-semibold text-slate-500">{{ number_format($product->marketplace_stock_quantity) }} available</p>
-                            <div class="mt-4 grid grid-cols-[1fr_1.15fr] gap-2">
-                                <a href="{{ route('website.products.show', $product) }}" class="grid min-h-10 place-items-center rounded-md border border-[#d7e4ef] px-3 py-2 text-xs font-extrabold text-[#07215f] hover:border-emerald-500">View</a>
+                            <div class="mt-4">
                                 @if ($product->marketplace_stock_quantity > 0)
-                                    <form method="POST" action="{{ route('website.cart.store', $product) }}" class="grid grid-cols-[54px_1fr] gap-2">
+                                    <form method="POST" action="{{ route('website.cart.store', $product) }}" class="grid grid-cols-2 gap-2">
                                         @csrf
                                         <label class="sr-only" for="product-quantity-{{ $product->id }}">Quantity</label>
-                                        <input id="product-quantity-{{ $product->id }}" name="quantity" type="number" min="1" max="{{ $product->marketplace_stock_quantity }}" value="1" class="h-10 w-full rounded-md border-[#d7e4ef] text-center text-xs font-bold text-[#07215f] focus:border-emerald-600 focus:ring-emerald-600">
-                                        <button class="w-full rounded-md bg-emerald-600 px-3 py-2 text-xs font-extrabold text-white hover:bg-emerald-700">Add</button>
+                                        <input id="product-quantity-{{ $product->id }}" name="quantity" type="number" min="1" max="{{ $product->marketplace_stock_quantity }}" value="1" class="col-span-2 h-10 w-full rounded-md border-[#d7e4ef] text-center text-xs font-bold text-[#07215f] focus:border-emerald-600 focus:ring-emerald-600">
+                                        <button class="w-full rounded-md bg-emerald-600 px-2 py-2 text-xs font-extrabold text-white hover:bg-emerald-700">Add to cart</button>
+                                        <button name="checkout" value="1" class="w-full rounded-md bg-[#07215f] px-2 py-2 text-xs font-extrabold text-white hover:bg-emerald-700">Checkout</button>
                                     </form>
                                 @else
                                     <span class="grid min-h-10 place-items-center rounded-md bg-slate-100 px-3 py-2 text-xs font-extrabold text-slate-500">Out of stock</span>
@@ -106,3 +106,48 @@
         </div>
     </section>
 @endsection
+
+@push('scripts')
+<script>
+(() => {
+    const form = document.getElementById('product-filter-form');
+    const results = document.getElementById('product-results');
+    if (!form || !results || !window.fetch) return;
+    let timer;
+    let controller;
+    const load = (url) => {
+        controller?.abort();
+        controller = new AbortController();
+        results.setAttribute('aria-busy', 'true');
+        fetch(url, { signal: controller.signal, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(response => { if (!response.ok) throw new Error('Search failed'); return response.text(); })
+            .then(html => {
+                const page = new DOMParser().parseFromString(html, 'text/html');
+                const next = page.getElementById('product-results');
+                if (!next) throw new Error('Search results missing');
+                results.innerHTML = next.innerHTML;
+                history.replaceState({}, '', url);
+            })
+            .catch(error => { if (error.name !== 'AbortError') form.submit(); })
+            .finally(() => results.setAttribute('aria-busy', 'false'));
+    };
+    const search = () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            const url = new URL(form.action);
+            new FormData(form).forEach((value, key) => { if (value) url.searchParams.set(key, value); });
+            load(url);
+        }, 250);
+    };
+    form.addEventListener('input', search);
+    form.addEventListener('change', search);
+    form.addEventListener('submit', event => { event.preventDefault(); clearTimeout(timer); search(); });
+    results.addEventListener('click', event => {
+        const link = event.target.closest('a[href*="page="]');
+        if (!link || !results.contains(link)) return;
+        event.preventDefault();
+        load(link.href);
+    });
+})();
+</script>
+@endpush

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
@@ -40,5 +41,42 @@ class AuthenticationTest extends TestCase
         ]);
 
         $this->assertGuest();
+    }
+
+    public function test_logout_clears_all_database_browser_sessions_and_api_tokens(): void
+    {
+        config(['session.driver' => 'database']);
+        $user = User::factory()->create();
+        $user->createToken('other-device');
+        foreach (['browser-a', 'browser-b'] as $id) {
+            DB::table('sessions')->insert([
+                'id' => $id, 'user_id' => $user->id, 'ip_address' => '127.0.0.1',
+                'user_agent' => 'Test browser', 'payload' => '', 'last_activity' => time(),
+            ]);
+        }
+
+        $this->actingAs($user)->post('/logout')->assertRedirect();
+
+        $this->assertDatabaseMissing('sessions', ['id' => 'browser-a']);
+        $this->assertDatabaseMissing('sessions', ['id' => 'browser-b']);
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+        $this->assertGuest();
+        $this->get(route('dashboard'))->assertRedirect(route('login'));
+    }
+
+    public function test_authenticated_pages_are_not_cached_by_the_browser(): void
+    {
+        $user = User::factory()->create();
+        $response = $this->actingAs($user)->get(route('dashboard'))->assertOk()
+            ->assertSee('data-private-page', false);
+        $this->assertStringContainsString('no-store', $response->headers->get('Cache-Control'));
+    }
+
+    public function test_login_page_cannot_be_restored_from_http_cache(): void
+    {
+        $response = $this->get(route('login'))->assertOk()
+            ->assertSee('data-private-page', false);
+
+        $this->assertStringContainsString('no-store', $response->headers->get('Cache-Control'));
     }
 }

@@ -1,8 +1,8 @@
-<header class="sticky top-0 z-30 flex min-h-[72px] items-center gap-3 border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6 lg:px-7">
+<header class="sticky top-0 z-30 flex min-h-[72px] flex-wrap items-center gap-3 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur sm:px-6 lg:px-7">
     <button type="button" class="grid size-10 shrink-0 place-items-center rounded-md border border-slate-200 text-slate-700 lg:hidden" aria-label="Open navigation" @click="portalMenuOpen = true"><x-ui.icon name="menu" /></button>
 
     @if ($searchAction)
-        <form method="GET" action="{{ $searchAction }}" class="relative hidden w-full max-w-md sm:block">
+        <form method="GET" action="{{ $searchAction }}" class="relative order-3 w-full sm:order-none sm:min-w-0 sm:max-w-md sm:flex-1">
             <label for="portal-search" class="sr-only">Search</label>
             <x-ui.icon name="search" size="size-[18px]" class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input id="portal-search" name="q" value="{{ request('q') }}" placeholder="{{ $searchPlaceholder }}" class="h-10 w-full rounded-md border-slate-200 bg-slate-50 pl-10 pr-4 text-sm focus:border-emerald-600 focus:bg-white focus:ring-emerald-600">

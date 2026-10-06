@@ -60,9 +60,9 @@
                         :schools="$schools"
                         input-class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600"
                         fee-card-class="rounded border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-950"
-                        fee-label="School delivery fee"
-                        school-help="Select a school to show the delivery fee. EduKit will add item pricing after reviewing the uploaded list."
-                        pickup-help="Pickup from the EduKit warehouse has no delivery fee. EduKit will add item pricing after reviewing the uploaded list."
+                        fee-label="Convenience fee"
+                        school-help="Select a school to show the convenience fee. EduKit will add item pricing after reviewing the uploaded list."
+                        pickup-help="Pickup from the EduKit warehouse has no convenience fee. EduKit will add item pricing after reviewing the uploaded list."
                     />
 
                     <div class="sm:col-span-2">

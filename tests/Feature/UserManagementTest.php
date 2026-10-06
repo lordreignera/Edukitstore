@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -59,6 +60,27 @@ class UserManagementTest extends TestCase
             ->assertSessionHasErrors('email');
 
         $this->assertGuest();
+    }
+
+    public function test_deactivating_an_account_invalidates_remembered_logins_and_other_sessions(): void
+    {
+        config(['session.driver' => 'database']);
+        $admin = $this->admin();
+        Role::findOrCreate('parent');
+        $user = User::factory()->create(['remember_token' => 'old-remember-token']);
+        $user->assignRole('parent');
+        $user->createToken('mobile');
+        DB::table('sessions')->insert([
+            'id' => 'other-browser', 'user_id' => $user->id, 'ip_address' => '127.0.0.1',
+            'user_agent' => 'Test browser', 'payload' => '', 'last_activity' => time(),
+        ]);
+
+        $this->actingAs($admin)->patch(route('admin.users.status', $user))->assertRedirect();
+
+        $this->assertFalse($user->fresh()->is_active);
+        $this->assertNotSame('old-remember-token', $user->fresh()->getRememberToken());
+        $this->assertDatabaseMissing('sessions', ['id' => 'other-browser']);
+        $this->assertDatabaseCount('personal_access_tokens', 0);
     }
 
     public function test_generic_user_creation_cannot_bypass_partner_approval(): void

@@ -20,7 +20,7 @@ class DashboardController extends Controller
         $stats = [
             'assigned' => (clone $deliveries)->count(),
             'pending' => (clone $deliveries)->whereNull('delivery_confirmed_at')->count(),
-            'ready' => (clone $deliveries)->where('payment_status', ShoppingList::PAYMENT_PAID)->whereNull('delivery_confirmed_at')->count(),
+            'ready' => (clone $deliveries)->where('payment_status', ShoppingList::PAYMENT_PAID)->where('status', ShoppingList::STATUS_QUOTED)->whereNull('payment_exception')->whereNull('delivery_confirmed_at')->count(),
             'delivered' => (clone $deliveries)->whereNotNull('delivery_confirmed_at')->count(),
         ];
 

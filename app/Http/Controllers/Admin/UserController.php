@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\AccountProvisioner;
+use App\Support\AccountAccess;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -138,7 +139,7 @@ class UserController extends Controller
             $this->synchronizeLinkedProfiles($user, $active, $data['name'], $data['email']);
 
             if (! $active) {
-                DB::table('sessions')->where('user_id', $user->id)->delete();
+                AccountAccess::revoke($user);
             }
         });
 
@@ -158,11 +159,10 @@ class UserController extends Controller
         DB::transaction(function () use ($user, $active) {
             $user->update(['is_active' => $active]);
             $this->synchronizeLinkedProfiles($user, $active, $user->name, $user->email);
+            if (! $active) {
+                AccountAccess::revoke($user);
+            }
         });
-
-        if (! $active) {
-            DB::table('sessions')->where('user_id', $user->id)->delete();
-        }
 
         return back()->with('status', $active ? 'User account activated.' : 'User account deactivated.');
     }

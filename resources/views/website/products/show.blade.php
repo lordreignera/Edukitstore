@@ -47,8 +47,31 @@
             @endif
             @if ($product->marketplace_stock_quantity > 0)
                 <div class="mt-8 space-y-3"><h2 class="text-sm font-extrabold text-[#07215f]">Choose fulfilment source</h2>
-                    @if($product->stock_quantity > 0)<form method="POST" action="{{ route('website.cart.store',$product) }}" class="grid gap-3 rounded-md border border-slate-200 bg-white p-4 sm:grid-cols-[1fr_100px_auto] sm:items-center">@csrf<div><p class="font-bold text-[#07215f]">Fulfilled by EduKit</p><p class="text-xs text-slate-500">From the EduKit warehouse | {{ number_format($product->stock_quantity) }} available</p><p class="mt-1 font-black">UGX {{ number_format($product->price) }}</p></div><input name="quantity" type="number" min="1" max="{{ $product->stock_quantity }}" value="1" class="rounded-md border-slate-300 text-center"><button class="rounded-md bg-emerald-700 px-4 py-3 text-sm font-bold text-white">Add</button></form>@endif
-                    @foreach($product->approvedSupplierOffers as $offer)<form method="POST" action="{{ route('website.cart.store',$product) }}" class="grid gap-3 rounded-md border border-slate-200 bg-white p-4 sm:grid-cols-[1fr_100px_auto] sm:items-center">@csrf<input type="hidden" name="supplier_offer_id" value="{{ $offer->id }}"><div><p class="font-bold text-[#07215f]">Dispatched by {{ $offer->supplier->business_name }}</p><p class="text-xs text-slate-500">Supplier warehouse in {{ $offer->supplier->district ?: 'Uganda' }} | {{ number_format($offer->quantity_available) }} available</p><p class="mt-1 font-black">UGX {{ number_format($offer->customer_price) }}</p></div><input name="quantity" type="number" min="1" max="{{ $offer->quantity_available }}" value="1" class="rounded-md border-slate-300 text-center"><button class="rounded-md bg-emerald-700 px-4 py-3 text-sm font-bold text-white">Add</button></form>@endforeach
+                    @if ($product->stock_quantity > 0)
+                        <form method="POST" action="{{ route('website.cart.store', $product) }}" class="grid gap-3 rounded-md border border-slate-200 bg-white p-4 sm:grid-cols-[1fr_100px_auto] sm:items-center">
+                            @csrf
+                            <div><p class="font-bold text-[#07215f]">Fulfilled by EduKit</p><p class="text-xs text-slate-500">From the EduKit warehouse | {{ number_format($product->stock_quantity) }} available</p><p class="mt-1 font-black">UGX {{ number_format($product->price) }}</p></div>
+                            <label class="sr-only" for="edukit-quantity">Quantity</label>
+                            <input id="edukit-quantity" name="quantity" type="number" min="1" max="{{ $product->stock_quantity }}" value="1" class="rounded-md border-slate-300 text-center">
+                            <div class="flex flex-wrap gap-2">
+                                <button class="rounded-md bg-emerald-700 px-4 py-3 text-sm font-bold text-white">Add to cart</button>
+                                <button name="checkout" value="1" class="rounded-md bg-[#07215f] px-4 py-3 text-sm font-bold text-white">Checkout</button>
+                            </div>
+                        </form>
+                    @endif
+                    @foreach ($product->approvedSupplierOffers as $offer)
+                        <form method="POST" action="{{ route('website.cart.store', $product) }}" class="grid gap-3 rounded-md border border-slate-200 bg-white p-4 sm:grid-cols-[1fr_100px_auto] sm:items-center">
+                            @csrf
+                            <input type="hidden" name="supplier_offer_id" value="{{ $offer->id }}">
+                            <div><p class="font-bold text-[#07215f]">Dispatched by {{ $offer->supplier->business_name }}</p><p class="text-xs text-slate-500">Supplier warehouse in {{ $offer->supplier->district ?: 'Uganda' }} | {{ number_format($offer->quantity_available) }} available</p><p class="mt-1 font-black">UGX {{ number_format($offer->customer_price) }}</p></div>
+                            <label class="sr-only" for="supplier-quantity-{{ $offer->id }}">Quantity</label>
+                            <input id="supplier-quantity-{{ $offer->id }}" name="quantity" type="number" min="1" max="{{ $offer->quantity_available }}" value="1" class="rounded-md border-slate-300 text-center">
+                            <div class="flex flex-wrap gap-2">
+                                <button class="rounded-md bg-emerald-700 px-4 py-3 text-sm font-bold text-white">Add to cart</button>
+                                <button name="checkout" value="1" class="rounded-md bg-[#07215f] px-4 py-3 text-sm font-bold text-white">Checkout</button>
+                            </div>
+                        </form>
+                    @endforeach
                 </div>
             @else
                 <div class="mt-8 flex flex-wrap gap-3">

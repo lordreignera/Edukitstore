@@ -2,13 +2,13 @@
     <x-slot name="header">
         <div class="flex flex-col gap-1">
             <h2 class="text-xl font-semibold leading-tight text-gray-800">Invoices</h2>
-            <p class="text-sm text-gray-500">Track payment, school delivery fees, driver assignment and delivery completion.</p>
+            <p class="text-sm text-gray-500">Track payment, convenience fees, driver assignment and delivery completion.</p>
         </div>
     </x-slot>
 
     <div class="py-8">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <form method="GET" action="{{ route('admin.invoices.index') }}" class="mb-6 grid gap-3 border border-slate-200 bg-white p-4 shadow-sm lg:grid-cols-[1.4fr_repeat(5,minmax(0,1fr))_auto]">
+            <form method="GET" action="{{ route('admin.invoices.index') }}" class="mb-6 grid gap-3 border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-2 xl:grid-cols-4">
                 <input name="q" value="{{ $search }}" placeholder="Search reference, phone, name or school" class="rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
                 <select name="status" class="rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
                     <option value="">Any invoice status</option>
@@ -39,6 +39,7 @@
                     <option value="cart" @selected($selectedSource === 'cart')>Cart</option>
                     <option value="upload" @selected($selectedSource === 'upload')>Upload</option>
                 </select>
+                <label class="flex items-center gap-2 text-xs font-bold text-red-700"><input type="checkbox" name="issues" value="1" @checked($issuesOnly) class="rounded border-red-300">Payment issues</label>
                 <button class="rounded bg-[#07215f] px-5 py-2 text-sm font-bold text-white hover:bg-emerald-700">Filter</button>
             </form>
 
@@ -61,6 +62,7 @@
                                     <td class="px-5 py-4">
                                         <p class="font-semibold text-gray-950">{{ $invoice->reference }}</p>
                                         <p class="text-xs text-gray-500">{{ $invoice->source === 'cart' ? 'Cart request' : 'Uploaded list' }}</p>
+                                        @if ($invoice->payment_exception)<p class="mt-1 text-xs font-bold text-red-700">Payment needs review</p>@endif
                                     </td>
                                     <td class="px-5 py-4">
                                         <p class="font-semibold text-gray-950">{{ $invoice->parent_name }}</p>

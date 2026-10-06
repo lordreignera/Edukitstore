@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Supplier;
 use App\Services\AccountProvisioner;
 use App\Support\DocumentStorage;
+use App\Support\AccountAccess;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -115,7 +116,7 @@ class SupplierController extends Controller
         $supplier->user?->update(['is_active' => false]);
 
         if ($supplier->user_id) {
-            DB::table('sessions')->where('user_id', $supplier->user_id)->delete();
+            AccountAccess::revoke($supplier->user);
         }
 
         return back()->with('status', 'Supplier suspended.');

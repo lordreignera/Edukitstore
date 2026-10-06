@@ -19,10 +19,12 @@ class ProfitReportController extends Controller
         $to = $request->date('to');
 
         $base = ShoppingListItem::query()
-            ->whereHas('shoppingList', fn ($query) => $query->where('payment_status', ShoppingList::PAYMENT_PAID))
-            ->when($source !== '', fn ($query) => $query->where('fulfilment_source', $source))
-            ->when($from, fn ($query) => $query->whereDate('created_at', '>=', $from))
-            ->when($to, fn ($query) => $query->whereDate('created_at', '<=', $to));
+            ->whereHas('shoppingList', fn ($query) => $query
+                ->where('payment_status', ShoppingList::PAYMENT_PAID)
+                ->where(fn ($provider) => $provider->whereNull('payment_provider')->orWhere('payment_provider', '!=', 'demo'))
+                ->when($from, fn ($paid) => $paid->whereDate('paid_at', '>=', $from))
+                ->when($to, fn ($paid) => $paid->whereDate('paid_at', '<=', $to)))
+            ->when($source !== '', fn ($query) => $query->where('fulfilment_source', $source));
 
         $summary = (clone $base)
             ->selectRaw('fulfilment_source, SUM(quantity) as units, SUM(line_total) as revenue, SUM(cost_total) as cost, SUM(profit_total) as profit, SUM(supplier_payable) as supplier_payable')

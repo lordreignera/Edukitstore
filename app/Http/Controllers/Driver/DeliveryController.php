@@ -28,7 +28,7 @@ class DeliveryController extends Controller
                     ->orWhere('parent_name', 'like', "%{$search}%")
                     ->orWhere('phone', 'like', "%{$search}%");
             }))
-            ->when($status === 'ready', fn ($query) => $query->where('payment_status', ShoppingList::PAYMENT_PAID)->whereNull('delivery_confirmed_at'))
+            ->when($status === 'ready', fn ($query) => $query->where('payment_status', ShoppingList::PAYMENT_PAID)->where('status', ShoppingList::STATUS_QUOTED)->whereNull('payment_exception')->whereNull('delivery_confirmed_at'))
             ->when($status === 'waiting', fn ($query) => $query->where('payment_status', '!=', ShoppingList::PAYMENT_PAID)->whereNull('delivery_confirmed_at'))
             ->when($status === 'active', fn ($query) => $query->whereNull('delivery_confirmed_at'))
             ->when($status === 'completed', fn ($query) => $query->whereNotNull('delivery_confirmed_at'))
@@ -52,6 +52,10 @@ class DeliveryController extends Controller
 
         if ($shoppingList->status === ShoppingList::STATUS_CANCELLED) {
             return back()->withErrors(['delivery' => 'Cancelled requests cannot be confirmed as delivered.']);
+        }
+
+        if ($shoppingList->status !== ShoppingList::STATUS_QUOTED || $shoppingList->payment_exception) {
+            return back()->withErrors(['delivery' => 'This order is under review and cannot be confirmed yet.']);
         }
 
         if ($shoppingList->delivery_confirmed_at) {

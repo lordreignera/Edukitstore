@@ -47,7 +47,7 @@
         <aside class="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
             <a href="{{ route('website.upload-list') }}" class="rounded-md border border-emerald-100 bg-white p-4 shadow-sm hover:border-emerald-400">
                 <p class="text-sm font-black text-[#07215f]">Upload school list</p>
-                <p class="mt-1 text-xs font-semibold leading-5 text-slate-500">Send a list and get an invoice with delivery fee.</p>
+                <p class="mt-1 text-xs font-semibold leading-5 text-slate-500">Send a list and get an invoice with the convenience fee shown.</p>
                 <span class="mt-3 inline-flex text-xs font-black text-emerald-700">Start request</span>
             </a>
             <a href="{{ route('website.track-order') }}" class="rounded-md border border-blue-100 bg-white p-4 shadow-sm hover:border-blue-400">

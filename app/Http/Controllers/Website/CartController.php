@@ -5,16 +5,22 @@ namespace App\Http\Controllers\Website;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ShoppingList;
+use App\Services\FlutterwavePaymentService;
+use App\Services\DemoPaymentService;
 use App\Services\InventoryService;
 use App\Services\MarketplaceSourceService;
 use App\Services\SchoolDeliveryService;
 use App\Services\SupplierSaleService;
+use App\Support\InvoiceAccess;
+use App\Support\PaymentMode;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class CartController extends Controller
 {
@@ -24,19 +30,34 @@ class CartController extends Controller
         $productIds = array_keys($cart);
 
         $products = Product::query()
+            ->active()
             ->with('category', 'approvedSupplierOffers.supplier')
             ->whereIn('id', $productIds)
             ->get()
-            ->map(function (Product $product) use ($cart, $sources) {
+            ->map(function (Product $product) use ($cart, $sources): ?Product {
                 $offerId = session('cart_sources.'.$product->id);
-                $source = $sources->source($product, $offerId ? (int) $offerId : null);
-                $product->cart_quantity = $cart[$product->id] ?? 0;
+                try {
+                    $source = $sources->source($product, $offerId ? (int) $offerId : null);
+                } catch (ValidationException) {
+                    return null;
+                }
+                $product->cart_quantity = min((int) ($cart[$product->id] ?? 0), $source['quantity']);
                 $product->cart_source = $source;
                 $product->cart_unit_price = $source['price'];
                 $product->cart_line_total = $source['price'] * $product->cart_quantity;
 
                 return $product;
-            });
+            })->filter(fn (?Product $product): bool => $product !== null && $product->cart_quantity > 0)->values();
+
+        $availableCart = $products->mapWithKeys(fn (Product $product) => [$product->id => $product->cart_quantity])->all();
+        $cartNotice = null;
+        if ($availableCart != $cart) {
+            $cartNotice = 'Some cart items or quantities changed because stock is no longer available. Review your cart before checkout.';
+            session(['cart' => $availableCart]);
+            foreach (array_diff(array_keys($cart), array_keys($availableCart)) as $removedId) {
+                session()->forget('cart_sources.'.$removedId);
+            }
+        }
 
         $subtotal = $products->sum('cart_line_total');
         $schools = $delivery->activeSchools();
@@ -49,7 +70,7 @@ class CartController extends Controller
             ]);
         $hasEdukitItems = $products->contains(fn ($product) => $product->cart_source['type'] === 'edukit');
 
-        return view('website.cart.index', compact('products', 'subtotal', 'schools', 'supplierFeeProfiles', 'hasEdukitItems'));
+        return view('website.cart.index', compact('products', 'subtotal', 'schools', 'supplierFeeProfiles', 'hasEdukitItems', 'cartNotice'));
     }
 
     public function store(Request $request, Product $product, MarketplaceSourceService $sources): RedirectResponse
@@ -61,16 +82,25 @@ class CartController extends Controller
         $data = $request->validate([
             'quantity' => ['nullable', 'integer', 'min:1', 'max:'.$source['quantity']],
             'supplier_offer_id' => ['nullable', 'integer'],
+            'checkout' => ['nullable', 'in:1'],
         ]);
         $quantity = (int) ($data['quantity'] ?? 1);
 
         $cart = session('cart', []);
-        $cart[$product->id] = min($source['quantity'], ($cart[$product->id] ?? 0) + $quantity);
+        $selectedOfferId = $source['offer']?->id;
+        $previousOfferId = session('cart_sources.'.$product->id);
+        $sameSource = (string) ($previousOfferId ?? '') === (string) ($selectedOfferId ?? '');
+        $cart[$product->id] = min($source['quantity'], ($sameSource ? ($cart[$product->id] ?? 0) : 0) + $quantity);
 
         session(['cart' => $cart]);
-        session(['cart_sources.'.$product->id => $source['offer']?->id]);
+        session(['cart_sources.'.$product->id => $selectedOfferId]);
 
-        return back()->with('status', "{$product->name} added to cart.");
+        if (($data['checkout'] ?? null) === '1') {
+            return redirect()->route('website.cart.index')->withFragment('order-details')
+                ->with('status', "{$product->name} added. Enter your details to view the invoice.");
+        }
+
+        return back()->with('cart_added', "{$product->name} added to cart.");
     }
 
     public function update(Request $request, Product $product, MarketplaceSourceService $sources): RedirectResponse
@@ -110,6 +140,11 @@ class CartController extends Controller
             ->with('approvedSupplierOffers.supplier')
             ->whereIn('id', array_keys($cart))
             ->get();
+
+        if ($products->count() !== count($cart)) {
+            return redirect()->route('website.cart.index')
+                ->withErrors(['cart' => 'Some cart items are no longer available. Review your cart and try again.']);
+        }
 
         $sourceService = app(MarketplaceSourceService::class);
         $items = $products->map(function (Product $product) use ($cart, $sourceService): array {
@@ -164,51 +199,69 @@ class CartController extends Controller
 
         $itemsSubtotal = $items->sum('line_total');
 
-        $shoppingList = ShoppingList::create($data + [
-            'source' => ShoppingList::SOURCE_CART,
-            'reference' => ShoppingList::nextReference(),
-            'cart_items' => $items->all(),
-            'items_subtotal' => $itemsSubtotal,
-            'estimated_total' => $itemsSubtotal + $data['delivery_fee'],
-            'status' => ShoppingList::STATUS_QUOTED,
-            'payment_status' => ShoppingList::PAYMENT_UNPAID,
-        ]);
+        $shoppingList = DB::transaction(function () use ($data, $items, $itemsSubtotal): ShoppingList {
+            $shoppingList = ShoppingList::create($data + [
+                'source' => ShoppingList::SOURCE_CART,
+                'reference' => ShoppingList::nextReference(),
+                'cart_items' => $items->all(),
+                'items_subtotal' => $itemsSubtotal,
+                'estimated_total' => $itemsSubtotal + $data['delivery_fee'],
+                'status' => ShoppingList::STATUS_QUOTED,
+                'payment_status' => ShoppingList::PAYMENT_UNPAID,
+            ]);
 
-        $shoppingList->lineItems()->createMany($items->map(fn (array $item): array => [
-            'product_id' => $item['product_id'],
-            'supplier_offer_id' => $item['supplier_offer_id'],
-            'supplier_id' => $item['supplier_id'],
-            'fulfilment_source' => $item['fulfilment_source'],
-            'product_name' => $item['name'],
-            'sku' => $item['sku'],
-            'quantity' => $item['quantity'],
-            'unit_cost' => $item['unit_cost'],
-            'unit_price' => $item['unit_price'],
-            'line_total' => $item['line_total'],
-            'cost_total' => 0,
-            'profit_total' => 0,
-        ])->all());
+            $shoppingList->lineItems()->createMany($items->map(fn (array $item): array => [
+                'product_id' => $item['product_id'],
+                'supplier_offer_id' => $item['supplier_offer_id'],
+                'supplier_id' => $item['supplier_id'],
+                'fulfilment_source' => $item['fulfilment_source'],
+                'product_name' => $item['name'],
+                'sku' => $item['sku'],
+                'quantity' => $item['quantity'],
+                'unit_cost' => $item['unit_cost'],
+                'unit_price' => $item['unit_price'],
+                'line_total' => $item['line_total'],
+                'cost_total' => 0,
+                'profit_total' => 0,
+            ])->all());
+
+            return $shoppingList;
+        });
 
         session()->forget('cart');
         session()->forget('cart_sources');
+        InvoiceAccess::grant($shoppingList);
 
         return redirect()
             ->route('website.quote.show', $shoppingList->reference)
-            ->with('status', 'Your order total is ready. Review the school delivery fee and continue to payment.');
+            ->with('status', 'Your invoice is ready. Review the items, convenience fee and total before paying.');
     }
 
     public function quote(string $reference): View
     {
         $shoppingList = ShoppingList::with('assignedDriver', 'school.district', 'lineItems')->where('reference', $reference)->firstOrFail();
+        InvoiceAccess::check($shoppingList);
 
         return view('website.quote', compact('shoppingList'));
     }
 
-    public function pay(Request $request, string $reference, InventoryService $inventory, SupplierSaleService $supplierSales): RedirectResponse
+    public function pay(Request $request, string $reference, InventoryService $inventory, SupplierSaleService $supplierSales, DemoPaymentService $demoPayments): RedirectResponse
     {
         $shoppingList = ShoppingList::where('reference', $reference)->firstOrFail();
+        InvoiceAccess::check($shoppingList);
 
-        abort_unless($shoppingList->status === ShoppingList::STATUS_QUOTED && $shoppingList->estimated_total, 404);
+        abort_unless($shoppingList->status === ShoppingList::STATUS_QUOTED
+            && $shoppingList->payment_status !== ShoppingList::PAYMENT_PAID
+            && $shoppingList->estimated_total > 0, 404);
+
+        $request->validate(['confirm_items' => ['accepted']]);
+
+        if (PaymentMode::demoEnabled()) {
+            $demoPayments->pay($shoppingList);
+
+            return redirect()->route('website.quote.show', $shoppingList->reference)
+                ->with('status', 'Demo payment completed. No money was collected.');
+        }
 
         $inventory->ensureInvoiceHasDisplayStock($shoppingList);
         $supplierSales->ensureStock($shoppingList);
@@ -219,10 +272,17 @@ class CartController extends Controller
             return back()->withErrors(['payment' => 'Flutterwave checkout is not connected yet. Add the Flutterwave secret key, then this invoice can be paid online.']);
         }
 
-        $txRef = $shoppingList->reference.'-'.Str::upper(Str::random(6));
-        $response = Http::withToken($secretKey)
-            ->acceptJson()
-            ->post('https://api.flutterwave.com/v3/payments', [
+        $txRef = $shoppingList->reference.'-'.Str::upper(Str::random(12));
+        $attempt = $shoppingList->paymentAttempts()->create([
+            'tx_ref' => $txRef,
+            'amount' => $shoppingList->estimated_total,
+            'currency' => 'UGX',
+            'status' => 'initiated',
+        ]);
+        try {
+            $response = Http::withToken($secretKey)
+                ->acceptJson()->timeout(20)
+                ->post('https://api.flutterwave.com/v3/payments', [
                 'tx_ref' => $txRef,
                 'amount' => $shoppingList->estimated_total,
                 'currency' => 'UGX',
@@ -234,19 +294,27 @@ class CartController extends Controller
                 ],
                 'customizations' => [
                     'title' => 'EduKit Invoice '.$shoppingList->reference,
-                    'description' => 'School supplies invoice including delivery/convenience fee.',
+                    'description' => 'School supplies invoice including convenience fee.',
                 ],
                 'meta' => [
                     'shopping_list_id' => $shoppingList->id,
                     'reference' => $shoppingList->reference,
                 ],
-            ]);
+                ]);
+        } catch (ConnectionException $exception) {
+            report($exception);
+            $attempt->update(['status' => 'failed']);
+            return back()->withErrors(['payment' => 'Checkout is temporarily unavailable. Please try again.']);
+        }
 
         $checkoutUrl = $response->json('data.link');
 
         if (! $response->successful() || ! $checkoutUrl) {
+            $attempt->update(['status' => 'failed']);
             return back()->withErrors(['payment' => 'Flutterwave could not start checkout. Please try again or contact EduKit support.']);
         }
+
+        $attempt->update(['checkout_url' => $checkoutUrl]);
 
         $shoppingList->update([
             'payment_status' => ShoppingList::PAYMENT_PENDING,
@@ -257,69 +325,34 @@ class CartController extends Controller
         return redirect()->away($checkoutUrl);
     }
 
-    public function flutterwaveCallback(Request $request, InventoryService $inventory, SupplierSaleService $supplierSales): RedirectResponse
+    public function flutterwaveCallback(Request $request, FlutterwavePaymentService $payments): RedirectResponse
     {
         $txRef = (string) $request->query('tx_ref');
         $transactionId = (string) $request->query('transaction_id');
 
         abort_if($txRef === '', 404);
 
-        $shoppingList = ShoppingList::where('payment_reference', $txRef)->firstOrFail();
+        $attempt = $payments->attempt($txRef);
+        $shoppingList = $attempt->shoppingList;
 
         if ($request->query('status') !== 'successful' || $transactionId === '') {
+            $payments->markFailed($attempt);
             return redirect()
                 ->route('website.quote.show', $shoppingList->reference)
                 ->withErrors(['payment' => 'The payment was not completed. You can try again from this invoice.']);
         }
 
-        $secretKey = config('services.flutterwave.secret_key');
-
-        if (! $secretKey) {
-            return redirect()
-                ->route('website.quote.show', $shoppingList->reference)
-                ->withErrors(['payment' => 'Flutterwave verification is not connected yet.']);
-        }
-
-        $response = Http::withToken($secretKey)
-            ->acceptJson()
-            ->get("https://api.flutterwave.com/v3/transactions/{$transactionId}/verify");
-
-        $data = $response->json('data', []);
-        $amount = (float) ($data['amount'] ?? 0);
-
-        $verified = $response->successful()
-            && $response->json('status') === 'success'
-            && ($data['status'] ?? null) === 'successful'
-            && ($data['tx_ref'] ?? null) === $txRef
-            && strtoupper((string) ($data['currency'] ?? '')) === 'UGX'
-            && $amount >= (float) $shoppingList->estimated_total;
-
-        if (! $verified) {
+        if (! $payments->verifyAndRecord($attempt, $transactionId)) {
             return redirect()
                 ->route('website.quote.show', $shoppingList->reference)
                 ->withErrors(['payment' => 'Flutterwave payment verification failed. Please contact EduKit support if money was deducted.']);
         }
 
-        if ($shoppingList->payment_status !== ShoppingList::PAYMENT_PAID) {
-            DB::transaction(function () use ($shoppingList, $inventory, $supplierSales): void {
-                $lockedInvoice = ShoppingList::whereKey($shoppingList->id)->lockForUpdate()->firstOrFail();
-                if ($lockedInvoice->payment_status === ShoppingList::PAYMENT_PAID) {
-                    return;
-                }
-
-                $inventory->recordPaidCartSale($lockedInvoice);
-                $supplierSales->recordPaidSale($lockedInvoice);
-                $lockedInvoice->update([
-                    'payment_status' => ShoppingList::PAYMENT_PAID,
-                    'payment_provider' => 'flutterwave',
-                    'paid_at' => now(),
-                ]);
-            });
-        }
-
         return redirect()
             ->route('website.quote.show', $shoppingList->reference)
-            ->with('status', 'Payment received. EduKit can now begin fulfilment.');
+            ->with('status', $shoppingList->fresh()->payment_exception
+                ? 'Your payment update needs review. Please check the invoice status or contact EduKit support.'
+                : 'Payment received. EduKit can now begin fulfilment.');
     }
 
     public function destroy(Product $product): RedirectResponse

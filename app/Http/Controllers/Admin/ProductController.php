@@ -131,10 +131,9 @@ class ProductController extends Controller
 
     public function destroy(Product $product): RedirectResponse
     {
-        $this->deleteStoredImage($product);
-        $product->delete();
+        $product->update(['is_active' => false, 'is_featured' => false]);
 
-        return redirect()->route('admin.products.index')->with('status', 'Product removed from the master list.');
+        return redirect()->route('admin.products.index')->with('status', 'Product archived. Its stock and order history remain available.');
     }
 
     private function validatedData(Request $request, ?Product $product = null): array

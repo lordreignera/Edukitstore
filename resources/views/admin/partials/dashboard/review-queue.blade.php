@@ -1,5 +1,6 @@
 @php
     $queue = [
+        ['label' => 'Payment exceptions', 'value' => $stats['payment_exceptions'], 'route' => 'admin.invoices.index', 'icon' => 'invoice', 'tone' => 'bg-red-50 text-red-700'],
         ['label' => 'Shopping lists to review', 'value' => $stats['pending_shopping_lists'], 'route' => 'admin.shopping-lists.index', 'icon' => 'list', 'tone' => 'bg-violet-50 text-violet-700'],
         ['label' => 'Supplier applications', 'value' => $stats['pending_suppliers'], 'route' => 'admin.suppliers.index', 'icon' => 'suppliers', 'tone' => 'bg-emerald-50 text-emerald-700'],
         ['label' => 'Driver approvals', 'value' => $stats['pending_drivers'], 'route' => 'admin.drivers.index', 'icon' => 'drivers', 'tone' => 'bg-amber-50 text-amber-700'],
@@ -13,7 +14,7 @@
     </div>
     <div class="space-y-2 p-3">
         @foreach ($queue as $item)
-            <a href="{{ route($item['route']) }}" class="flex items-center gap-3 rounded-md p-3 transition hover:bg-slate-50">
+            <a href="{{ $item['label'] === 'Payment exceptions' ? route($item['route'], ['issues' => 1]) : route($item['route']) }}" class="flex items-center gap-3 rounded-md p-3 transition hover:bg-slate-50">
                 <span class="grid size-10 shrink-0 place-items-center rounded-md {{ $item['tone'] }}"><x-ui.icon :name="$item['icon']" size="size-5" /></span>
                 <span class="min-w-0 flex-1">
                     <span class="block text-sm font-bold text-slate-800">{{ $item['label'] }}</span>

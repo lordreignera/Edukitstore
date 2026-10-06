@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 class ShoppingList extends Model
 {
@@ -62,6 +63,8 @@ class ShoppingList extends Model
         'payment_status',
         'payment_provider',
         'payment_reference',
+        'payment_exception',
+        'payment_exception_type',
         'paid_at',
         'delivery_confirmed_at',
         'delivery_confirmed_by',
@@ -110,6 +113,30 @@ class ShoppingList extends Model
         return $this->hasMany(ShoppingListItem::class);
     }
 
+    public function paymentAttempts(): HasMany
+    {
+        return $this->hasMany(PaymentAttempt::class);
+    }
+
+    public function fulfilmentItems(): Collection
+    {
+        $lines = $this->relationLoaded('lineItems') ? $this->lineItems : $this->lineItems()->get();
+        if ($lines->isNotEmpty()) {
+            return $lines->map(fn (ShoppingListItem $line) => [
+                'product_id' => $line->product_id,
+                'supplier_offer_id' => $line->supplier_offer_id,
+                'supplier_id' => $line->supplier_id,
+                'fulfilment_source' => $line->fulfilment_source,
+                'name' => $line->product_name,
+                'sku' => $line->sku,
+                'quantity' => $line->quantity,
+                'unit_price' => (float) $line->unit_price,
+            ]);
+        }
+
+        return collect($this->cart_items ?? []);
+    }
+
     public static function statuses(): array
     {
         return [
@@ -139,6 +166,7 @@ class ShoppingList extends Model
             'unassigned' => 'Unassigned',
             'awaiting_payment' => 'Awaiting Payment',
             'ready_for_delivery' => 'Ready for Delivery',
+            'under_review' => 'Under Review',
             'delivered' => 'Delivered',
         ];
     }
@@ -147,6 +175,10 @@ class ShoppingList extends Model
     {
         if ($this->delivery_confirmed_at) {
             return 'delivered';
+        }
+
+        if ($this->payment_exception) {
+            return 'under_review';
         }
 
         if (! $this->assigned_driver_id) {

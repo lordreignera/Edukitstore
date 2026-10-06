@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Supplier;
 
 use App\Http\Controllers\Controller;
 use App\Models\ShoppingListItem;
+use App\Models\ShoppingList;
 use Illuminate\Contracts\View\View;
 
 class EarningsController extends Controller
@@ -15,11 +16,15 @@ class EarningsController extends Controller
 
         $items = ShoppingListItem::query()
             ->where('supplier_id', $supplier->id)
+            ->whereHas('shoppingList', fn ($query) => $query->where('payment_status', ShoppingList::PAYMENT_PAID)
+                ->where(fn ($provider) => $provider->whereNull('payment_provider')->orWhere('payment_provider', '!=', 'demo')))
             ->with('shoppingList.school', 'product')
             ->latest()
             ->paginate(15);
 
-        $base = ShoppingListItem::where('supplier_id', $supplier->id);
+        $base = ShoppingListItem::where('supplier_id', $supplier->id)
+            ->whereHas('shoppingList', fn ($query) => $query->where('payment_status', ShoppingList::PAYMENT_PAID)
+                ->where(fn ($provider) => $provider->whereNull('payment_provider')->orWhere('payment_provider', '!=', 'demo')));
         $stats = [
             'units_sold' => (clone $base)->sum('quantity'),
             'sales' => (clone $base)->sum('line_total'),

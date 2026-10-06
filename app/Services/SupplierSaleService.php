@@ -12,7 +12,7 @@ class SupplierSaleService
 {
     public function ensureStock(ShoppingList $invoice): void
     {
-        foreach (collect($invoice->cart_items)->where('fulfilment_source', 'supplier') as $item) {
+        foreach ($invoice->fulfilmentItems()->where('fulfilment_source', 'supplier') as $item) {
             $offer = SupplierOffer::find($item['supplier_offer_id']);
             if (! $offer || ! $offer->isApprovedAndAvailable() || $offer->quantity_available < $item['quantity']) {
                 throw ValidationException::withMessages(['cart' => ($item['name'] ?? 'A supplier product').' no longer has enough supplier stock.']);
@@ -23,8 +23,11 @@ class SupplierSaleService
     public function recordPaidSale(ShoppingList $invoice): void
     {
         DB::transaction(function () use ($invoice): void {
-            foreach (collect($invoice->cart_items)->where('fulfilment_source', 'supplier') as $item) {
-                $offer = SupplierOffer::whereKey($item['supplier_offer_id'])->lockForUpdate()->firstOrFail();
+            foreach ($invoice->fulfilmentItems()->where('fulfilment_source', 'supplier') as $item) {
+                $offer = SupplierOffer::whereKey($item['supplier_offer_id'])->lockForUpdate()->first();
+                if (! $offer) {
+                    throw ValidationException::withMessages(['payment' => ($item['name'] ?? 'A supplier product').' is no longer available.']);
+                }
                 $existing = ShoppingListItem::where('shopping_list_id', $invoice->id)->where('supplier_offer_id', $offer->id)->first();
                 if ($existing && (float) $existing->supplier_payable > 0) continue;
 
