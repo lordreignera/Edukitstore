@@ -69,8 +69,9 @@ class CartController extends Controller
                 'other_fee' => $supplier->other_district_delivery_fee,
             ]);
         $hasEdukitItems = $products->contains(fn ($product) => $product->cart_source['type'] === 'edukit');
+        $checkoutNow = (bool) session('checkout_now', false);
 
-        return view('website.cart.index', compact('products', 'subtotal', 'schools', 'supplierFeeProfiles', 'hasEdukitItems', 'cartNotice'));
+        return view('website.cart.index', compact('products', 'subtotal', 'schools', 'supplierFeeProfiles', 'hasEdukitItems', 'cartNotice', 'checkoutNow'));
     }
 
     public function store(Request $request, Product $product, MarketplaceSourceService $sources): RedirectResponse
@@ -96,8 +97,9 @@ class CartController extends Controller
         session(['cart_sources.'.$product->id => $selectedOfferId]);
 
         if (($data['checkout'] ?? null) === '1') {
+            session(['checkout_now' => true]);
             return redirect()->route('website.cart.index')->withFragment('order-details')
-                ->with('status', "{$product->name} added. Enter your details to view the invoice.");
+                ->with('status', "{$product->name} added. Enter your details to complete checkout.");
         }
 
         return back()->with('cart_added', "{$product->name} added to cart.");
@@ -118,9 +120,10 @@ class CartController extends Controller
         return back()->with('status', "{$product->name} quantity updated.");
     }
 
-    public function submit(Request $request, SchoolDeliveryService $delivery): RedirectResponse
+    public function submit(Request $request, SchoolDeliveryService $delivery, DemoPaymentService $demoPayments): RedirectResponse
     {
         $cart = session('cart', []);
+        $checkoutNow = (bool) session('checkout_now', false);
 
         if (empty($cart)) {
             return back()->withErrors(['cart' => 'Add at least one product before submitting your cart.']);
@@ -230,7 +233,16 @@ class CartController extends Controller
 
         session()->forget('cart');
         session()->forget('cart_sources');
+        session()->forget('checkout_now');
         InvoiceAccess::grant($shoppingList);
+
+        if ($checkoutNow && PaymentMode::demoEnabled()) {
+            $demoPayments->pay($shoppingList);
+
+            return redirect()
+                ->route('website.quote.show', $shoppingList->reference)
+                ->with('status', 'Demo payment completed automatically. No money was collected; stock and profit records were updated.');
+        }
 
         return redirect()
             ->route('website.quote.show', $shoppingList->reference)

@@ -69,7 +69,7 @@
                     <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Cart subtotal</p>
                     <p class="mt-1 text-xl font-black text-[#07215f]">UGX {{ number_format($subtotal) }}</p>
                 </div>
-                <p class="text-sm font-bold text-slate-600">Enter delivery details below to create your invoice.</p>
+                <p class="text-sm font-bold text-slate-600">{{ $checkoutNow ? 'Enter delivery details below to complete checkout.' : 'Enter delivery details below to create your invoice.' }}</p>
             </div>
         @endif
     </section>
@@ -78,8 +78,8 @@
         <section id="order-details" class="mx-auto mb-14 max-w-5xl rounded-md border border-[#dbe8f3] bg-white text-slate-950 shadow-sm" data-school-delivery data-subtotal="{{ $subtotal }}" data-has-edukit-items="{{ $hasEdukitItems ? '1' : '0' }}" data-supplier-fees='@json($supplierFeeProfiles)'>
                 <div class="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
                     <div>
-                        <p class="text-xs font-black uppercase tracking-wide text-emerald-700">One step to your invoice</p>
-                        <h2 class="mt-1 text-2xl font-black text-[#07215f]">Delivery details and total</h2>
+                        <p class="text-xs font-black uppercase tracking-wide text-emerald-700">{{ $checkoutNow ? 'One step to payment' : 'One step to your invoice' }}</p>
+                        <h2 class="mt-1 text-2xl font-black text-[#07215f]">{{ $checkoutNow ? 'Checkout details and total' : 'Delivery details and total' }}</h2>
                     </div>
                 </div>
 
@@ -132,8 +132,8 @@
                             <textarea id="notes" name="notes" rows="3" class="mt-1 w-full rounded-md border-[#d7e4ef] text-sm focus:border-emerald-600 focus:ring-emerald-600">{{ old('notes') }}</textarea>
                         </div>
                         <div class="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
-                            <p class="text-xs leading-5 text-slate-500">Your itemized invoice opens automatically after this step. You can check it before paying.</p>
-                            <button class="inline-flex min-h-12 justify-center rounded-md bg-[#07215f] px-5 py-3 text-sm font-bold text-white hover:bg-emerald-700">Create and view invoice</button>
+                            <p class="text-xs leading-5 text-slate-500">{{ $checkoutNow ? 'Submit once to complete demo payment automatically. Your paid invoice will open as a receipt.' : 'Your itemized invoice opens automatically after this step. You can check it before paying.' }}</p>
+                            <button class="inline-flex min-h-12 justify-center rounded-md bg-[#07215f] px-5 py-3 text-sm font-bold text-white hover:bg-emerald-700">{{ $checkoutNow ? 'Complete checkout' : 'Create and view invoice' }}</button>
                         </div>
                     </form>
                 </div>

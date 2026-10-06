@@ -211,7 +211,7 @@ class WebsiteProductFlowTest extends TestCase
             ->assertOk()
             ->assertSee('Canvas School Shoes')
             ->assertSee('Convenience fee')
-            ->assertSee('Create and view invoice');
+            ->assertSee('Complete checkout');
     }
 
     public function test_switching_fulfilment_source_replaces_the_old_cart_quantity(): void

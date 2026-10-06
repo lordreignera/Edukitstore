@@ -68,4 +68,38 @@ class DemoPaymentTest extends TestCase
 
         $this->assertFalse(\App\Support\PaymentMode::demoEnabled());
     }
+
+    public function test_direct_checkout_completes_demo_payment_and_records_profit(): void
+    {
+        config(['edukit.payment_mode' => 'demo', 'app.env' => 'testing']);
+
+        $product = Product::create([
+            'name' => 'Direct Checkout Shoes', 'slug' => 'direct-checkout-shoes', 'sku' => 'SHOE-DIRECT',
+            'price' => 45000, 'cost_price' => 30000, 'stock_quantity' => 0, 'is_active' => true,
+        ]);
+        app(InventoryService::class)->recordOpeningStock($product, [
+            'warehouse_quantity' => 0, 'display_quantity' => 2,
+            'unit_cost' => 30000, 'unit_price' => 45000,
+            'occurred_at' => now()->toDateString(),
+        ]);
+
+        $this->post(route('website.cart.store', $product), ['quantity' => 1, 'checkout' => '1'])
+            ->assertRedirect(route('website.cart.index').'#order-details')
+            ->assertSessionHas('checkout_now', true);
+
+        $this->post(route('website.cart.submit'), [
+            'parent_name' => 'Direct Buyer', 'phone' => '+256700000001',
+            'delivery_preference' => 'pickup',
+        ])->assertRedirect();
+
+        $invoice = ShoppingList::firstOrFail();
+        $this->assertSame(ShoppingList::PAYMENT_PAID, $invoice->fresh()->payment_status);
+        $this->assertSame('demo', $invoice->fresh()->payment_provider);
+        $this->assertSame(1, $product->fresh()->stock_quantity);
+        $this->assertSame(1, $invoice->lineItems()->first()->fresh()->quantity);
+        $this->assertSame(15000.0, (float) $invoice->lineItems()->first()->fresh()->profit_total);
+        $this->assertSame(1, $invoice->paymentAttempts()->count());
+        $this->assertFalse(session()->has('cart'));
+        $this->assertFalse(session()->has('checkout_now'));
+    }
 }
