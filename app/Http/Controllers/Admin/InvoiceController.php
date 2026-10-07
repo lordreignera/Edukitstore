@@ -47,7 +47,7 @@ class InvoiceController extends Controller
             ->when($deliveryStatus === 'awaiting_payment', fn ($query) => $query->whereNotNull('assigned_driver_id')->where('payment_status', '!=', ShoppingList::PAYMENT_PAID)->whereNull('customer_received_at')->whereNull('delivery_confirmed_at'))
             ->when($deliveryStatus === 'ready_for_delivery', fn ($query) => $query->whereNotNull('assigned_driver_id')->where('payment_status', ShoppingList::PAYMENT_PAID)->whereNull('payment_exception')->whereNull('driver_started_at')->whereNull('customer_received_at')->whereNull('delivery_confirmed_at'))
             ->when($deliveryStatus === 'in_transit', fn ($query) => $query->whereNotNull('driver_started_at')->whereNull('driver_reached_at')->whereNull('customer_received_at'))
-            ->when(in_array($deliveryStatus, ['driver_reached', 'awaiting_customer_confirmation'], true), fn ($query) => $query->whereNotNull('driver_reached_at')->whereNull('customer_received_at')->whereNull('delivery_confirmed_at'))
+            ->when($deliveryStatus === 'awaiting_customer_confirmation', fn ($query) => $query->whereNotNull('driver_reached_at')->whereNull('customer_received_at')->whereNull('delivery_confirmed_at'))
             ->when($deliveryStatus === 'under_review', fn ($query) => $query->whereNotNull('payment_exception')->whereNull('customer_received_at')->whereNull('delivery_confirmed_at'))
             ->when($deliveryStatus === 'delivered', fn ($query) => $query->where(function ($statusQuery) {
                 $statusQuery->whereNotNull('customer_received_at')->orWhereNotNull('delivery_confirmed_at');

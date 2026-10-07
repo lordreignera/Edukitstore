@@ -22,6 +22,7 @@ class DeliveryController extends Controller
         $deliveries = ShoppingList::query()
             ->with('school.district')
             ->where('assigned_driver_id', $driver->id)
+            ->whereNotIn('status', [ShoppingList::STATUS_REJECTED, ShoppingList::STATUS_CANCELLED])
             ->when($search !== '', fn ($query) => $query->where(function ($deliveryQuery) use ($search) {
                 $deliveryQuery->where('reference', 'like', "%{$search}%")
                     ->orWhere('parent_name', 'like', "%{$search}%")

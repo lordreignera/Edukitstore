@@ -82,7 +82,6 @@ Route::middleware([
         Route::get('deliveries', [DriverDeliveryController::class, 'index'])->name('deliveries.index');
         Route::patch('deliveries/{shoppingList}/start', [DriverDeliveryController::class, 'startJourney'])->name('deliveries.start');
         Route::patch('deliveries/{shoppingList}/reached', [DriverDeliveryController::class, 'reached'])->name('deliveries.reached');
-        Route::patch('deliveries/{shoppingList}/confirm', [DriverDeliveryController::class, 'reached'])->name('deliveries.confirm');
     });
 
     Route::middleware('role:supplier')->prefix('supplier')->name('supplier.')->group(function () {

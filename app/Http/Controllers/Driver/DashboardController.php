@@ -16,7 +16,9 @@ class DashboardController extends Controller
 
         abort_unless($driver?->is_approved, 403);
 
-        $deliveries = ShoppingList::query()->where('assigned_driver_id', $driver->id);
+        $deliveries = ShoppingList::query()
+            ->where('assigned_driver_id', $driver->id)
+            ->whereNotIn('status', [ShoppingList::STATUS_REJECTED, ShoppingList::STATUS_CANCELLED]);
         $stats = [
             'assigned' => (clone $deliveries)->count(),
             'pending' => (clone $deliveries)->whereNull('customer_received_at')->whereNull('delivery_confirmed_at')->count(),

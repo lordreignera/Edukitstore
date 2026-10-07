@@ -187,7 +187,6 @@ class ShoppingList extends Model
             'awaiting_payment' => 'Awaiting Payment',
             'ready_for_delivery' => 'Assigned to Driver',
             'in_transit' => 'In Transit',
-            'driver_reached' => 'Driver Reached',
             'awaiting_customer_confirmation' => 'Awaiting Customer Confirmation',
             'under_review' => 'Under Review',
             'delivered' => 'Delivered',

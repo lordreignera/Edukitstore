@@ -36,15 +36,27 @@ class TrackOrderController extends Controller
             str_starts_with($phoneDigits, '0') ? '256'.substr($phoneDigits, 1) : null,
             str_starts_with($phoneDigits, '0') ? '+256'.substr($phoneDigits, 1) : null,
         ])));
+        $normalizedPhoneCandidates = array_values(array_unique(array_filter(array_map(
+            fn (string $phone): string => preg_replace('/\D+/', '', $phone),
+            $phoneCandidates,
+        ))));
 
         $invoice = ShoppingList::query()
             ->where(function ($query) use ($reference) {
                 $query->where('reference', $reference)
                     ->orWhere('payment_reference', $reference);
             })
-            ->where(function ($query) use ($phoneCandidates, $email) {
+            ->where(function ($query) use ($phoneCandidates, $normalizedPhoneCandidates, $email) {
                 if ($phoneCandidates !== []) {
                     $query->whereIn('phone', $phoneCandidates);
+                }
+                if ($normalizedPhoneCandidates !== []) {
+                    $phoneExpression = "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(phone, '+', ''), ' ', ''), '-', ''), '(', ''), ')', ''), '.', '')";
+                    $query->orWhere(function ($phoneQuery) use ($phoneExpression, $normalizedPhoneCandidates): void {
+                        foreach ($normalizedPhoneCandidates as $normalizedPhone) {
+                            $phoneQuery->orWhereRaw($phoneExpression.' = ?', [$normalizedPhone]);
+                        }
+                    });
                 }
                 $query->orWhereRaw('LOWER(email) = ?', [$email]);
             })
