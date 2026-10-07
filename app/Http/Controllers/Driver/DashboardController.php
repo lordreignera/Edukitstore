@@ -19,13 +19,17 @@ class DashboardController extends Controller
         $deliveries = ShoppingList::query()->where('assigned_driver_id', $driver->id);
         $stats = [
             'assigned' => (clone $deliveries)->count(),
-            'pending' => (clone $deliveries)->whereNull('delivery_confirmed_at')->count(),
-            'ready' => (clone $deliveries)->where('payment_status', ShoppingList::PAYMENT_PAID)->where('status', ShoppingList::STATUS_QUOTED)->whereNull('payment_exception')->whereNull('delivery_confirmed_at')->count(),
-            'delivered' => (clone $deliveries)->whereNotNull('delivery_confirmed_at')->count(),
+            'pending' => (clone $deliveries)->whereNull('customer_received_at')->whereNull('delivery_confirmed_at')->count(),
+            'ready' => (clone $deliveries)->where('payment_status', ShoppingList::PAYMENT_PAID)->where('status', ShoppingList::STATUS_QUOTED)->whereNull('payment_exception')->whereNull('driver_started_at')->whereNull('customer_received_at')->whereNull('delivery_confirmed_at')->count(),
+            'in_transit' => (clone $deliveries)->whereNotNull('driver_started_at')->whereNull('driver_reached_at')->whereNull('customer_received_at')->whereNull('delivery_confirmed_at')->count(),
+            'delivered' => (clone $deliveries)->where(function ($query) {
+                $query->whereNotNull('customer_received_at')->orWhereNotNull('delivery_confirmed_at');
+            })->count(),
         ];
 
         $activeDeliveries = (clone $deliveries)
             ->with('school.district')
+            ->whereNull('customer_received_at')
             ->whereNull('delivery_confirmed_at')
             ->orderByRaw("CASE WHEN payment_status = ? THEN 0 ELSE 1 END", [ShoppingList::PAYMENT_PAID])
             ->latest('paid_at')
@@ -34,7 +38,9 @@ class DashboardController extends Controller
 
         $recentCompleted = (clone $deliveries)
             ->with('school')
-            ->whereNotNull('delivery_confirmed_at')
+            ->where(function ($query) {
+                $query->whereNotNull('customer_received_at')->orWhereNotNull('delivery_confirmed_at');
+            })
             ->latest('delivery_confirmed_at')
             ->take(5)
             ->get();

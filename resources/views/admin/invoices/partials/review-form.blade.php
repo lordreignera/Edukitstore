@@ -86,14 +86,14 @@
             @endforeach
         </select>
         @error('assigned_driver_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-        <p class="mt-1 text-xs text-gray-500">This contact appears on the customer invoice after assignment. Only the assigned driver can complete delivery.</p>
+        <p class="mt-1 text-xs text-gray-500">Assign the driver after payment is verified. The customer can then see the driver and delivery progress.</p>
     </div>
 
     @if ($invoice->assignedDriver)
         <div class="rounded border border-emerald-100 bg-emerald-50 p-4 text-sm">
             <p class="font-bold text-emerald-950">{{ $invoice->assignedDriver->name }}</p>
             <p class="mt-1 text-emerald-800">{{ $invoice->assignedDriver->phone ?? 'No phone recorded' }}</p>
-            <p class="mt-1 text-xs text-emerald-700">{{ $invoice->delivery_confirmed_at ? 'Delivered on '.$invoice->delivery_confirmed_at->format('M d, Y H:i') : 'Awaiting driver delivery confirmation.' }}</p>
+            <p class="mt-1 text-xs text-emerald-700">{{ $invoice->customer_received_at ? 'Customer confirmed receipt on '.$invoice->customer_received_at->format('M d, Y H:i') : ($invoice->driver_reached_at ? 'Driver reached the destination; awaiting customer receipt.' : ($invoice->driver_started_at ? 'Driver is in transit.' : 'Awaiting the driver to start the journey.')) }}</p>
         </div>
     @endif
 

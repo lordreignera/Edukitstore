@@ -39,6 +39,7 @@ Route::patch('/cart/{product:slug}', [WebsiteCartController::class, 'update'])->
 Route::delete('/cart/{product:slug}', [WebsiteCartController::class, 'destroy'])->name('website.cart.destroy');
 Route::get('/quote/{reference}', [WebsiteCartController::class, 'quote'])->name('website.quote.show');
 Route::post('/quote/{reference}/pay', [WebsiteCartController::class, 'pay'])->middleware('throttle:5,1')->name('website.quote.pay');
+Route::post('/quote/{reference}/received', [WebsiteTrackOrderController::class, 'acknowledgeReceipt'])->middleware('throttle:10,1')->name('website.quote.received');
 Route::get('/payments/flutterwave/callback', [WebsiteCartController::class, 'flutterwaveCallback'])->name('website.payments.flutterwave.callback');
 Route::get('/upload-list', [WebsiteShoppingListController::class, 'create'])->name('website.upload-list');
 Route::post('/upload-list', [WebsiteShoppingListController::class, 'store'])->middleware('throttle:5,1')->name('website.upload-list.store');
@@ -79,7 +80,9 @@ Route::middleware([
         Route::get('/', DriverDashboardController::class)->name('dashboard');
         Route::patch('availability', [DriverDashboardController::class, 'availability'])->name('availability');
         Route::get('deliveries', [DriverDeliveryController::class, 'index'])->name('deliveries.index');
-        Route::patch('deliveries/{shoppingList}/confirm', [DriverDeliveryController::class, 'confirm'])->name('deliveries.confirm');
+        Route::patch('deliveries/{shoppingList}/start', [DriverDeliveryController::class, 'startJourney'])->name('deliveries.start');
+        Route::patch('deliveries/{shoppingList}/reached', [DriverDeliveryController::class, 'reached'])->name('deliveries.reached');
+        Route::patch('deliveries/{shoppingList}/confirm', [DriverDeliveryController::class, 'reached'])->name('deliveries.confirm');
     });
 
     Route::middleware('role:supplier')->prefix('supplier')->name('supplier.')->group(function () {

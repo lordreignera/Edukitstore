@@ -219,7 +219,13 @@ class SupplierMarketplaceFlowTest extends TestCase
             'settlement_status' => 'reserved',
         ]);
 
-        $this->actingAs($driverUser)->patch(route('driver.deliveries.confirm', $invoice))->assertRedirect();
+        $this->actingAs($driverUser)->patch(route('driver.deliveries.start', $invoice))->assertRedirect();
+        $this->actingAs($driverUser)->patch(route('driver.deliveries.reached', $invoice))->assertRedirect();
+        $this->withSession(['invoice_access.'.$invoice->id => true])
+            ->post(route('website.quote.received', $invoice->reference), [
+                'items_received' => '1',
+                'received_name' => 'Parent Two',
+            ])->assertRedirect();
 
         $this->assertSame(ShoppingList::STATUS_FULFILLED, $invoice->fresh()->status);
         $this->assertSame('earned', $invoice->lineItems()->first()->settlement_status);

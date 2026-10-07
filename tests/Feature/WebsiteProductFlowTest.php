@@ -211,7 +211,7 @@ class WebsiteProductFlowTest extends TestCase
             ->assertOk()
             ->assertSee('Canvas School Shoes')
             ->assertSee('Convenience fee')
-            ->assertSee('Complete checkout');
+            ->assertSee('Pay now');
     }
 
     public function test_switching_fulfilment_source_replaces_the_old_cart_quantity(): void
@@ -341,7 +341,7 @@ class WebsiteProductFlowTest extends TestCase
             ->assertSee('Gayaza High School')
             ->assertSee('Convenience fee')
             ->assertSee('UGX 72,000')
-            ->assertSee('Pay with Flutterwave');
+            ->assertSee('Pay now');
     }
 
     public function test_cart_supports_legacy_public_product_image_paths(): void
@@ -415,7 +415,7 @@ class WebsiteProductFlowTest extends TestCase
 
         $this->post(route('website.track-order.lookup'), [
             'reference' => strtolower($invoice->reference),
-            'contact' => '+256700123456',
+            'contact' => '0700123456',
         ])->assertRedirect(route('website.quote.show', $invoice->reference));
 
         $this->get(route('website.quote.show', $invoice->reference))->assertOk();

@@ -132,8 +132,8 @@
                             <textarea id="notes" name="notes" rows="3" class="mt-1 w-full rounded-md border-[#d7e4ef] text-sm focus:border-emerald-600 focus:ring-emerald-600">{{ old('notes') }}</textarea>
                         </div>
                         <div class="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
-                            <p class="text-xs leading-5 text-slate-500">{{ $checkoutNow ? 'Submit once to complete demo payment automatically. Your paid invoice will open as a receipt.' : 'Your itemized invoice opens automatically after this step. You can check it before paying.' }}</p>
-                            <button class="inline-flex min-h-12 justify-center rounded-md bg-[#07215f] px-5 py-3 text-sm font-bold text-white hover:bg-emerald-700">{{ $checkoutNow ? 'Complete checkout' : 'Create and view invoice' }}</button>
+                            <p class="text-xs leading-5 text-slate-500">{{ $checkoutNow ? 'Submit once to pay. Your paid invoice will open as a receipt.' : 'Your itemized invoice opens automatically after this step. You can check it before paying.' }}</p>
+                            <button class="inline-flex min-h-12 justify-center rounded-md bg-[#07215f] px-5 py-3 text-sm font-bold text-white hover:bg-emerald-700">{{ $checkoutNow ? 'Pay now' : 'Create and view invoice' }}</button>
                         </div>
                     </form>
                 </div>

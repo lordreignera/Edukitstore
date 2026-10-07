@@ -58,6 +58,13 @@ class ShoppingList extends Model
         'items_subtotal',
         'delivery_fee',
         'assigned_driver_id',
+        'driver_started_at',
+        'driver_started_by',
+        'driver_reached_at',
+        'driver_reached_by',
+        'customer_received_at',
+        'customer_received_name',
+        'customer_received_notes',
         'status',
         'estimated_total',
         'payment_status',
@@ -83,6 +90,9 @@ class ShoppingList extends Model
             'delivery_fee' => 'integer',
             'estimated_total' => 'integer',
             'paid_at' => 'datetime',
+            'driver_started_at' => 'datetime',
+            'driver_reached_at' => 'datetime',
+            'customer_received_at' => 'datetime',
             'delivery_confirmed_at' => 'datetime',
             'reviewed_at' => 'datetime',
         ];
@@ -106,6 +116,16 @@ class ShoppingList extends Model
     public function deliveryConfirmer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'delivery_confirmed_by');
+    }
+
+    public function driverStartedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'driver_started_by');
+    }
+
+    public function driverReachedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'driver_reached_by');
     }
 
     public function lineItems(): HasMany
@@ -165,7 +185,10 @@ class ShoppingList extends Model
         return [
             'unassigned' => 'Unassigned',
             'awaiting_payment' => 'Awaiting Payment',
-            'ready_for_delivery' => 'Ready for Delivery',
+            'ready_for_delivery' => 'Assigned to Driver',
+            'in_transit' => 'In Transit',
+            'driver_reached' => 'Driver Reached',
+            'awaiting_customer_confirmation' => 'Awaiting Customer Confirmation',
             'under_review' => 'Under Review',
             'delivered' => 'Delivered',
         ];
@@ -173,7 +196,7 @@ class ShoppingList extends Model
 
     public function deliveryStatus(): string
     {
-        if ($this->delivery_confirmed_at) {
+        if ($this->customer_received_at || $this->delivery_confirmed_at) {
             return 'delivered';
         }
 
@@ -187,6 +210,14 @@ class ShoppingList extends Model
 
         if ($this->payment_status !== self::PAYMENT_PAID) {
             return 'awaiting_payment';
+        }
+
+        if ($this->driver_reached_at) {
+            return 'awaiting_customer_confirmation';
+        }
+
+        if ($this->driver_started_at) {
+            return 'in_transit';
         }
 
         return 'ready_for_delivery';

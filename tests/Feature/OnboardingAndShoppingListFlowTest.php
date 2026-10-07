@@ -336,7 +336,7 @@ class OnboardingAndShoppingListFlowTest extends TestCase
             ->assertSee('UGX 135,000')
             ->assertSee('John Driver')
             ->assertSee('+256701111222')
-            ->assertSee('Pay with Flutterwave');
+            ->assertSee('Pay now');
     }
 
     public function test_admin_cannot_complete_delivery_without_driver_confirmation(): void
@@ -376,7 +376,7 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         $this->assertSame(ShoppingList::STATUS_QUOTED, $shoppingList->fresh()->status);
     }
 
-    public function test_assigned_driver_confirms_delivery_to_complete_transaction(): void
+    public function test_driver_starts_and_reaches_then_customer_confirms_receipt(): void
     {
         Role::findOrCreate('delivery-person');
 
@@ -406,7 +406,15 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         ]);
 
         $this->actingAs($driverUser)
-            ->patch(route('driver.deliveries.confirm', $shoppingList), [
+            ->patch(route('driver.deliveries.start', $shoppingList))
+            ->assertRedirect()
+            ->assertSessionHas('status');
+
+        $this->assertNotNull($shoppingList->fresh()->driver_started_at);
+        $this->assertSame(ShoppingList::STATUS_QUOTED, $shoppingList->fresh()->status);
+
+        $this->actingAs($driverUser)
+            ->patch(route('driver.deliveries.reached', $shoppingList), [
                 'delivery_notes' => 'Received by school bursar.',
             ])
             ->assertRedirect()
@@ -414,10 +422,25 @@ class OnboardingAndShoppingListFlowTest extends TestCase
 
         $shoppingList->refresh();
 
-        $this->assertSame(ShoppingList::STATUS_FULFILLED, $shoppingList->status);
-        $this->assertSame($driverUser->id, $shoppingList->delivery_confirmed_by);
-        $this->assertNotNull($shoppingList->delivery_confirmed_at);
+        $this->assertSame(ShoppingList::STATUS_QUOTED, $shoppingList->status);
+        $this->assertSame($driverUser->id, $shoppingList->driver_reached_by);
+        $this->assertNotNull($shoppingList->driver_reached_at);
+        $this->assertNull($shoppingList->delivery_confirmed_at);
         $this->assertSame('Received by school bursar.', $shoppingList->delivery_notes);
+
+        $this->withSession(['invoice_access.'.$shoppingList->id => true])
+            ->post(route('website.quote.received', $shoppingList->reference), [
+                'items_received' => '1',
+                'received_name' => 'School bursar',
+            ])
+            ->assertRedirect(route('website.quote.show', $shoppingList->reference));
+
+        $shoppingList->refresh();
+        $this->assertSame(ShoppingList::STATUS_FULFILLED, $shoppingList->status);
+        $this->assertSame('School bursar', $shoppingList->customer_received_name);
+        $this->assertNotNull($shoppingList->customer_received_at);
+        $this->assertNotNull($shoppingList->delivery_confirmed_at);
+        $this->assertNull($shoppingList->delivery_confirmed_by);
     }
 
     public function test_driver_cannot_confirm_delivery_before_payment_is_verified(): void
@@ -448,7 +471,7 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         ]);
 
         $this->actingAs($driverUser)
-            ->patch(route('driver.deliveries.confirm', $shoppingList))
+            ->patch(route('driver.deliveries.start', $shoppingList))
             ->assertSessionHasErrors('delivery');
 
         $this->assertSame(ShoppingList::STATUS_QUOTED, $shoppingList->fresh()->status);

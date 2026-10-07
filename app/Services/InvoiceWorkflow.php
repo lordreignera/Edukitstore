@@ -38,7 +38,7 @@ class InvoiceWorkflow
             $driverId = array_key_exists('assigned_driver_id', $data)
                 ? $data['assigned_driver_id']
                 : $invoice->assigned_driver_id;
-            if ($invoice->delivery_confirmed_at && (int) $driverId !== (int) $invoice->assigned_driver_id) {
+            if (($invoice->customer_received_at || $invoice->delivery_confirmed_at) && (int) $driverId !== (int) $invoice->assigned_driver_id) {
                 throw ValidationException::withMessages(['assigned_driver_id' => 'A completed delivery cannot be reassigned.']);
             }
             if ($driverId && (int) $driverId !== (int) $invoice->assigned_driver_id

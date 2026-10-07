@@ -3,7 +3,7 @@
         <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">Invoice {{ $invoice->reference }}</h2>
-                <p class="mt-1 text-sm text-gray-500">Monitor payment, assign a driver and track delivery confirmation.</p>
+                <p class="mt-1 text-sm text-gray-500">Monitor payment, assign a driver and follow the journey through customer receipt.</p>
             </div>
             <a href="{{ route('admin.invoices.index') }}" class="rounded border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Back to invoices</a>
         </div>
@@ -77,12 +77,27 @@
 
                 @include('admin.invoices.partials.review-form', ['invoice' => $invoice, 'statuses' => $statuses, 'drivers' => $drivers])
 
-                @if ($invoice->delivery_confirmed_at)
+                @if ($invoice->driver_started_at)
+                    <div class="mt-6 rounded border border-violet-200 bg-violet-50 p-4 text-sm text-violet-900">
+                        <p class="font-bold">Driver started the journey</p>
+                        <p class="mt-1">{{ $invoice->driver_started_at->format('M d, Y H:i') }}</p>
+                    </div>
+                @endif
+                @if ($invoice->driver_reached_at)
+                    <div class="mt-3 rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                        <p class="font-bold">Driver reached the destination</p>
+                        <p class="mt-1">{{ $invoice->driver_reached_at->format('M d, Y H:i') }}</p>
+                    </div>
+                @endif
+                @if ($invoice->customer_received_at || $invoice->delivery_confirmed_at)
                     <div class="mt-6 rounded border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
-                        <p class="font-bold">Delivery confirmed by {{ $invoice->deliveryConfirmer?->name ?? 'delivery partner' }}</p>
-                        <p class="mt-1">{{ $invoice->delivery_confirmed_at->format('M d, Y H:i') }}</p>
-                        @if ($invoice->delivery_notes)
-                            <p class="mt-2 whitespace-pre-line">{{ $invoice->delivery_notes }}</p>
+                        <p class="font-bold">Customer confirmed receipt</p>
+                        <p class="mt-1">{{ ($invoice->customer_received_at ?: $invoice->delivery_confirmed_at)->format('M d, Y H:i') }}</p>
+                        @if ($invoice->customer_received_name)
+                            <p class="mt-2">Received by {{ $invoice->customer_received_name }}</p>
+                        @endif
+                        @if ($invoice->customer_received_notes ?: $invoice->delivery_notes)
+                            <p class="mt-2 whitespace-pre-line">{{ $invoice->customer_received_notes ?: $invoice->delivery_notes }}</p>
                         @endif
                     </div>
                 @endif
