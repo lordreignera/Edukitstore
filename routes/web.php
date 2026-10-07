@@ -45,6 +45,7 @@ Route::get('/upload-list', [WebsiteShoppingListController::class, 'create'])->na
 Route::post('/upload-list', [WebsiteShoppingListController::class, 'store'])->middleware('throttle:5,1')->name('website.upload-list.store');
 Route::get('/track-order', [WebsiteTrackOrderController::class, 'index'])->name('website.track-order');
 Route::post('/track-order', [WebsiteTrackOrderController::class, 'lookup'])->middleware('throttle:10,1')->name('website.track-order.lookup');
+Route::post('/track-order/recover', [WebsiteTrackOrderController::class, 'recover'])->middleware('throttle:10,1')->name('website.track-order.recover');
 Route::get('/for-suppliers', [WebsiteSupplierOnboardingController::class, 'create'])->name('website.suppliers');
 Route::post('/for-suppliers', [WebsiteSupplierOnboardingController::class, 'store'])->middleware('throttle:5,1')->name('website.suppliers.store');
 Route::get('/for-drivers', [WebsiteDriverOnboardingController::class, 'create'])->name('website.drivers');

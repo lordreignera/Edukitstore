@@ -425,4 +425,51 @@ class WebsiteProductFlowTest extends TestCase
             'contact' => 'wrong@example.test',
         ])->assertSessionHasErrors('reference');
     }
+
+    public function test_customer_can_recover_multiple_orders_without_order_number(): void
+    {
+        $first = ShoppingList::create([
+            'parent_name' => 'Norah A.',
+            'phone' => '+256700123456',
+            'email' => 'norah@example.test',
+            'delivery_preference' => 'school',
+            'source' => ShoppingList::SOURCE_CART,
+            'items_subtotal' => 45000,
+            'delivery_fee' => 5000,
+            'estimated_total' => 50000,
+            'status' => ShoppingList::STATUS_QUOTED,
+            'payment_status' => ShoppingList::PAYMENT_PAID,
+        ]);
+        $second = ShoppingList::create([
+            'parent_name' => 'Norah A.',
+            'phone' => '+256700123456',
+            'email' => 'norah@example.test',
+            'delivery_preference' => 'school',
+            'source' => ShoppingList::SOURCE_CART,
+            'items_subtotal' => 80000,
+            'delivery_fee' => 10000,
+            'estimated_total' => 90000,
+            'status' => ShoppingList::STATUS_QUOTED,
+            'payment_status' => ShoppingList::PAYMENT_UNPAID,
+        ]);
+
+        $this->post(route('website.track-order.recover'), ['contact' => '0700 123 456'])
+            ->assertOk()
+            ->assertSee($first->reference)
+            ->assertSee($second->reference)
+            ->assertSee('Choose an order to track')
+            ->assertSee('UGX 50,000')
+            ->assertSee('UGX 90,000');
+
+        $this->assertTrue((bool) session('invoice_access.'.$first->id));
+        $this->assertTrue((bool) session('invoice_access.'.$second->id));
+    }
+
+    public function test_customer_is_told_when_order_recovery_has_no_matches(): void
+    {
+        $this->from(route('website.track-order'))
+            ->post(route('website.track-order.recover'), ['contact' => 'no-order@example.test'])
+            ->assertRedirect(route('website.track-order'))
+            ->assertSessionHasErrors('contact');
+    }
 }
