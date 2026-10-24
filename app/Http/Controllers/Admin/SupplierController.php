@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Supplier;
 use App\Services\AccountProvisioner;
-use App\Support\DocumentStorage;
 use App\Support\AccountAccess;
+use App\Support\DocumentStorage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -51,7 +51,7 @@ class SupplierController extends Controller
 
     public function create(): View
     {
-        return view('admin.suppliers.create', ['supplier' => new Supplier()]);
+        return view('admin.suppliers.create', ['supplier' => new Supplier]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -138,7 +138,10 @@ class SupplierController extends Controller
 
         abort_unless($supplier->verification_document_path && Storage::disk($disk)->exists($supplier->verification_document_path), 404);
 
-        return Storage::disk($disk)->download($supplier->verification_document_path, $supplier->verification_document_name);
+        return Storage::disk($disk)->download(
+            $supplier->verification_document_path,
+            DocumentStorage::downloadName($supplier->verification_document_name, 'supplier-document')
+        );
     }
 
     private function validatedData(Request $request, ?Supplier $supplier = null): array
@@ -163,5 +166,4 @@ class SupplierController extends Controller
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
     }
-
 }

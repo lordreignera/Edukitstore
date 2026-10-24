@@ -58,6 +58,9 @@ class ShoppingListController extends Controller
         abort_unless($shoppingList->file_path, 404);
         abort_unless(Storage::disk($disk)->exists($shoppingList->file_path), 404);
 
-        return Storage::disk($disk)->download($shoppingList->file_path, $shoppingList->original_filename);
+        return Storage::disk($disk)->download(
+            $shoppingList->file_path,
+            DocumentStorage::downloadName($shoppingList->original_filename, 'shopping-list')
+        );
     }
 }

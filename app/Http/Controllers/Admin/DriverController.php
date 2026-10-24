@@ -9,8 +9,8 @@ use App\Support\DocumentStorage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -43,7 +43,7 @@ class DriverController extends Controller
 
         return view('admin.drivers.index', [
             'drivers' => $drivers,
-            'driverForm' => new Driver(),
+            'driverForm' => new Driver,
             'search' => $search,
             'status' => $status,
             'availability' => $availability,
@@ -53,7 +53,7 @@ class DriverController extends Controller
 
     public function create(): View
     {
-        return view('admin.drivers.create', ['driver' => new Driver()]);
+        return view('admin.drivers.create', ['driver' => new Driver]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -133,7 +133,10 @@ class DriverController extends Controller
 
         abort_unless($driver->verification_document_path && Storage::disk($disk)->exists($driver->verification_document_path), 404);
 
-        return Storage::disk($disk)->download($driver->verification_document_path, $driver->verification_document_name);
+        return Storage::disk($disk)->download(
+            $driver->verification_document_path,
+            DocumentStorage::downloadName($driver->verification_document_name, 'driver-document')
+        );
     }
 
     private function validatedData(Request $request, ?Driver $driver = null): array
@@ -154,5 +157,4 @@ class DriverController extends Controller
             'payment_phone' => ['nullable', 'string', 'max:40'],
         ]);
     }
-
 }

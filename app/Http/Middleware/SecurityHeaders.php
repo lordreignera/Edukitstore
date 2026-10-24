@@ -18,7 +18,9 @@ class SecurityHeaders
         $response->headers->set('Permissions-Policy', 'camera=(), geolocation=(), microphone=()');
         $response->headers->set('Content-Security-Policy', "base-uri 'self'; frame-ancestors 'self'; object-src 'none'");
 
-        if (app()->isProduction() && $request->isSecure()) {
+        $httpsConfigured = str_starts_with(strtolower((string) config('app.url')), 'https://');
+
+        if (app()->isProduction() && ($request->isSecure() || $httpsConfigured)) {
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         }
 

@@ -59,6 +59,7 @@ class TrackOrderController extends Controller
             ->withCount('lineItems')
             ->where(fn ($query) => $this->whereContactMatches($query, $contact))
             ->latest('created_at')
+            ->limit(50)
             ->get();
 
         if ($matches->isEmpty()) {

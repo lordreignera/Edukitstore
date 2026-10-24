@@ -4,11 +4,13 @@ Use this checklist for every production environment and after every infrastructu
 
 ## Runtime and deployment
 
-- Select the latest patched PHP 8.4 or 8.5 runtime available in Laravel Cloud.
+- Select PHP 8.5.12 or newer (or PHP 8.4.27 or newer) in Laravel Cloud. Do not deploy on PHP 8.2.18 or another pre-8.2.35 runtime; PHP 8.2 is also approaching end of security support.
 - Build with `composer install --no-dev --prefer-dist --optimize-autoloader && npm ci && npm run build`.
 - Deploy with `php artisan migrate --force && php artisan optimize`.
 - Keep `/up` configured as the health check endpoint.
 - Run `composer audit --locked` and `npm audit --omit=dev` in CI before deployment.
+
+The repository requires PHP `^8.4`. Upgrade local development PHP before running a fresh Composer install; an existing vendor directory may still run tests on an older local runtime, but production must use a patched supported PHP release.
 
 ## Environment and secrets
 

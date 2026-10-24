@@ -6,11 +6,11 @@ EduKit is a Laravel application for school supplies, supplier products, uploaded
 
 1. Run `composer install` and `npm install`.
 2. Copy `.env.example` to `.env`, set the database and mail settings, then run `php artisan key:generate`.
-3. Optionally set `EDUKIT_INITIAL_ADMIN_EMAIL` and `EDUKIT_INITIAL_ADMIN_PASSWORD` before seeding. The default seeded login remains `superadmin@edukit.test` / `password` for existing setup workflows. The account must change its password after signing in. Re-running the seeder does not reset an existing password.
+3. Set `EDUKIT_INITIAL_ADMIN_EMAIL` and `EDUKIT_INITIAL_ADMIN_PASSWORD` before seeding. The seeder creates the initial administrator only when both values are present; there are no default administrator credentials. Re-running the seeder does not reset an existing password.
 4. Run `php artisan migrate --seed`, `php artisan storage:link`, and `npm run build`.
 5. Run `php artisan test`.
 
-The default seeded password is retained as requested. For production, set a unique password of at least 16 characters before the first seed, or change the password through the profile immediately after first sign-in. No migration changes existing admin passwords.
+Use a unique password of at least 16 characters before the first seed. If an older local database was created with a default password, change it immediately and remove the old credentials from any shared environment. No migration changes existing admin passwords.
 
 ## Payments
 

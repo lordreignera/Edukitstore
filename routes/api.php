@@ -1,10 +1,11 @@
 <?php
 
+use App\Http\Controllers\Website\FlutterwaveWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Website\FlutterwaveWebhookController;
 
 Route::post('/payments/flutterwave/webhook', FlutterwaveWebhookController::class)
+    ->middleware('throttle:60,1')
     ->name('website.payments.flutterwave.webhook');
 
 Route::get('/user', function (Request $request) {

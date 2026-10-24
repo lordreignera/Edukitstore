@@ -2,8 +2,8 @@
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DriverController as AdminDriverController;
-use App\Http\Controllers\Admin\InvoiceController as AdminInvoiceController;
 use App\Http\Controllers\Admin\InventoryController as AdminInventoryController;
+use App\Http\Controllers\Admin\InvoiceController as AdminInvoiceController;
 use App\Http\Controllers\Admin\ProductCategoryController as AdminProductCategoryController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ProfitReportController as AdminProfitReportController;
@@ -12,12 +12,12 @@ use App\Http\Controllers\Admin\ShoppingListController as AdminShoppingListContro
 use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
 use App\Http\Controllers\Admin\SupplierOfferController as AdminSupplierOfferController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
-use App\Http\Controllers\Driver\DeliveryController as DriverDeliveryController;
 use App\Http\Controllers\Driver\DashboardController as DriverDashboardController;
+use App\Http\Controllers\Driver\DeliveryController as DriverDeliveryController;
 use App\Http\Controllers\Supplier\DashboardController as SupplierDashboardController;
-use App\Http\Controllers\Supplier\StockController as SupplierStockController;
-use App\Http\Controllers\Supplier\OfferController as SupplierOfferController;
 use App\Http\Controllers\Supplier\EarningsController as SupplierEarningsController;
+use App\Http\Controllers\Supplier\OfferController as SupplierOfferController;
+use App\Http\Controllers\Supplier\StockController as SupplierStockController;
 use App\Http\Controllers\Website\CartController as WebsiteCartController;
 use App\Http\Controllers\Website\DriverOnboardingController as WebsiteDriverOnboardingController;
 use App\Http\Controllers\Website\HomeController;
@@ -40,7 +40,7 @@ Route::delete('/cart/{product:slug}', [WebsiteCartController::class, 'destroy'])
 Route::get('/quote/{reference}', [WebsiteCartController::class, 'quote'])->name('website.quote.show');
 Route::post('/quote/{reference}/pay', [WebsiteCartController::class, 'pay'])->middleware('throttle:5,1')->name('website.quote.pay');
 Route::post('/quote/{reference}/received', [WebsiteTrackOrderController::class, 'acknowledgeReceipt'])->middleware('throttle:10,1')->name('website.quote.received');
-Route::get('/payments/flutterwave/callback', [WebsiteCartController::class, 'flutterwaveCallback'])->name('website.payments.flutterwave.callback');
+Route::get('/payments/flutterwave/callback', [WebsiteCartController::class, 'flutterwaveCallback'])->middleware('throttle:60,1')->name('website.payments.flutterwave.callback');
 Route::get('/upload-list', [WebsiteShoppingListController::class, 'create'])->name('website.upload-list');
 Route::post('/upload-list', [WebsiteShoppingListController::class, 'store'])->middleware('throttle:5,1')->name('website.upload-list.store');
 Route::get('/track-order', [WebsiteTrackOrderController::class, 'index'])->name('website.track-order');
