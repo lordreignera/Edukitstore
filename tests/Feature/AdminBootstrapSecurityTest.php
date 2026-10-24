@@ -28,17 +28,28 @@ class AdminBootstrapSecurityTest extends TestCase
         $this->assertTrue(Hash::check('User-chosen-new-password-12345', $admin->fresh()->password));
     }
 
-    public function test_default_seeded_admin_password_remains_available(): void
+    public function test_short_seeded_admin_password_is_rejected(): void
     {
         config([
             'edukit.initial_admin_email' => 'superadmin@edukit.test',
             'edukit.initial_admin_password' => 'password',
         ]);
-        app(RolesAndSuperAdminSeeder::class)->run();
-        $admin = User::where('email', 'superadmin@edukit.test')->firstOrFail();
 
-        $this->assertTrue($admin->is_active);
-        $this->assertTrue(Hash::check('password', $admin->password));
-        $this->assertTrue($admin->must_change_password);
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('at least 16 characters');
+
+        app(RolesAndSuperAdminSeeder::class)->run();
+    }
+
+    public function test_admin_is_not_created_when_bootstrap_credentials_are_not_configured(): void
+    {
+        config([
+            'edukit.initial_admin_email' => null,
+            'edukit.initial_admin_password' => null,
+        ]);
+
+        app(RolesAndSuperAdminSeeder::class)->run();
+
+        $this->assertDatabaseCount('users', 0);
     }
 }

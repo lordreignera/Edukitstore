@@ -30,7 +30,17 @@ class RolesAndSuperAdminSeeder extends Seeder
         if (! $email || ! $password) {
             return;
         }
-        if ($password !== 'password' && strlen($password) < 16) {
+
+        if (app()->isProduction() && in_array(Str::lower($password), [
+            'password',
+            'password123',
+            'admin',
+            'admin123',
+        ], true)) {
+            throw new \RuntimeException('EDUKIT_INITIAL_ADMIN_PASSWORD cannot be a commonly used password in production.');
+        }
+
+        if (strlen($password) < 16) {
             throw new \RuntimeException('EDUKIT_INITIAL_ADMIN_PASSWORD must contain at least 16 characters.');
         }
 

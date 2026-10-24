@@ -79,4 +79,15 @@ class AuthenticationTest extends TestCase
 
         $this->assertStringContainsString('no-store', $response->headers->get('Cache-Control'));
     }
+
+    public function test_browser_security_headers_are_applied(): void
+    {
+        $this->get('/')
+            ->assertOk()
+            ->assertHeader('X-Content-Type-Options', 'nosniff')
+            ->assertHeader('X-Frame-Options', 'SAMEORIGIN')
+            ->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+            ->assertHeader('Permissions-Policy', 'camera=(), geolocation=(), microphone=()')
+            ->assertHeader('Content-Security-Policy', "base-uri 'self'; frame-ancestors 'self'; object-src 'none'");
+    }
 }

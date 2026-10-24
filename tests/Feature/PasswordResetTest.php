@@ -82,8 +82,8 @@ class PasswordResetTest extends TestCase
             $response = $this->post('/reset-password', [
                 'token' => $notification->token,
                 'email' => $user->email,
-                'password' => 'password',
-                'password_confirmation' => 'password',
+                'password' => 'Reset-password123!',
+                'password_confirmation' => 'Reset-password123!',
             ]);
 
             $response->assertSessionHasNoErrors();
