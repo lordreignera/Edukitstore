@@ -2,12 +2,12 @@
     <x-slot name="header">
         <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-                <p class="text-sm font-bold text-emerald-700">Product Details</p>
+                <p class="text-sm font-bold text-orange-700">Product Details</p>
                 <h1 class="mt-1 text-2xl font-extrabold text-[#071d4f]">{{ $product->name }}</h1>
             </div>
             <div class="flex flex-wrap gap-3">
                 <a href="{{ route('admin.products.index') }}" class="rounded border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50">Back to products</a>
-                <a href="{{ route('admin.products.edit', $product) }}" class="inline-flex items-center gap-2 rounded bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800">
+                <a href="{{ route('admin.products.edit', $product) }}" class="inline-flex items-center gap-2 rounded bg-orange-700 px-4 py-2 text-sm font-bold text-white hover:bg-orange-800">
                     <x-ui.icon name="edit" size="size-4" /> Edit product
                 </a>
             </div>
@@ -51,7 +51,7 @@
                     </div>
                     <div class="bg-white p-5">
                         <dt class="text-xs font-bold uppercase text-slate-500">Profit per unit</dt>
-                        <dd class="mt-1 text-sm font-semibold text-emerald-700">UGX {{ number_format($product->profit_per_unit) }} ({{ $product->gross_margin_percentage }}%)</dd>
+                        <dd class="mt-1 text-sm font-semibold text-orange-700">UGX {{ number_format($product->profit_per_unit) }} ({{ $product->gross_margin_percentage }}%)</dd>
                     </div>
                     <div class="bg-white p-5">
                         <dt class="text-xs font-bold uppercase text-slate-500">Website/display stock</dt>
@@ -80,7 +80,7 @@
                     <div class="bg-white p-5">
                         <dt class="text-xs font-bold uppercase text-slate-500">Website Status</dt>
                         <dd class="mt-1">
-                            <span class="rounded px-2 py-1 text-xs font-bold {{ $product->is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600' }}">{{ $product->is_active ? 'Active' : 'Hidden' }}</span>
+                            <span class="rounded px-2 py-1 text-xs font-bold {{ $product->is_active ? 'bg-orange-50 text-orange-700' : 'bg-slate-100 text-slate-600' }}">{{ $product->is_active ? 'Active' : 'Hidden' }}</span>
                         </dd>
                     </div>
                     <div class="bg-white p-5">

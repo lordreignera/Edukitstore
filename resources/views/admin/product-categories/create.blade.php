@@ -1,7 +1,7 @@
 <x-admin-layout>
     <x-slot name="header">
         <div>
-            <p class="text-sm font-bold text-emerald-700">Product Categories</p>
+            <p class="text-sm font-bold text-orange-700">Product Categories</p>
             <h1 class="mt-1 text-2xl font-extrabold text-[#071d4f]">Add Category</h1>
         </div>
     </x-slot>

@@ -1,0 +1,21 @@
+{
+    "name": "EduKit Store",
+    "short_name": "EduKit",
+    "id": "/",
+    "description": "EduKit school supplies, delivery and partner workspace.",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#fff7ed",
+    "theme_color": "#f97316",
+    "orientation": "portrait-primary",
+    "categories": ["shopping", "business", "education"],
+    "icons": [
+        {
+            "src": "/images/website/EDUKIT_STORE_logo2.png",
+            "sizes": "192x192 512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

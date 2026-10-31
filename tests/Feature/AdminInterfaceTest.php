@@ -19,7 +19,7 @@ class AdminInterfaceTest extends TestCase
             ->assertSee('Welcome back')
             ->assertSee('Back to shop')
             ->assertDontSee('Everything learners need, managed in one place.')
-            ->assertSee('/images/website/edukit-store-logo.png', false);
+            ->assertSee('/images/website/EDUKIT_STORE_logo2.png', false);
     }
 
     public function test_super_admin_dashboard_renders_real_management_sections(): void

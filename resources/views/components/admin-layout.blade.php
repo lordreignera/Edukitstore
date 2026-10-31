@@ -5,6 +5,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>{{ isset($title) ? $title.' | ' : '' }}{{ config('app.name', 'EduKit') }}</title>
+        <link rel="icon" type="image/png" href="{{ asset('images/website/EDUKIT_STORE_logo2.png') }}">
+        <x-pwa-meta />
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -19,6 +21,7 @@
 
             <div class="min-h-screen lg:pl-[248px]">
                 @include('admin.partials.topbar')
+                @include('components.temporary-password-notice')
 
                 @if (isset($header))
                     <div class="border-b border-slate-200 bg-white px-4 py-5 sm:px-6 lg:px-8">
@@ -34,5 +37,6 @@
 
         @stack('modals')
         @livewireScripts
+        <x-pwa-install-prompt />
     </body>
 </html>

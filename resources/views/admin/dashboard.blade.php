@@ -16,7 +16,7 @@
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-[1500px] space-y-5">
             @if (session('status'))
-                <div class="flex items-center gap-3 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+                <div class="flex items-center gap-3 rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-semibold text-orange-800">
                     <x-ui.icon name="check" size="size-5" />
                     {{ session('status') }}
                 </div>

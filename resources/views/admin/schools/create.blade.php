@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-                <p class="text-sm font-bold text-emerald-700">Delivery Setup</p>
+                <p class="text-sm font-bold text-orange-700">Delivery Setup</p>
                 <h1 class="mt-1 text-2xl font-extrabold text-[#071d4f]">Add School</h1>
             </div>
             <a href="{{ route('admin.schools.index') }}" class="rounded border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50">Back to schools</a>
@@ -18,7 +18,7 @@
 
                     <div class="mt-6 flex justify-end gap-3">
                         <a href="{{ route('admin.schools.index') }}" class="rounded border border-slate-300 px-5 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50">Cancel</a>
-                        <button class="rounded bg-emerald-700 px-5 py-2 text-sm font-bold text-white hover:bg-emerald-800">Save school</button>
+                        <button class="rounded bg-orange-700 px-5 py-2 text-sm font-bold text-white hover:bg-orange-800">Save school</button>
                     </div>
                 </form>
             </section>

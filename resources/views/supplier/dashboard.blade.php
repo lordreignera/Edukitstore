@@ -6,7 +6,7 @@
     <x-slot name="header">
         <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div><h1 class="text-2xl font-extrabold text-[#071d4f]">Dashboard</h1><p class="mt-1 text-sm text-slate-500">Welcome, {{ $supplier->business_name }}. Here is your supply activity.</p></div>
-            <span class="inline-flex w-fit items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700"><x-ui.icon name="check" size="size-4" />Approved supplier</span>
+            <span class="inline-flex w-fit items-center gap-2 rounded-md border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-bold text-orange-700"><x-ui.icon name="check" size="size-4" />Approved supplier</span>
         </div>
     </x-slot>
 

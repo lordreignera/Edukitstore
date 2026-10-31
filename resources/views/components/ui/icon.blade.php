@@ -145,6 +145,10 @@
             <rect x="4" y="10" width="16" height="11" rx="2" />
             <path d="M8 10V7a4 4 0 0 1 8 0v3" />
             @break
+        @case('key')
+            <circle cx="8" cy="15" r="4" />
+            <path d="m11 12 9-9M17 6l2 2M14 9l2 2" />
+            @break
         @case('mail')
             <rect x="3" y="5" width="18" height="14" rx="2" />
             <path d="m3 7 9 6 9-6" />

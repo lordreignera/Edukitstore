@@ -5,7 +5,7 @@
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">Suppliers</h2>
                 <p class="mt-1 text-sm text-gray-500">Add supplier rooms/businesses and approve them before fulfilment.</p>
             </div>
-            <button type="button" @click="$dispatch('open-admin-modal', 'create-supplier')" class="rounded bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">Add supplier</button>
+            <button type="button" @click="$dispatch('open-admin-modal', 'create-supplier')" class="rounded bg-orange-700 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-800">Add supplier</button>
         </div>
     </x-slot>
 
@@ -15,11 +15,11 @@
                 <div class="mb-5 border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{{ $errors->first() }}</div>
             @endif
             <form method="GET" class="mb-5 grid gap-3 border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_180px_160px_auto_auto]">
-                <input name="q" value="{{ $search }}" placeholder="Search business, contact or email" class="h-10 rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
-                <select name="status" class="h-10 rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                <input name="q" value="{{ $search }}" placeholder="Search business, contact or email" class="h-10 rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
+                <select name="status" class="h-10 rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
                     <option value="">All statuses</option><option value="pending" @selected($status === 'pending')>Pending</option><option value="approved" @selected($status === 'approved')>Approved</option><option value="suspended" @selected($status === 'suspended')>Suspended</option>
                 </select>
-                <select name="source" class="h-10 rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                <select name="source" class="h-10 rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
                     <option value="">All sources</option><option value="website" @selected($source === 'website')>Website</option><option value="admin" @selected($source === 'admin')>Admin</option>
                 </select>
                 <button class="h-10 rounded bg-[#07215f] px-5 text-sm font-bold text-white hover:bg-[#0b2f7c]">Filter</button>
@@ -28,7 +28,7 @@
             <section class="rounded border border-gray-200 bg-white shadow-sm">
                 <div class="border-b border-gray-100 px-5 py-4">
                     @if (session('status'))
-                        <p class="text-sm font-medium text-emerald-700">{{ session('status') }}</p>
+                        <p class="text-sm font-medium text-orange-700">{{ session('status') }}</p>
                     @else
                         <p class="text-sm text-gray-500">Only approved and active suppliers should be considered for future order sourcing.</p>
                     @endif
@@ -60,17 +60,17 @@
                                         <p class="line-clamp-2">{{ $supplier->product_categories ?? 'Categories pending' }}</p>
                                         <p class="mt-1 text-xs">{{ $supplier->supply_capacity ?? 'Capacity pending' }}</p>
                                         @if ($supplier->verification_document_path)
-                                            <a href="{{ route('admin.suppliers.download', $supplier) }}" class="mt-2 inline-block text-xs font-bold text-emerald-700 hover:text-emerald-800">Download verification</a>
+                                            <a href="{{ route('admin.suppliers.download', $supplier) }}" class="mt-2 inline-block text-xs font-bold text-orange-700 hover:text-orange-800">Download verification</a>
                                         @endif
                                     </td>
                                     <td class="px-5 py-4">
-                                        <span class="rounded px-2 py-1 text-xs font-semibold {{ $supplier->is_approved ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700' }}">
+                                        <span class="rounded px-2 py-1 text-xs font-semibold {{ $supplier->is_approved ? 'bg-orange-50 text-orange-700' : 'bg-amber-50 text-amber-700' }}">
                                             {{ $supplier->is_approved ? 'Approved' : 'Pending' }}
                                         </span>
                                         @if ($supplier->is_approved && ! $supplier->is_active)
                                             <span class="ml-1 rounded bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-600">Suspended</span>
                                         @endif
-                                        <p class="mt-2 text-xs {{ $supplier->user?->is_active ? 'text-emerald-700' : 'text-slate-500' }}">{{ $supplier->user ? ($supplier->user->is_active ? 'Account active' : 'Account inactive') : 'No account yet' }}</p>
+                                        <p class="mt-2 text-xs {{ $supplier->user?->is_active ? 'text-orange-700' : 'text-slate-500' }}">{{ $supplier->user ? ($supplier->user->is_active ? 'Account active' : 'Account inactive') : 'No account yet' }}</p>
                                     </td>
                                     <td class="px-5 py-4 text-right">
                                         <div class="flex justify-end gap-2">
@@ -79,7 +79,7 @@
                                                 <form method="POST" action="{{ route('admin.suppliers.approve', $supplier) }}">
                                                     @csrf
                                                     @method('PATCH')
-                                                    <button class="rounded bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-800">Approve</button>
+                                                    <button class="rounded bg-orange-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-800">Approve</button>
                                                 </form>
                                             @endunless
                                             @if ($supplier->is_active)
@@ -92,7 +92,7 @@
                                                 <form method="POST" action="{{ route('admin.suppliers.reinstate', $supplier) }}">
                                                     @csrf
                                                     @method('PATCH')
-                                                    <button class="rounded border border-emerald-300 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50">Reinstate</button>
+                                                    <button class="rounded border border-orange-300 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-50">Reinstate</button>
                                                 </form>
                                             @endif
                                         </div>

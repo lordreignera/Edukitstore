@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <div><p class="text-sm font-bold text-emerald-700">EduKit account</p><h1 class="mt-1 text-2xl font-extrabold text-[#071d4f]">Welcome, {{ auth()->user()->name }}</h1></div>
+        <div><p class="text-sm font-bold text-orange-700">EduKit account</p><h1 class="mt-1 text-2xl font-extrabold text-[#071d4f]">Welcome, {{ auth()->user()->name }}</h1></div>
     </x-slot>
 
     <div class="py-10">
@@ -8,7 +8,7 @@
             <div class="grid gap-5 md:grid-cols-[1.3fr_0.7fr]">
                 <section class="border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
                     <div class="flex items-start gap-4">
-                        <div class="grid size-11 shrink-0 place-items-center rounded-md bg-emerald-100 text-emerald-700"><x-ui.icon name="check" size="size-6" /></div>
+                        <div class="grid size-11 shrink-0 place-items-center rounded-md bg-orange-100 text-orange-700"><x-ui.icon name="check" size="size-6" /></div>
                         <div><h2 class="text-xl font-extrabold text-[#071d4f]">Your account is active</h2><p class="mt-2 leading-7 text-slate-600">You are signed in as <strong class="capitalize text-slate-800">{{ str(auth()->user()->getRoleNames()->first() ?? 'user')->replace('-', ' ') }}</strong>. Role-specific workspaces are being connected as the fulfilment modules are completed.</p></div>
                     </div>
                     <div class="mt-8 flex flex-wrap gap-3">
@@ -22,7 +22,7 @@
                     <dl class="mt-4 space-y-4 text-sm">
                         <div><dt class="font-bold text-slate-800">Email</dt><dd class="mt-1 break-all text-slate-600">{{ auth()->user()->email }}</dd></div>
                         <div><dt class="font-bold text-slate-800">Role</dt><dd class="mt-1 capitalize text-slate-600">{{ str(auth()->user()->getRoleNames()->first() ?? 'User')->replace('-', ' ') }}</dd></div>
-                        <div><dt class="font-bold text-slate-800">Access</dt><dd class="mt-1 font-bold text-emerald-700">Active</dd></div>
+                        <div><dt class="font-bold text-slate-800">Access</dt><dd class="mt-1 font-bold text-orange-700">Active</dd></div>
                     </dl>
                 </aside>
             </div>

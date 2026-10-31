@@ -11,13 +11,13 @@
                     :alt="$product->name"
                     :label="$product->category?->name ?? 'EduKit Supply'"
                     image-class="h-full w-full object-contain p-6"
-                    fallback-class="grid h-full w-full place-items-center bg-emerald-50 px-4 text-center text-lg font-bold text-emerald-800"
+                    fallback-class="grid h-full w-full place-items-center bg-orange-50 px-4 text-center text-lg font-bold text-orange-800"
                 />
             </div>
         </div>
 
         <div>
-            <p class="text-[11px] font-extrabold uppercase text-emerald-700">{{ $product->category?->name ?? 'School supply' }}</p>
+            <p class="text-[11px] font-extrabold uppercase text-orange-700">{{ $product->category?->name ?? 'School supply' }}</p>
             <h1 class="mt-3 text-[30px] font-extrabold leading-tight text-[#07215f] sm:text-[38px]">{{ $product->name }}</h1>
             <p class="mt-4 text-[24px] font-extrabold text-slate-950 sm:text-[28px]">From UGX {{ number_format($product->marketplace_price) }}</p>
             <dl class="mt-6 grid gap-3 text-sm sm:grid-cols-2">
@@ -54,7 +54,7 @@
                             <label class="sr-only" for="edukit-quantity">Quantity</label>
                             <input id="edukit-quantity" name="quantity" type="number" min="1" max="{{ $product->stock_quantity }}" value="1" class="rounded-md border-slate-300 text-center">
                             <div class="flex flex-wrap gap-2">
-                                <button class="rounded-md bg-emerald-700 px-4 py-3 text-sm font-bold text-white">Add to cart</button>
+                                <button class="rounded-md bg-orange-700 px-4 py-3 text-sm font-bold text-white">Add to cart</button>
                                 <button name="checkout" value="1" class="rounded-md bg-[#07215f] px-4 py-3 text-sm font-bold text-white">Checkout</button>
                             </div>
                         </form>
@@ -67,7 +67,7 @@
                             <label class="sr-only" for="supplier-quantity-{{ $offer->id }}">Quantity</label>
                             <input id="supplier-quantity-{{ $offer->id }}" name="quantity" type="number" min="1" max="{{ $offer->quantity_available }}" value="1" class="rounded-md border-slate-300 text-center">
                             <div class="flex flex-wrap gap-2">
-                                <button class="rounded-md bg-emerald-700 px-4 py-3 text-sm font-bold text-white">Add to cart</button>
+                                <button class="rounded-md bg-orange-700 px-4 py-3 text-sm font-bold text-white">Add to cart</button>
                                 <button name="checkout" value="1" class="rounded-md bg-[#07215f] px-4 py-3 text-sm font-bold text-white">Checkout</button>
                             </div>
                         </form>
@@ -79,7 +79,7 @@
                 </div>
             @endif
             <div class="mt-4 flex flex-wrap gap-3">
-                <a href="{{ route('website.products.index') }}" class="inline-flex w-full justify-center rounded-md border border-[#d7e4ef] bg-white px-5 py-3 text-sm font-extrabold text-[#07215f] hover:border-emerald-500 sm:w-auto">Back to products</a>
+                <a href="{{ route('website.products.index') }}" class="inline-flex w-full justify-center rounded-md border border-[#d7e4ef] bg-white px-5 py-3 text-sm font-extrabold text-[#07215f] hover:border-orange-500 sm:w-auto">Back to products</a>
             </div>
         </div>
     </section>

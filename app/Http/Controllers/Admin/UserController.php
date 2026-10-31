@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\Rule;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -60,15 +61,22 @@ class UserController extends Controller
     public function store(Request $request, AccountProvisioner $provisioner): RedirectResponse
     {
         $roles = $this->manuallyCreatableRoles();
+        $request->merge([
+            'roles' => $request->input('roles', $request->filled('role') ? [$request->input('role')] : []),
+        ]);
+        if ($request->filled('role') && ! array_key_exists((string) $request->input('role'), $roles)) {
+            return back()->withErrors(['role' => 'Create supplier and delivery accounts through their approval workflow.'])->withInput();
+        }
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email', 'unique:suppliers,email', 'unique:drivers,email'],
-            'role' => ['required', Rule::in(array_keys($roles))],
+            'roles' => ['required', 'array', 'min:1'],
+            'roles.*' => [Rule::in(array_keys($roles))],
             'password' => ['required', 'confirmed', Password::defaults()],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
-        $user = $provisioner->provision($data['email'], $data['name'], $data['role'], auth()->id());
+        $user = $provisioner->provision($data['email'], $data['name'], $data['roles'], auth()->id());
         $user->update([
             'password' => $data['password'],
             'is_active' => $request->boolean('is_active'),
@@ -92,6 +100,9 @@ class UserController extends Controller
     {
         $this->ensureManageable($user);
         $roles = $this->roleOptions();
+        $request->merge([
+            'roles' => $request->input('roles', $request->filled('role') ? [$request->input('role')] : []),
+        ]);
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => [
@@ -102,32 +113,33 @@ class UserController extends Controller
                 Rule::unique('suppliers', 'email')->ignore($user->supplier?->id),
                 Rule::unique('drivers', 'email')->ignore($user->driver?->id),
             ],
-            'role' => ['required', Rule::in(array_keys($roles))],
+            'roles' => ['required', 'array', 'min:1'],
+            'roles.*' => [Rule::in(array_keys($roles))],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
         $active = $request->boolean('is_active');
-        if ($user->is(auth()->user()) && (! $active || ! $user->hasRole($data['role']))) {
-            return back()->withErrors(['role' => 'You cannot deactivate your own account or change your own role.'])->withInput();
+        if ($user->is(auth()->user()) && (! $active || ! $user->hasExactRoles($data['roles']))) {
+            return back()->withErrors(['roles' => 'You cannot deactivate your own account or change your own roles.'])->withInput();
         }
 
-        if ($user->supplier && $data['role'] !== 'supplier') {
-            return back()->withErrors(['role' => 'This account is linked to a supplier and must keep the Supplier role.'])->withInput();
+        if ($user->supplier && ! in_array('supplier', $data['roles'], true)) {
+            return back()->withErrors(['roles' => 'This account is linked to a supplier and must keep the Supplier role.'])->withInput();
         }
 
-        if ($user->driver && $data['role'] !== 'delivery-person') {
-            return back()->withErrors(['role' => 'This account is linked to a delivery partner and must keep the Delivery Partner role.'])->withInput();
+        if ($user->driver && ! in_array('delivery-person', $data['roles'], true)) {
+            return back()->withErrors(['roles' => 'This account is linked to a delivery partner and must keep the Delivery Partner role.'])->withInput();
         }
 
-        if ($data['role'] === 'supplier' && ! $user->supplier) {
-            return back()->withErrors(['role' => 'Create supplier accounts by approving a supplier record.'])->withInput();
+        if (in_array('supplier', $data['roles'], true) && ! $user->supplier) {
+            return back()->withErrors(['roles' => 'Create supplier accounts by approving a supplier record.'])->withInput();
         }
 
-        if ($data['role'] === 'delivery-person' && ! $user->driver) {
-            return back()->withErrors(['role' => 'Create delivery-partner accounts by approving a delivery partner record.'])->withInput();
+        if (in_array('delivery-person', $data['roles'], true) && ! $user->driver) {
+            return back()->withErrors(['roles' => 'Create delivery-partner accounts by approving a delivery partner record.'])->withInput();
         }
 
-        $this->preventLastSuperAdminDeactivation($user, $active);
+        $this->preventLastSuperAdminChange($user, $active, $data['roles']);
 
         DB::transaction(function () use ($user, $data, $active) {
             $user->update([
@@ -135,7 +147,7 @@ class UserController extends Controller
                 'email' => $data['email'],
                 'is_active' => $active,
             ]);
-            $user->syncRoles([$data['role']]);
+            $user->syncRoles($data['roles']);
             $this->synchronizeLinkedProfiles($user, $active, $data['name'], $data['email']);
 
             if (! $active) {
@@ -155,7 +167,7 @@ class UserController extends Controller
         }
 
         $active = ! $user->is_active;
-        $this->preventLastSuperAdminDeactivation($user, $active);
+        $this->preventLastSuperAdminChange($user, $active, $user->getRoleNames()->all());
         DB::transaction(function () use ($user, $active) {
             $user->update(['is_active' => $active]);
             $this->synchronizeLinkedProfiles($user, $active, $user->name, $user->email);
@@ -187,29 +199,30 @@ class UserController extends Controller
         abort_if($user->hasAnyRole(['super-admin', 'admin', 'finance-admin']) && ! auth()->user()->hasRole('super-admin'), 403);
     }
 
-    private function preventLastSuperAdminDeactivation(User $user, bool $active): void
+    private function preventLastSuperAdminChange(User $user, bool $active, array $roles): void
     {
-        if (! $active && $user->hasRole('super-admin') && User::role('super-admin')->where('is_active', true)->count() <= 1) {
-            abort(422, 'The final active super administrator cannot be deactivated.');
+        if (
+            $user->hasRole('super-admin')
+            && (! $active || ! in_array('super-admin', $roles, true))
+            && User::role('super-admin')->where('is_active', true)->count() <= 1
+        ) {
+            abort(422, 'The final active super administrator cannot be deactivated or removed.');
         }
     }
 
     private function roleOptions(): array
     {
-        $roles = [
-            'admin' => 'EduKit Administrator',
-            'finance-admin' => 'Finance Administrator',
-            'supplier' => 'Supplier',
-            'delivery-person' => 'Delivery Partner',
-            'school-admin' => 'School Administrator',
-            'school-receiver' => 'School Receiver',
-            'parent' => 'Parent / Customer',
-        ];
+        $roles = Role::query()
+            ->where('guard_name', 'web')
+            ->orderBy('name')
+            ->get()
+            ->mapWithKeys(fn (Role $role): array => [
+                $role->name => str($role->name)->replace(['-', '_'], ' ')->title()->toString(),
+            ])
+            ->all();
 
-        if (auth()->user()->hasRole('super-admin')) {
-            $roles = ['super-admin' => 'Super Administrator'] + $roles;
-        } else {
-            unset($roles['admin'], $roles['finance-admin']);
+        if (! auth()->user()->hasRole('super-admin')) {
+            $roles = array_diff_key($roles, array_flip(['super-admin', 'admin', 'finance-admin']));
         }
 
         return $roles;

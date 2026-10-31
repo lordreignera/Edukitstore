@@ -7,7 +7,7 @@
     @php($journeyStatus = $shoppingList->deliveryStatus())
     <section class="bg-white">
         <div class="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-            <p class="text-sm font-black uppercase tracking-wide text-emerald-700">Your invoice</p>
+            <p class="text-sm font-black uppercase tracking-wide text-orange-700">Your invoice</p>
             <h1 class="mt-2 text-3xl font-black text-[#07215f]">{{ $shoppingList->reference }}</h1>
             <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
                 @if ($shoppingList->payment_status === \App\Models\ShoppingList::PAYMENT_PAID)
@@ -24,7 +24,7 @@
     <section class="mx-auto grid max-w-5xl gap-6 px-4 pb-14 sm:px-6 lg:grid-cols-[1fr_340px] lg:px-8">
         <div class="space-y-4">
             @if (session('status'))
-                <div class="rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">{{ session('status') }}</div>
+                <div class="rounded border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-semibold text-orange-800">{{ session('status') }}</div>
             @endif
             @if ($errors->any())
                 <div class="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{{ $errors->first() }}</div>
@@ -79,7 +79,7 @@
                         <h2 class="text-lg font-black text-[#07215f]">Delivery progress</h2>
                         <p class="mt-1 text-sm text-slate-600">You can follow each handover step here.</p>
                     </div>
-                    <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">{{ \App\Models\ShoppingList::deliveryStatuses()[$journeyStatus] ?? ucfirst($journeyStatus) }}</span>
+                    <span class="rounded-full bg-orange-50 px-3 py-1 text-xs font-black text-orange-700">{{ \App\Models\ShoppingList::deliveryStatuses()[$journeyStatus] ?? ucfirst($journeyStatus) }}</span>
                 </div>
                 <ol class="mt-5 grid gap-4 sm:grid-cols-5">
                     @foreach ([
@@ -90,7 +90,7 @@
                         ['label' => 'Received', 'done' => (bool) ($shoppingList->customer_received_at || $shoppingList->delivery_confirmed_at), 'time' => $shoppingList->customer_received_at ?: $shoppingList->delivery_confirmed_at],
                     ] as $step)
                         <li class="flex items-start gap-2 text-sm">
-                            <span class="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full {{ $step['done'] ? 'bg-emerald-600 text-white' : 'border border-slate-300 text-slate-400' }}">{{ $step['done'] ? '✓' : '•' }}</span>
+                            <span class="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full {{ $step['done'] ? 'bg-orange-600 text-white' : 'border border-slate-300 text-slate-400' }}">{{ $step['done'] ? '✓' : '•' }}</span>
                             <span><strong class="block {{ $step['done'] ? 'text-slate-900' : 'text-slate-500' }}">{{ $step['label'] }}</strong>@if ($step['time'])<small class="text-xs text-slate-500">{{ $step['time']->format('d M, H:i') }}</small>@elseif (! $step['done'])<small class="text-xs text-slate-400">Pending</small>@endif</span>
                         </li>
                     @endforeach
@@ -122,21 +122,21 @@
             </div>
 
             @if ($journeyStatus === 'awaiting_customer_confirmation')
-                <form method="POST" action="{{ route('website.quote.received', $shoppingList->reference) }}" class="mt-5 rounded-md border border-emerald-200 bg-emerald-50 p-4">
+                <form method="POST" action="{{ route('website.quote.received', $shoppingList->reference) }}" class="mt-5 rounded-md border border-orange-200 bg-orange-50 p-4">
                     @csrf
-                    <h3 class="font-black text-emerald-950">Have you received everything?</h3>
-                    <p class="mt-1 text-xs leading-5 text-emerald-900">Review the item list above, then confirm only when the quantities are correct.</p>
-                    <label class="mt-3 flex items-start gap-2 text-xs font-semibold text-emerald-950"><input type="checkbox" name="items_received" value="1" required class="mt-0.5 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-600"><span>I received all listed items in good order.</span></label>
+                    <h3 class="font-black text-orange-950">Have you received everything?</h3>
+                    <p class="mt-1 text-xs leading-5 text-orange-900">Review the item list above, then confirm only when the quantities are correct.</p>
+                    <label class="mt-3 flex items-start gap-2 text-xs font-semibold text-orange-950"><input type="checkbox" name="items_received" value="1" required class="mt-0.5 rounded border-orange-300 text-orange-600 focus:ring-orange-600"><span>I received all listed items in good order.</span></label>
                     @error('items_received') <p class="mt-1 text-xs font-semibold text-red-700">{{ $message }}</p> @enderror
-                    <label class="mt-3 block text-xs font-bold text-emerald-950" for="received_name">Received by</label>
-                    <input id="received_name" name="received_name" value="{{ old('received_name', $shoppingList->parent_name) }}" required class="mt-1 w-full rounded-md border-emerald-200 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                    <label class="mt-3 block text-xs font-bold text-orange-950" for="received_name">Received by</label>
+                    <input id="received_name" name="received_name" value="{{ old('received_name', $shoppingList->parent_name) }}" required class="mt-1 w-full rounded-md border-orange-200 text-sm focus:border-orange-600 focus:ring-orange-600">
                     @error('received_name') <p class="mt-1 text-xs font-semibold text-red-700">{{ $message }}</p> @enderror
-                    <label class="mt-3 block text-xs font-bold text-emerald-950" for="received_notes">Note <span class="font-normal">(optional)</span></label>
-                    <textarea id="received_notes" name="received_notes" rows="2" class="mt-1 w-full rounded-md border-emerald-200 text-sm focus:border-emerald-600 focus:ring-emerald-600">{{ old('received_notes') }}</textarea>
-                    <button class="mt-3 w-full rounded-md bg-emerald-700 px-4 py-3 text-sm font-black text-white hover:bg-emerald-800">Confirm received</button>
+                    <label class="mt-3 block text-xs font-bold text-orange-950" for="received_notes">Note <span class="font-normal">(optional)</span></label>
+                    <textarea id="received_notes" name="received_notes" rows="2" class="mt-1 w-full rounded-md border-orange-200 text-sm focus:border-orange-600 focus:ring-orange-600">{{ old('received_notes') }}</textarea>
+                    <button class="mt-3 w-full rounded-md bg-orange-700 px-4 py-3 text-sm font-black text-white hover:bg-orange-800">Confirm received</button>
                 </form>
             @elseif ($shoppingList->customer_received_at || $shoppingList->delivery_confirmed_at)
-                <p class="mt-5 rounded-md border border-emerald-200 bg-emerald-50 p-4 text-xs font-semibold leading-5 text-emerald-900">Receipt confirmed{{ $shoppingList->customer_received_name ? ' by '.$shoppingList->customer_received_name : '' }}. This order is complete.</p>
+                <p class="mt-5 rounded-md border border-orange-200 bg-orange-50 p-4 text-xs font-semibold leading-5 text-orange-900">Receipt confirmed{{ $shoppingList->customer_received_name ? ' by '.$shoppingList->customer_received_name : '' }}. This order is complete.</p>
             @endif
 
             @if ($shoppingList->payment_exception)
@@ -161,14 +161,14 @@
                 <form method="POST" action="{{ route('website.quote.pay', $shoppingList->reference) }}" class="mt-5">
                     @csrf
                     <label class="mb-3 flex items-start gap-2 text-xs font-semibold text-slate-700">
-                        <input type="checkbox" name="confirm_items" value="1" required class="mt-0.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-600">
+                        <input type="checkbox" name="confirm_items" value="1" required class="mt-0.5 rounded border-slate-300 text-orange-600 focus:ring-orange-600">
                         <span>I checked the items, quantities, convenience fee and total above.</span>
                     </label>
                     @error('confirm_items') <p class="mb-3 text-xs font-semibold text-red-700">{{ $message }}</p> @enderror
                     @if (\App\Support\PaymentMode::demoEnabled())
                         <p class="mb-3 rounded border border-amber-200 bg-amber-50 p-3 text-xs font-bold text-amber-900">Demo mode: this records a test payment and collects no money.</p>
                     @endif
-                    <button class="flex w-full justify-center rounded-md bg-emerald-600 px-5 py-3 text-sm font-black text-white hover:bg-emerald-700">Pay now</button>
+                    <button class="flex w-full justify-center rounded-md bg-orange-600 px-5 py-3 text-sm font-black text-white hover:bg-orange-700">Pay now</button>
                 </form>
             @else
                 <p class="mt-5 rounded-md border border-amber-200 bg-amber-50 p-4 text-xs font-semibold leading-5 text-amber-900">{{ $shoppingList->payment_status === \App\Models\ShoppingList::PAYMENT_PAID ? ($shoppingList->payment_provider === 'demo' ? 'Demo payment recorded. No money was collected.' : 'Payment received.') : 'Payment opens when this invoice is ready for payment.' }}</p>

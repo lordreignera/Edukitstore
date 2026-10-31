@@ -1,10 +1,10 @@
 <section class="mx-auto grid max-w-7xl gap-4 px-4 py-5 sm:px-6 md:grid-cols-3 lg:px-8">
-    <a href="{{ route('website.products.index') }}" class="group grid min-h-[150px] grid-cols-[1fr_118px] overflow-hidden rounded-md border border-[#dbe8f3] bg-white shadow-sm transition hover:border-emerald-400">
+    <a href="{{ route('website.products.index') }}" class="group grid min-h-[150px] grid-cols-[1fr_118px] overflow-hidden rounded-md border border-[#dbe8f3] bg-white shadow-sm transition hover:border-orange-400">
         <div class="p-5">
-            <p class="text-[11px] font-black uppercase text-emerald-700">Shop now</p>
+            <p class="text-[11px] font-black uppercase text-orange-700">Shop now</p>
             <p class="mt-1 text-[20px] font-black leading-7 text-[#07215f]">Daily school essentials</p>
             <p class="mt-2 text-sm font-semibold leading-6 text-slate-600">Browse books, stationery, bags and hygiene items.</p>
-            <span class="mt-4 inline-flex rounded-md bg-emerald-600 px-4 py-2 text-xs font-black text-white group-hover:bg-emerald-700">Open shop</span>
+            <span class="mt-4 inline-flex rounded-md bg-orange-600 px-4 py-2 text-xs font-black text-white group-hover:bg-orange-700">Open shop</span>
         </div>
         <div class="h-full w-full bg-cover bg-center" style="background-image: url('/images/products/school_equipment.jpeg')"></div>
     </a>
@@ -24,7 +24,7 @@
             <p class="text-[11px] font-black uppercase text-amber-700">Order lookup</p>
             <p class="mt-1 text-[20px] font-black leading-7 text-[#07215f]">Pay when invoice is ready</p>
             <p class="mt-2 text-sm font-semibold leading-6 text-slate-600">Track status using your invoice and contact.</p>
-            <span class="mt-4 inline-flex rounded-md bg-[#07215f] px-4 py-2 text-xs font-black text-white group-hover:bg-emerald-700">Track order</span>
+            <span class="mt-4 inline-flex rounded-md bg-[#07215f] px-4 py-2 text-xs font-black text-white group-hover:bg-orange-700">Track order</span>
         </div>
         <div class="h-full w-full bg-cover bg-center" style="background-image: url('/images/products/all.jpeg')"></div>
     </a>

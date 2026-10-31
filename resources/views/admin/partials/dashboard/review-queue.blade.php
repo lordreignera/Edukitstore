@@ -1,8 +1,8 @@
 @php
     $queue = [
         ['label' => 'Payment exceptions', 'value' => $stats['payment_exceptions'], 'route' => 'admin.invoices.index', 'icon' => 'invoice', 'tone' => 'bg-red-50 text-red-700'],
-        ['label' => 'Shopping lists to review', 'value' => $stats['pending_shopping_lists'], 'route' => 'admin.shopping-lists.index', 'icon' => 'list', 'tone' => 'bg-violet-50 text-violet-700'],
-        ['label' => 'Supplier applications', 'value' => $stats['pending_suppliers'], 'route' => 'admin.suppliers.index', 'icon' => 'suppliers', 'tone' => 'bg-emerald-50 text-emerald-700'],
+        ['label' => 'Shopping lists to review', 'value' => $stats['pending_shopping_lists'], 'route' => 'admin.shopping-lists.index', 'icon' => 'list', 'tone' => 'bg-orange-50 text-orange-700'],
+        ['label' => 'Supplier applications', 'value' => $stats['pending_suppliers'], 'route' => 'admin.suppliers.index', 'icon' => 'suppliers', 'tone' => 'bg-orange-50 text-orange-700'],
         ['label' => 'Driver approvals', 'value' => $stats['pending_drivers'], 'route' => 'admin.drivers.index', 'icon' => 'drivers', 'tone' => 'bg-amber-50 text-amber-700'],
     ];
 @endphp
@@ -25,7 +25,7 @@
         @endforeach
     </div>
     <div class="border-t border-slate-100 p-4">
-        <a href="{{ route('admin.products.create') }}" class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#071d4f] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700">
+        <a href="{{ route('admin.products.create') }}" class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#071d4f] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-orange-700">
             <x-ui.icon name="plus" size="size-4" /> Add a product
         </a>
     </div>

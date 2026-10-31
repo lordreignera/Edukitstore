@@ -49,7 +49,8 @@ class UserManagementTest extends TestCase
         $this->flushSession();
         $this->actingAs($user);
 
-        $this->get('/dashboard')->assertRedirect(route('profile.show'));
+        $this->get('/dashboard')->assertRedirect(route('school.dashboard'));
+        $this->get(route('school.dashboard'))->assertOk()->assertSee('Security reminder:');
     }
 
     public function test_inactive_user_cannot_sign_in(): void

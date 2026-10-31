@@ -1,7 +1,6 @@
 <?php
 
 return [
-    'initial_admin_email' => env('EDUKIT_INITIAL_ADMIN_EMAIL'),
-    'initial_admin_password' => env('EDUKIT_INITIAL_ADMIN_PASSWORD'),
+    'seed_demo_accounts' => env('EDUKIT_SEED_DEMO_ACCOUNTS', false),
     'payment_mode' => env('EDUKIT_PAYMENT_MODE', 'flutterwave'),
 ];

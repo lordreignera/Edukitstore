@@ -6,6 +6,8 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'Laravel') }}</title>
+        <link rel="icon" type="image/png" href="{{ asset('images/website/EDUKIT_STORE_logo2.png') }}">
+        <x-pwa-meta />
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -22,6 +24,7 @@
 
         <div class="min-h-screen bg-gray-100">
             @livewire('navigation-menu')
+            @include('components.temporary-password-notice')
 
             <!-- Page Heading -->
             @if (isset($header))
@@ -41,5 +44,6 @@
         @stack('modals')
 
         @livewireScripts
+        <x-pwa-install-prompt />
     </body>
 </html>

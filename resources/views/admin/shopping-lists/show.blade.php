@@ -6,7 +6,7 @@
                 <p class="mt-1 text-sm text-gray-500">Uploaded by {{ $shoppingList->parent_name }} on {{ $shoppingList->created_at->format('M d, Y') }}.</p>
             </div>
             <div class="flex flex-wrap gap-2">
-                <a href="{{ route('admin.invoices.show', $shoppingList) }}" class="rounded bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">Open invoice</a>
+                <a href="{{ route('admin.invoices.show', $shoppingList) }}" class="rounded bg-orange-700 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-800">Open invoice</a>
                 <a href="{{ route('admin.shopping-lists.index') }}" class="rounded border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Back to lists</a>
             </div>
         </div>
@@ -21,18 +21,18 @@
                 @if ($shoppingList->file_path)
                     <div class="mt-6 border-t border-gray-100 pt-5">
                         <p class="text-sm font-semibold text-gray-500">Uploaded file</p>
-                        <a href="{{ route('admin.shopping-lists.download', $shoppingList) }}" class="mt-2 inline-flex rounded bg-[#07215f] px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700">
+                        <a href="{{ route('admin.shopping-lists.download', $shoppingList) }}" class="mt-2 inline-flex rounded bg-[#07215f] px-4 py-2 text-sm font-bold text-white hover:bg-orange-700">
                             Download {{ $shoppingList->original_filename }}
                         </a>
                     </div>
                 @endif
             </section>
 
-            <aside class="h-fit rounded border border-emerald-100 bg-emerald-50 p-5 shadow-sm">
-                <p class="text-xs font-bold uppercase text-emerald-700">Next step</p>
+            <aside class="h-fit rounded border border-orange-100 bg-orange-50 p-5 shadow-sm">
+                <p class="text-xs font-bold uppercase text-orange-700">Next step</p>
                 <h3 class="mt-2 text-xl font-black text-[#071d4f]">Prepare invoice</h3>
-                <p class="mt-2 text-sm leading-6 text-emerald-900">Use the invoice workflow to price the request, assign an approved driver, release the invoice, receive payment, then wait for driver delivery confirmation.</p>
-                <a href="{{ route('admin.invoices.show', $shoppingList) }}" class="mt-5 inline-flex rounded bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800">Continue to invoice</a>
+                <p class="mt-2 text-sm leading-6 text-orange-900">Use the invoice workflow to price the request, assign an approved driver, release the invoice, receive payment, then wait for driver delivery confirmation.</p>
+                <a href="{{ route('admin.invoices.show', $shoppingList) }}" class="mt-5 inline-flex rounded bg-orange-700 px-4 py-2 text-sm font-bold text-white hover:bg-orange-800">Continue to invoice</a>
             </aside>
         </div>
     </div>

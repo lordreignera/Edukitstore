@@ -1,7 +1,7 @@
 @props([
     'schools',
-    'inputClass' => 'mt-1 w-full rounded-md border-[#d7e4ef] text-sm focus:border-emerald-600 focus:ring-emerald-600',
-    'feeCardClass' => 'rounded-md border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-950',
+    'inputClass' => 'mt-1 w-full rounded-md border-[#d7e4ef] text-sm focus:border-orange-600 focus:ring-orange-600',
+    'feeCardClass' => 'rounded-md border border-orange-100 bg-orange-50 p-4 text-sm text-orange-950',
     'feeLabel' => 'Convenience fee',
     'schoolHelp' => 'Select a school to show the convenience fee.',
     'pickupHelp' => 'Pickup from the EduKit warehouse has no convenience fee.',
@@ -44,6 +44,6 @@
 <div class="sm:col-span-2" data-school-fee-card>
     <div class="{{ $feeCardClass }}">
         <p class="font-black">{{ $feeLabel }}: <span data-school-fee-text>UGX 0</span></p>
-        <p class="mt-1 text-xs leading-5 text-emerald-800" data-school-location-text data-school-help="{{ $schoolHelp }}" data-pickup-help="{{ $pickupHelp }}">{{ $schoolHelp }}</p>
+        <p class="mt-1 text-xs leading-5 text-orange-800" data-school-location-text data-school-help="{{ $schoolHelp }}" data-pickup-help="{{ $pickupHelp }}">{{ $schoolHelp }}</p>
     </div>
 </div>

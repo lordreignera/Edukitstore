@@ -13,7 +13,7 @@
         <div class="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:px-8">
             <section class="rounded border border-gray-200 bg-white p-6 shadow-sm">
                 @if (session('status'))
-                    <div class="mb-5 rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+                    <div class="mb-5 rounded border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-medium text-orange-800">
                         {{ session('status') }}
                     </div>
                 @endif
@@ -39,7 +39,7 @@
                 @if ($invoice->payment_exception)
                     <div class="mt-5 rounded border border-red-300 bg-red-50 p-4 text-sm font-bold text-red-800">Payment needs review: {{ $invoice->payment_exception }}</div>
                     @if ($invoice->payment_exception_type === 'stock')
-                        <form method="POST" action="{{ route('admin.invoices.resolve-paid-stock', $invoice) }}" class="mt-3">@csrf @method('PATCH')<button class="rounded bg-emerald-700 px-4 py-2 text-sm font-bold text-white">Recheck and allocate stock</button></form>
+                        <form method="POST" action="{{ route('admin.invoices.resolve-paid-stock', $invoice) }}" class="mt-3">@csrf @method('PATCH')<button class="rounded bg-orange-700 px-4 py-2 text-sm font-bold text-white">Recheck and allocate stock</button></form>
                     @endif
                 @endif
                 @if ($invoice->paymentAttempts->isNotEmpty())
@@ -51,7 +51,7 @@
                 @if ($invoice->file_path)
                     <div class="mt-6 border-t border-gray-100 pt-5">
                         <p class="text-sm font-semibold text-gray-500">Uploaded file</p>
-                        <a href="{{ route('admin.shopping-lists.download', $invoice) }}" class="mt-2 inline-flex rounded bg-[#07215f] px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700">
+                        <a href="{{ route('admin.shopping-lists.download', $invoice) }}" class="mt-2 inline-flex rounded bg-[#07215f] px-4 py-2 text-sm font-bold text-white hover:bg-orange-700">
                             Download {{ $invoice->original_filename }}
                         </a>
                     </div>
@@ -78,7 +78,7 @@
                 @include('admin.invoices.partials.review-form', ['invoice' => $invoice, 'statuses' => $statuses, 'drivers' => $drivers])
 
                 @if ($invoice->driver_started_at)
-                    <div class="mt-6 rounded border border-violet-200 bg-violet-50 p-4 text-sm text-violet-900">
+                    <div class="mt-6 rounded border border-orange-200 bg-orange-50 p-4 text-sm text-orange-900">
                         <p class="font-bold">Driver started the journey</p>
                         <p class="mt-1">{{ $invoice->driver_started_at->format('M d, Y H:i') }}</p>
                     </div>
@@ -90,7 +90,7 @@
                     </div>
                 @endif
                 @if ($invoice->customer_received_at || $invoice->delivery_confirmed_at)
-                    <div class="mt-6 rounded border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+                    <div class="mt-6 rounded border border-orange-200 bg-orange-50 p-4 text-sm text-orange-900">
                         <p class="font-bold">Customer confirmed receipt</p>
                         <p class="mt-1">{{ ($invoice->customer_received_at ?: $invoice->delivery_confirmed_at)->format('M d, Y H:i') }}</p>
                         @if ($invoice->customer_received_name)

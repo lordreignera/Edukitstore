@@ -9,38 +9,38 @@
     <div class="py-8">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <form method="GET" action="{{ route('admin.invoices.index') }}" class="mb-6 grid gap-3 border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-2 xl:grid-cols-4">
-                <input name="q" value="{{ $search }}" placeholder="Search reference, phone, name or school" class="rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
-                <select name="status" class="rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                <input name="q" value="{{ $search }}" placeholder="Search reference, phone, name or school" class="rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
+                <select name="status" class="rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
                     <option value="">Any invoice status</option>
                     @foreach ($statuses as $value => $label)
                         <option value="{{ $value }}" @selected($selectedStatus === $value)>{{ $label }}</option>
                     @endforeach
                 </select>
-                <select name="payment_status" class="rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                <select name="payment_status" class="rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
                     <option value="">Any payment</option>
                     @foreach ($paymentStatuses as $value => $label)
                         <option value="{{ $value }}" @selected($selectedPaymentStatus === $value)>{{ $label }}</option>
                     @endforeach
                 </select>
-                <select name="delivery_status" class="rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                <select name="delivery_status" class="rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
                     <option value="">Any delivery</option>
                     @foreach ($deliveryStatuses as $value => $label)
                         <option value="{{ $value }}" @selected($selectedDeliveryStatus === $value)>{{ $label }}</option>
                     @endforeach
                 </select>
-                <select name="driver_id" class="rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                <select name="driver_id" class="rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
                     <option value="">Any driver</option>
                     @foreach ($drivers as $driver)
                         <option value="{{ $driver->id }}" @selected((string) $driver->id === $selectedDriverId)>{{ $driver->name }}</option>
                     @endforeach
                 </select>
-                <select name="source" class="rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                <select name="source" class="rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
                     <option value="">Any source</option>
                     <option value="cart" @selected($selectedSource === 'cart')>Cart</option>
                     <option value="upload" @selected($selectedSource === 'upload')>Upload</option>
                 </select>
                 <label class="flex items-center gap-2 text-xs font-bold text-red-700"><input type="checkbox" name="issues" value="1" @checked($issuesOnly) class="rounded border-red-300">Payment issues</label>
-                <button class="rounded bg-[#07215f] px-5 py-2 text-sm font-bold text-white hover:bg-emerald-700">Filter</button>
+                <button class="rounded bg-[#07215f] px-5 py-2 text-sm font-bold text-white hover:bg-orange-700">Filter</button>
             </form>
 
             <section class="rounded border border-gray-200 bg-white shadow-sm">
@@ -75,7 +75,7 @@
                                     </td>
                                     <td class="px-5 py-4 font-semibold text-gray-900">{{ $invoice->estimated_total ? 'UGX '.number_format($invoice->estimated_total) : 'Pending' }}</td>
                                     <td class="px-5 py-4 text-right">
-                                        <a href="{{ route('admin.invoices.show', $invoice) }}" class="rounded bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-800">Open</a>
+                                        <a href="{{ route('admin.invoices.show', $invoice) }}" class="rounded bg-orange-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-800">Open</a>
                                     </td>
                                 </tr>
                             @empty

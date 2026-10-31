@@ -2,12 +2,12 @@
     <x-slot name="header">
         <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-                <p class="text-sm font-bold text-emerald-700">Category Details</p>
+                <p class="text-sm font-bold text-orange-700">Category Details</p>
                 <h1 class="mt-1 text-2xl font-extrabold text-[#071d4f]">{{ $category->name }}</h1>
             </div>
             <div class="flex flex-wrap gap-3">
                 <a href="{{ route('admin.product-categories.index') }}" class="rounded border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50">Back to categories</a>
-                <a href="{{ route('admin.product-categories.edit', $category) }}" class="inline-flex items-center gap-2 rounded bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800">
+                <a href="{{ route('admin.product-categories.edit', $category) }}" class="inline-flex items-center gap-2 rounded bg-orange-700 px-4 py-2 text-sm font-bold text-white hover:bg-orange-800">
                     <x-ui.icon name="edit" size="size-4" /> Edit category
                 </a>
             </div>
@@ -25,7 +25,7 @@
                     <div>
                         <dt class="text-xs font-bold uppercase text-slate-500">Status</dt>
                         <dd class="mt-1">
-                            <span class="rounded px-2 py-1 text-xs font-bold {{ $category->is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600' }}">{{ $category->is_active ? 'Active' : 'Hidden' }}</span>
+                            <span class="rounded px-2 py-1 text-xs font-bold {{ $category->is_active ? 'bg-orange-50 text-orange-700' : 'bg-slate-100 text-slate-600' }}">{{ $category->is_active ? 'Active' : 'Hidden' }}</span>
                         </dd>
                     </div>
                     <div>
@@ -51,7 +51,7 @@
                                 <span class="block text-sm font-bold text-slate-950">{{ $product->name }}</span>
                                 <span class="mt-1 block text-xs text-slate-500">{{ $product->sku }}</span>
                             </span>
-                            <span class="text-sm font-bold text-emerald-700">UGX {{ number_format($product->price) }}</span>
+                            <span class="text-sm font-bold text-orange-700">UGX {{ number_format($product->price) }}</span>
                         </a>
                     @empty
                         <p class="px-5 py-8 text-sm text-slate-500">No products are currently assigned to this category.</p>

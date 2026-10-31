@@ -4,8 +4,8 @@
     $statusTones = [
         'pending' => 'bg-amber-500',
         'reviewing' => 'bg-blue-500',
-        'quoted' => 'bg-violet-500',
-        'fulfilled' => 'bg-emerald-500',
+        'quoted' => 'bg-orange-500',
+        'fulfilled' => 'bg-orange-500',
         'cancelled' => 'bg-red-400',
     ];
 @endphp

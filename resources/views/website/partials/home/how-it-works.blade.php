@@ -4,7 +4,7 @@
         <div class="mt-7 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             @foreach ($howItWorks as $item)
                 <div class="relative text-center">
-                    <span class="mx-auto grid size-11 place-items-center rounded-full bg-emerald-600 text-sm font-black text-white shadow-sm">{{ $item['step'] }}</span>
+                    <span class="mx-auto grid size-11 place-items-center rounded-full bg-orange-600 text-sm font-black text-white shadow-sm">{{ $item['step'] }}</span>
                     <div class="mx-auto mt-3 grid size-12 place-items-center text-[#07215f]">
                         <svg viewBox="0 0 24 24" class="size-10" fill="none" aria-hidden="true">
                             <path d="{{ $item['icon'] }}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>

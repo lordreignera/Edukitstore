@@ -44,6 +44,10 @@ class ProfitReportController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        return view('admin.reports.profit', compact('items', 'summary', 'supplierSettlement', 'source', 'from', 'to'));
+        $view = $request->routeIs('finance.dashboard')
+            ? 'finance.dashboard'
+            : 'admin.reports.profit';
+
+        return view($view, compact('items', 'summary', 'supplierSettlement', 'source', 'from', 'to'));
     }
 }

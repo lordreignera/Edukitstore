@@ -6,7 +6,7 @@
     <section class="bg-white">
         <div class="mx-auto grid max-w-7xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8 lg:py-14">
             <div>
-                <p class="text-sm font-black uppercase tracking-wide text-emerald-700">For suppliers</p>
+                <p class="text-sm font-black uppercase tracking-wide text-orange-700">For suppliers</p>
                 <h1 class="mt-3 text-4xl font-black leading-tight text-[#07215f] sm:text-5xl">Supply school essentials across Uganda.</h1>
                 <p class="mt-4 max-w-xl text-base leading-7 text-slate-600">
                     Apply to join EduKit&apos;s verified supplier network. Approved suppliers can be matched to school-list orders based on location, product category, capacity and reliability.
@@ -37,7 +37,7 @@
                 @endphp
 
                 @if (session('status'))
-                    <div class="mb-6 rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">
+                    <div class="mb-6 rounded border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-bold text-orange-800">
                         {{ session('status') }}
                     </div>
                 @endif
@@ -45,25 +45,25 @@
                 <div class="grid gap-5 sm:grid-cols-2">
                     <div class="sm:col-span-2">
                         <label class="text-sm font-bold text-slate-700" for="business_name">Business name</label>
-                        <input id="business_name" name="business_name" value="{{ old('business_name') }}" required class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                        <input id="business_name" name="business_name" value="{{ old('business_name') }}" required class="mt-1 w-full rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
                         @error('business_name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 
                     <div>
                         <label class="text-sm font-bold text-slate-700" for="contact_person">Contact person</label>
-                        <input id="contact_person" name="contact_person" value="{{ old('contact_person') }}" required class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                        <input id="contact_person" name="contact_person" value="{{ old('contact_person') }}" required class="mt-1 w-full rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
                         @error('contact_person') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 
                     <div>
                         <label class="text-sm font-bold text-slate-700" for="phone">Phone number</label>
-                        <input id="phone" name="phone" value="{{ old('phone') }}" required class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                        <input id="phone" name="phone" value="{{ old('phone') }}" required class="mt-1 w-full rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
                         @error('phone') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 
                     <div>
                         <label class="text-sm font-bold text-slate-700" for="email">Email</label>
-                        <input id="email" name="email" type="email" value="{{ old('email') }}" required class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                        <input id="email" name="email" type="email" value="{{ old('email') }}" required class="mt-1 w-full rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
                         @error('email') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 
@@ -72,7 +72,7 @@
                     <div>
                         <label class="text-sm font-bold text-slate-700" for="password">Create password</label>
                         <div class="relative mt-1">
-                            <input id="password" name="password" type="password" required autocomplete="new-password" class="w-full rounded border-slate-300 pr-12 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                            <input id="password" name="password" type="password" required autocomplete="new-password" class="w-full rounded border-slate-300 pr-12 text-sm focus:border-orange-600 focus:ring-orange-600">
                             <button type="button" data-password-toggle data-password-target="password" class="absolute inset-y-0 right-0 grid w-11 place-items-center text-slate-500 hover:text-[#07215f]" aria-label="Show password" aria-pressed="false">
                                 <x-ui.icon name="eye" size="size-5" />
                             </button>
@@ -83,7 +83,7 @@
                     <div>
                         <label class="text-sm font-bold text-slate-700" for="password_confirmation">Confirm password</label>
                         <div class="relative mt-1">
-                            <input id="password_confirmation" name="password_confirmation" type="password" required autocomplete="new-password" class="w-full rounded border-slate-300 pr-12 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                            <input id="password_confirmation" name="password_confirmation" type="password" required autocomplete="new-password" class="w-full rounded border-slate-300 pr-12 text-sm focus:border-orange-600 focus:ring-orange-600">
                             <button type="button" data-password-toggle data-password-target="password_confirmation" class="absolute inset-y-0 right-0 grid w-11 place-items-center text-slate-500 hover:text-[#07215f]" aria-label="Show password confirmation" aria-pressed="false">
                                 <x-ui.icon name="eye" size="size-5" />
                             </button>
@@ -92,7 +92,7 @@
 
                     <div class="sm:col-span-2">
                         <label class="text-sm font-bold text-slate-700" for="address">Shop or warehouse address</label>
-                        <input id="address" name="address" value="{{ old('address') }}" class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                        <input id="address" name="address" value="{{ old('address') }}" class="mt-1 w-full rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
                         @error('address') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 
@@ -103,8 +103,8 @@
 
                             <div class="mt-3 grid gap-2 sm:grid-cols-2">
                                 @forelse ($productCategories as $category)
-                                    <label class="flex min-h-12 cursor-pointer items-center gap-3 rounded border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-[#07215f] transition hover:border-emerald-500">
-                                        <input type="checkbox" name="product_category_ids[]" value="{{ $category->id }}" @checked(in_array((string) $category->id, $selectedCategoryIds, true)) class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-600">
+                                    <label class="flex min-h-12 cursor-pointer items-center gap-3 rounded border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-[#07215f] transition hover:border-orange-500">
+                                        <input type="checkbox" name="product_category_ids[]" value="{{ $category->id }}" @checked(in_array((string) $category->id, $selectedCategoryIds, true)) class="rounded border-slate-300 text-orange-600 focus:ring-orange-600">
                                         <span>{{ $category->name }}</span>
                                     </label>
                                 @empty
@@ -113,15 +113,15 @@
                                     </div>
                                 @endforelse
 
-                                <label class="flex min-h-12 cursor-pointer items-center gap-3 rounded border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-[#07215f] transition hover:border-emerald-500">
-                                    <input id="other_category_toggle" type="checkbox" @checked($showOtherCategories) class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-600">
+                                <label class="flex min-h-12 cursor-pointer items-center gap-3 rounded border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-[#07215f] transition hover:border-orange-500">
+                                    <input id="other_category_toggle" type="checkbox" @checked($showOtherCategories) class="rounded border-slate-300 text-orange-600 focus:ring-orange-600">
                                     <span>Other</span>
                                 </label>
                             </div>
 
                             <div id="other_category_wrap" class="{{ $showOtherCategories ? '' : 'hidden' }} mt-3">
                                 <label class="sr-only" for="other_product_categories">Other product categories</label>
-                                <textarea id="other_product_categories" name="other_product_categories" rows="2" class="w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600" placeholder="Example: laboratory items, sportswear, art materials...">{{ old('other_product_categories') }}</textarea>
+                                <textarea id="other_product_categories" name="other_product_categories" rows="2" class="w-full rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600" placeholder="Example: laboratory items, sportswear, art materials...">{{ old('other_product_categories') }}</textarea>
                             </div>
                         </fieldset>
                         @error('product_category_ids') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
@@ -130,25 +130,25 @@
 
                     <div>
                         <label class="text-sm font-bold text-slate-700" for="supply_capacity">Supply capacity</label>
-                        <input id="supply_capacity" name="supply_capacity" value="{{ old('supply_capacity') }}" placeholder="Example: 200 orders per week" class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+                        <input id="supply_capacity" name="supply_capacity" value="{{ old('supply_capacity') }}" placeholder="Example: 200 orders per week" class="mt-1 w-full rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
                         @error('supply_capacity') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 
                     <div>
                         <label class="text-sm font-bold text-slate-700" for="verification_document">Verification document</label>
-                        <input id="verification_document" name="verification_document" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" class="mt-1 block w-full rounded border border-slate-300 bg-white p-2 text-sm text-slate-700 file:mr-3 file:rounded file:border-0 file:bg-emerald-600 file:px-3 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-emerald-700">
+                        <input id="verification_document" name="verification_document" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" class="mt-1 block w-full rounded border border-slate-300 bg-white p-2 text-sm text-slate-700 file:mr-3 file:rounded file:border-0 file:bg-orange-600 file:px-3 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-orange-700">
                         <p class="mt-1 text-xs text-slate-500">PDF, image or Word document. Maximum 30 MB.</p>
                         @error('verification_document') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="sm:col-span-2">
                         <label class="text-sm font-bold text-slate-700" for="notes">Notes</label>
-                        <textarea id="notes" name="notes" rows="4" class="mt-1 w-full rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600" placeholder="Mention brands, districts covered, delivery readiness or special school supply strengths.">{{ old('notes') }}</textarea>
+                        <textarea id="notes" name="notes" rows="4" class="mt-1 w-full rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600" placeholder="Mention brands, districts covered, delivery readiness or special school supply strengths.">{{ old('notes') }}</textarea>
                         @error('notes') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
                 </div>
 
-                <button class="mt-7 w-full rounded bg-emerald-600 px-5 py-3 text-sm font-black text-white shadow-sm hover:bg-emerald-700 sm:w-auto">Submit supplier application</button>
+                <button class="mt-7 w-full rounded bg-orange-600 px-5 py-3 text-sm font-black text-white shadow-sm hover:bg-orange-700 sm:w-auto">Submit supplier application</button>
             </form>
         </div>
     </section>

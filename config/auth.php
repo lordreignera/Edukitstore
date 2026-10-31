@@ -16,8 +16,8 @@ return [
     */
 
     'defaults' => [
-        'guard' => env('AUTH_GUARD', 'web'),
-        'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
+        'guard' => env('AUTH_GUARD') ?: 'web',
+        'passwords' => env('AUTH_PASSWORD_BROKER') ?: 'users',
     ],
 
     /*
@@ -64,7 +64,10 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', User::class),
+            // An empty AUTH_MODEL environment value must not disable the
+            // application's User model. Spatie Permission needs this model
+            // when it resolves the users assigned to a role.
+            'model' => env('AUTH_MODEL') ?: User::class,
         ],
 
         // 'users' => [

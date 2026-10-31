@@ -5,22 +5,26 @@ namespace App\Services;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
 
 class AccountProvisioner
 {
-    public function createPending(string $email, string $name, string $password, string $role): User
+    public function createPending(string $email, string $name, string $password, string|array $roles): User
     {
-        return DB::transaction(function () use ($email, $name, $password, $role) {
+        return DB::transaction(function () use ($email, $name, $password, $roles) {
             $normalizedEmail = Str::lower($email);
+            $roleNames = $this->normalizeRoles($roles);
 
             if (User::where('email', $normalizedEmail)->exists()) {
                 throw ValidationException::withMessages(['email' => 'This email already belongs to an EduKit account.']);
             }
 
-            Role::findOrCreate($role);
+            foreach ($roleNames as $roleName) {
+                Role::findOrCreate($roleName, 'web');
+            }
             $user = User::create([
                 'email' => $normalizedEmail,
                 'name' => $name,
@@ -28,16 +32,17 @@ class AccountProvisioner
                 'email_verified_at' => null,
                 'is_active' => false,
             ]);
-            $user->syncRoles([$role]);
+            $user->syncRoles($roleNames);
 
             return $user;
         });
     }
 
-    public function provision(string $email, string $name, string $role, ?int $createdBy, ?int $linkedUserId = null): User
+    public function provision(string $email, string $name, string|array $roles, ?int $createdBy, ?int $linkedUserId = null): User
     {
-        return DB::transaction(function () use ($email, $name, $role, $createdBy, $linkedUserId) {
+        return DB::transaction(function () use ($email, $name, $roles, $createdBy, $linkedUserId) {
             $normalizedEmail = Str::lower($email);
+            $roleNames = $this->normalizeRoles($roles);
             $user = User::where('email', $normalizedEmail)->first();
 
             if ($user && $user->id !== $linkedUserId) {
@@ -66,8 +71,10 @@ class AccountProvisioner
                 'created_by' => $user->created_by ?? $createdBy,
             ])->save();
 
-            Role::findOrCreate($role);
-            $user->syncRoles([$role]);
+            foreach ($roleNames as $roleName) {
+                Role::findOrCreate($roleName, 'web');
+            }
+            $user->syncRoles($roleNames);
 
             return $user;
         });
@@ -82,5 +89,19 @@ class AccountProvisioner
 
             return false;
         }
+    }
+
+    /**
+     * @param string|array<int, string> $roles
+     * @return array<int, string>
+     */
+    private function normalizeRoles(string|array $roles): array
+    {
+        return collect(Arr::wrap($roles))
+            ->map(fn ($role): string => trim((string) $role))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 }

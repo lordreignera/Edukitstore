@@ -5,7 +5,7 @@
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">Drivers</h2>
                 <p class="mt-1 text-sm text-gray-500">Add delivery people and approve them before assigning delivery jobs.</p>
             </div>
-            <button type="button" @click="$dispatch('open-admin-modal', 'create-driver')" class="rounded bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">Add delivery partner</button>
+            <button type="button" @click="$dispatch('open-admin-modal', 'create-driver')" class="rounded bg-orange-700 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-800">Add delivery partner</button>
         </div>
     </x-slot>
 
@@ -15,17 +15,17 @@
                 <div class="mb-5 border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{{ $errors->first() }}</div>
             @endif
             <form method="GET" class="mb-5 grid gap-3 border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-2 xl:grid-cols-[minmax(200px,1fr)_150px_160px_150px_auto_auto]">
-                <input name="q" value="{{ $search }}" placeholder="Search name, email or vehicle" class="h-10 rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
-                <select name="status" class="h-10 rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600"><option value="">All statuses</option><option value="pending" @selected($status === 'pending')>Pending</option><option value="approved" @selected($status === 'approved')>Approved</option></select>
-                <select name="availability" class="h-10 rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600"><option value="">Any availability</option><option value="available" @selected($availability === 'available')>Available</option><option value="unavailable" @selected($availability === 'unavailable')>Unavailable</option></select>
-                <select name="source" class="h-10 rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600"><option value="">All sources</option><option value="website" @selected($source === 'website')>Website</option><option value="admin" @selected($source === 'admin')>Admin</option></select>
+                <input name="q" value="{{ $search }}" placeholder="Search name, email or vehicle" class="h-10 rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
+                <select name="status" class="h-10 rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600"><option value="">All statuses</option><option value="pending" @selected($status === 'pending')>Pending</option><option value="approved" @selected($status === 'approved')>Approved</option></select>
+                <select name="availability" class="h-10 rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600"><option value="">Any availability</option><option value="available" @selected($availability === 'available')>Available</option><option value="unavailable" @selected($availability === 'unavailable')>Unavailable</option></select>
+                <select name="source" class="h-10 rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600"><option value="">All sources</option><option value="website" @selected($source === 'website')>Website</option><option value="admin" @selected($source === 'admin')>Admin</option></select>
                 <button class="h-10 rounded bg-[#07215f] px-5 text-sm font-bold text-white hover:bg-[#0b2f7c]">Filter</button>
                 <a href="{{ route('admin.drivers.index') }}" class="grid h-10 place-items-center rounded border border-slate-300 px-4 text-sm font-bold text-slate-600 hover:bg-slate-50">Clear</a>
             </form>
             <section class="rounded border border-gray-200 bg-white shadow-sm">
                 <div class="border-b border-gray-100 px-5 py-4">
                     @if (session('status'))
-                        <p class="text-sm font-medium text-emerald-700">{{ session('status') }}</p>
+                        <p class="text-sm font-medium text-orange-700">{{ session('status') }}</p>
                     @else
                         <p class="text-sm text-gray-500">For this first version, a delivery can later be completed when the assigned driver confirms delivery.</p>
                     @endif
@@ -54,13 +54,13 @@
                                     </td>
                                     <td class="px-5 py-4 text-gray-600">{{ $driver->district ?? '-' }}</td>
                                     <td class="px-5 py-4">
-                                        <span class="rounded px-2 py-1 text-xs font-semibold {{ $driver->is_approved ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700' }}">
+                                        <span class="rounded px-2 py-1 text-xs font-semibold {{ $driver->is_approved ? 'bg-orange-50 text-orange-700' : 'bg-amber-50 text-amber-700' }}">
                                             {{ $driver->is_approved ? 'Approved' : 'Pending' }}
                                         </span>
                                         @unless ($driver->is_available)
                                             <span class="ml-1 rounded bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-600">Unavailable</span>
                                         @endunless
-                                        <p class="mt-2 text-xs {{ $driver->user?->is_active ? 'text-emerald-700' : 'text-slate-500' }}">{{ $driver->user ? ($driver->user->is_active ? 'Account active' : 'Account inactive') : 'No account yet' }}</p>
+                                        <p class="mt-2 text-xs {{ $driver->user?->is_active ? 'text-orange-700' : 'text-slate-500' }}">{{ $driver->user ? ($driver->user->is_active ? 'Account active' : 'Account inactive') : 'No account yet' }}</p>
                                         @if ($driver->availability_updated_at)
                                             <p class="mt-1 text-xs text-slate-500">Updated {{ $driver->availability_updated_at->diffForHumans() }}</p>
                                         @endif
@@ -78,7 +78,7 @@
                                                 <form method="POST" action="{{ route('admin.drivers.approve', $driver) }}">
                                                     @csrf
                                                     @method('PATCH')
-                                                    <button class="rounded bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-800">Approve</button>
+                                                    <button class="rounded bg-orange-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-800">Approve</button>
                                                 </form>
                                             @endunless
                                             @if ($driver->is_available)
@@ -91,7 +91,7 @@
                                                 <form method="POST" action="{{ route('admin.drivers.available', $driver) }}">
                                                     @csrf
                                                     @method('PATCH')
-                                                    <button class="rounded border border-emerald-300 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50">Available</button>
+                                                    <button class="rounded border border-orange-300 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-50">Available</button>
                                                 </form>
                                             @endif
                                         </div>

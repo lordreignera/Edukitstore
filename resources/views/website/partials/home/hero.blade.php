@@ -6,7 +6,7 @@
             </div>
             <nav class="grid p-2 text-[13px] font-bold text-[#173267]" aria-label="Shop categories">
                 @foreach ($categories->take(9) as $category)
-                    <a href="{{ route('website.products.index', ['category' => $category->slug]) }}" class="flex items-center justify-between rounded px-3 py-2.5 hover:bg-emerald-50 hover:text-emerald-700">
+                    <a href="{{ route('website.products.index', ['category' => $category->slug]) }}" class="flex items-center justify-between rounded px-3 py-2.5 hover:bg-orange-50 hover:text-orange-700">
                         <span>{{ $category->name }}</span>
                         <span class="text-[11px] text-slate-400">{{ $category->products_count }}</span>
                     </a>
@@ -22,14 +22,14 @@
                         <div class="absolute inset-0 bg-gradient-to-r from-white via-white/90 to-white/20"></div>
                         <div class="relative grid min-h-[310px] content-center px-5 py-8 sm:min-h-[340px] sm:px-8">
                             <div class="max-w-[520px]">
-                                <p class="inline-flex rounded border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-black uppercase text-emerald-700">{{ $slide['eyebrow'] }}</p>
+                                <p class="inline-flex rounded border border-orange-200 bg-orange-50 px-2.5 py-1 text-[10px] font-black uppercase text-orange-700">{{ $slide['eyebrow'] }}</p>
                                 <h1 class="mt-3 text-[28px] font-black leading-tight text-[#07215f] sm:text-[42px]">
-                                    {{ \Illuminate\Support\Str::before($slide['title'], $slide['accent']) }}<span class="text-emerald-600">{{ $slide['accent'] }}</span>
+                                    {{ \Illuminate\Support\Str::before($slide['title'], $slide['accent']) }}<span class="text-orange-600">{{ $slide['accent'] }}</span>
                                 </h1>
                                 <p class="mt-3 max-w-md text-sm font-semibold leading-6 text-slate-600">{{ $slide['copy'] }}</p>
                                 <div class="mt-5 flex flex-wrap gap-2">
-                                    <a href="{{ $slide['primary']['route'] }}" class="rounded-md bg-emerald-600 px-4 py-2.5 text-xs font-black text-white shadow-sm hover:bg-emerald-700">{{ $slide['primary']['label'] }}</a>
-                                    <a href="{{ $slide['secondary']['route'] }}" class="rounded-md border border-[#d7e4ef] bg-white px-4 py-2.5 text-xs font-black text-[#07215f] shadow-sm hover:border-emerald-500">{{ $slide['secondary']['label'] }}</a>
+                                    <a href="{{ $slide['primary']['route'] }}" class="rounded-md bg-orange-600 px-4 py-2.5 text-xs font-black text-white shadow-sm hover:bg-orange-700">{{ $slide['primary']['label'] }}</a>
+                                    <a href="{{ $slide['secondary']['route'] }}" class="rounded-md border border-[#d7e4ef] bg-white px-4 py-2.5 text-xs font-black text-[#07215f] shadow-sm hover:border-orange-500">{{ $slide['secondary']['label'] }}</a>
                                 </div>
                             </div>
                         </div>
@@ -39,16 +39,16 @@
 
             <div class="absolute bottom-4 left-5 flex items-center gap-2 sm:left-8">
                 @foreach ($heroSlides as $index => $slide)
-                    <button type="button" class="hero-dot {{ $index === 0 ? 'is-active' : '' }} h-2 w-7 rounded-full bg-[#07215f]/25 transition hover:bg-emerald-500" data-hero-dot="{{ $index }}" aria-label="Show slide {{ $index + 1 }}"></button>
+                    <button type="button" class="hero-dot {{ $index === 0 ? 'is-active' : '' }} h-2 w-7 rounded-full bg-[#07215f]/25 transition hover:bg-orange-500" data-hero-dot="{{ $index }}" aria-label="Show slide {{ $index + 1 }}"></button>
                 @endforeach
             </div>
         </section>
 
         <aside class="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
-            <a href="{{ route('website.upload-list') }}" class="rounded-md border border-emerald-100 bg-white p-4 shadow-sm hover:border-emerald-400">
+            <a href="{{ route('website.upload-list') }}" class="rounded-md border border-orange-100 bg-white p-4 shadow-sm hover:border-orange-400">
                 <p class="text-sm font-black text-[#07215f]">Upload school list</p>
                 <p class="mt-1 text-xs font-semibold leading-5 text-slate-500">Send a list and get an invoice with the convenience fee shown.</p>
-                <span class="mt-3 inline-flex text-xs font-black text-emerald-700">Start request</span>
+                <span class="mt-3 inline-flex text-xs font-black text-orange-700">Start request</span>
             </a>
             <a href="{{ route('website.track-order') }}" class="rounded-md border border-blue-100 bg-white p-4 shadow-sm hover:border-blue-400">
                 <p class="text-sm font-black text-[#07215f]">Track invoice</p>

@@ -7,6 +7,8 @@ use App\Http\Controllers\Admin\InvoiceController as AdminInvoiceController;
 use App\Http\Controllers\Admin\ProductCategoryController as AdminProductCategoryController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ProfitReportController as AdminProfitReportController;
+use App\Http\Controllers\Admin\PermissionController as AdminPermissionController;
+use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\SchoolController as AdminSchoolController;
 use App\Http\Controllers\Admin\ShoppingListController as AdminShoppingListController;
 use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
@@ -14,6 +16,8 @@ use App\Http\Controllers\Admin\SupplierOfferController as AdminSupplierOfferCont
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Driver\DashboardController as DriverDashboardController;
 use App\Http\Controllers\Driver\DeliveryController as DriverDeliveryController;
+use App\Http\Controllers\Parent\DashboardController as ParentDashboardController;
+use App\Http\Controllers\School\DashboardController as SchoolDashboardController;
 use App\Http\Controllers\Supplier\DashboardController as SupplierDashboardController;
 use App\Http\Controllers\Supplier\EarningsController as SupplierEarningsController;
 use App\Http\Controllers\Supplier\OfferController as SupplierOfferController;
@@ -26,6 +30,7 @@ use App\Http\Controllers\Website\ProductController as WebsiteProductController;
 use App\Http\Controllers\Website\ShoppingListController as WebsiteShoppingListController;
 use App\Http\Controllers\Website\SupplierOnboardingController as WebsiteSupplierOnboardingController;
 use App\Http\Controllers\Website\TrackOrderController as WebsiteTrackOrderController;
+use App\Support\WorkspaceRoute;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('website.home');
@@ -59,19 +64,20 @@ Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
     'verified',
-    'password.changed',
 ])->group(function () {
+    Route::get('/change-password', function () {
+        if (! auth()->user()->must_change_password) {
+            return redirect()->route('dashboard');
+        }
+
+        return view('auth.change-password');
+    })->name('password.change');
+
     Route::get('/dashboard', function () {
-        if (auth()->user()?->hasAnyRole(['super-admin', 'admin'])) {
-            return redirect()->route('admin.dashboard');
-        }
+        $workspaceRoute = WorkspaceRoute::for(auth()->user());
 
-        if (auth()->user()?->hasRole('delivery-person')) {
-            return redirect()->route('driver.dashboard');
-        }
-
-        if (auth()->user()?->hasRole('supplier')) {
-            return redirect()->route('supplier.dashboard');
+        if ($workspaceRoute !== 'dashboard') {
+            return redirect()->route($workspaceRoute);
         }
 
         return view('dashboard');
@@ -95,45 +101,113 @@ Route::middleware([
         Route::get('earnings', [SupplierEarningsController::class, 'index'])->name('earnings.index');
     });
 
-    Route::middleware('role:super-admin|admin')->prefix('admin')->name('admin.')->group(function () {
-        Route::get('/', AdminDashboardController::class)->name('dashboard');
-        Route::get('invoices', [AdminInvoiceController::class, 'index'])->name('invoices.index');
-        Route::get('invoices/{invoice}', [AdminInvoiceController::class, 'show'])->name('invoices.show');
-        Route::patch('invoices/{invoice}', [AdminInvoiceController::class, 'update'])->name('invoices.update');
-        Route::patch('invoices/{invoice}/resolve-paid-stock', [AdminInvoiceController::class, 'resolvePaidStock'])->name('invoices.resolve-paid-stock');
-        Route::get('inventory', [AdminInventoryController::class, 'index'])->name('inventory.index');
-        Route::get('reports/profit', AdminProfitReportController::class)->name('reports.profit');
-        Route::get('inventory/export', [AdminInventoryController::class, 'export'])->name('inventory.export');
-        Route::get('inventory/import-template', [AdminInventoryController::class, 'template'])->name('inventory.template');
-        Route::post('inventory/import', [AdminInventoryController::class, 'import'])->name('inventory.import');
-        Route::post('inventory/{product}/opening', [AdminInventoryController::class, 'opening'])->name('inventory.opening');
-        Route::post('inventory/{product}/intake', [AdminInventoryController::class, 'intake'])->name('inventory.intake');
-        Route::post('inventory/{product}/transfer', [AdminInventoryController::class, 'transfer'])->name('inventory.transfer');
-        Route::patch('inventory/movements/{inventoryMovement}', [AdminInventoryController::class, 'updateMovement'])->name('inventory.movements.update');
-        Route::delete('inventory/movements/{inventoryMovement}', [AdminInventoryController::class, 'destroyMovement'])->name('inventory.movements.destroy');
-        Route::resource('products', AdminProductController::class);
-        Route::resource('product-categories', AdminProductCategoryController::class);
-        Route::resource('schools', AdminSchoolController::class);
-        Route::resource('suppliers', AdminSupplierController::class)->only(['index', 'create', 'store']);
-        Route::patch('suppliers/{supplier}', [AdminSupplierController::class, 'update'])->name('suppliers.update');
-        Route::patch('suppliers/{supplier}/approve', [AdminSupplierController::class, 'approve'])->name('suppliers.approve');
-        Route::patch('suppliers/{supplier}/suspend', [AdminSupplierController::class, 'suspend'])->name('suppliers.suspend');
-        Route::patch('suppliers/{supplier}/reinstate', [AdminSupplierController::class, 'reinstate'])->name('suppliers.reinstate');
-        Route::get('suppliers/{supplier}/download', [AdminSupplierController::class, 'download'])->name('suppliers.download');
-        Route::get('supplier-products', [AdminSupplierOfferController::class, 'index'])->name('supplier-offers.index');
-        Route::patch('supplier-products/{offer}/approve', [AdminSupplierOfferController::class, 'approve'])->name('supplier-offers.approve');
-        Route::patch('supplier-products/{offer}/reject', [AdminSupplierOfferController::class, 'reject'])->name('supplier-offers.reject');
-        Route::get('shopping-lists', [AdminShoppingListController::class, 'index'])->name('shopping-lists.index');
-        Route::get('shopping-lists/{shoppingList}', [AdminShoppingListController::class, 'show'])->name('shopping-lists.show');
-        Route::get('shopping-lists/{shoppingList}/download', [AdminShoppingListController::class, 'download'])->name('shopping-lists.download');
-        Route::resource('drivers', AdminDriverController::class)->only(['index', 'create', 'store']);
-        Route::patch('drivers/{driver}', [AdminDriverController::class, 'update'])->name('drivers.update');
-        Route::patch('drivers/{driver}/approve', [AdminDriverController::class, 'approve'])->name('drivers.approve');
-        Route::patch('drivers/{driver}/unavailable', [AdminDriverController::class, 'markUnavailable'])->name('drivers.unavailable');
-        Route::patch('drivers/{driver}/available', [AdminDriverController::class, 'markAvailable'])->name('drivers.available');
-        Route::get('drivers/{driver}/download', [AdminDriverController::class, 'download'])->name('drivers.download');
-        Route::resource('users', AdminUserController::class)->except(['show', 'destroy']);
-        Route::patch('users/{user}/status', [AdminUserController::class, 'toggleStatus'])->name('users.status');
-        Route::post('users/{user}/password-link', [AdminUserController::class, 'sendPasswordLink'])->name('users.password-link');
+    Route::middleware('role:finance-admin')->prefix('finance')->name('finance.')->group(function () {
+        Route::get('/', AdminProfitReportController::class)->name('dashboard');
+    });
+
+    Route::middleware('role:school-admin|school-receiver')->prefix('school')->name('school.')->group(function () {
+        Route::get('/', SchoolDashboardController::class)->name('dashboard');
+    });
+
+    Route::middleware('role:parent')->prefix('parent')->name('parent.')->group(function () {
+        Route::get('/', ParentDashboardController::class)->name('dashboard');
+    });
+
+    Route::middleware('role_or_permission:super-admin|admin|admin.access')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/', AdminDashboardController::class)->middleware('permission:admin.dashboard.view')->name('dashboard');
+
+        Route::get('invoices', [AdminInvoiceController::class, 'index'])->middleware('permission:invoices.view')->name('invoices.index');
+        Route::get('invoices/{invoice}', [AdminInvoiceController::class, 'show'])->middleware('permission:invoices.view')->name('invoices.show');
+        Route::patch('invoices/{invoice}', [AdminInvoiceController::class, 'update'])->middleware('permission:invoices.update')->name('invoices.update');
+        Route::patch('invoices/{invoice}/resolve-paid-stock', [AdminInvoiceController::class, 'resolvePaidStock'])->middleware('permission:invoices.resolve-stock')->name('invoices.resolve-paid-stock');
+
+        Route::get('inventory', [AdminInventoryController::class, 'index'])->middleware('permission:inventory.view')->name('inventory.index');
+        Route::get('reports/profit', AdminProfitReportController::class)->middleware('permission:reports.profit.view')->name('reports.profit');
+        Route::get('inventory/export', [AdminInventoryController::class, 'export'])->middleware('permission:inventory.export')->name('inventory.export');
+        Route::get('inventory/import-template', [AdminInventoryController::class, 'template'])->middleware('permission:inventory.export')->name('inventory.template');
+        Route::post('inventory/import', [AdminInventoryController::class, 'import'])->middleware('permission:inventory.import')->name('inventory.import');
+        Route::post('inventory/{product}/opening', [AdminInventoryController::class, 'opening'])->middleware('permission:inventory.manage')->name('inventory.opening');
+        Route::post('inventory/{product}/intake', [AdminInventoryController::class, 'intake'])->middleware('permission:inventory.manage')->name('inventory.intake');
+        Route::post('inventory/{product}/transfer', [AdminInventoryController::class, 'transfer'])->middleware('permission:inventory.manage')->name('inventory.transfer');
+        Route::patch('inventory/movements/{inventoryMovement}', [AdminInventoryController::class, 'updateMovement'])->middleware('permission:inventory.manage')->name('inventory.movements.update');
+        Route::delete('inventory/movements/{inventoryMovement}', [AdminInventoryController::class, 'destroyMovement'])->middleware('permission:inventory.manage')->name('inventory.movements.destroy');
+
+        Route::get('products', [AdminProductController::class, 'index'])->middleware('permission:products.view')->name('products.index');
+        Route::get('products/create', [AdminProductController::class, 'create'])->middleware('permission:products.create')->name('products.create');
+        Route::post('products', [AdminProductController::class, 'store'])->middleware('permission:products.create')->name('products.store');
+        Route::get('products/{product}', [AdminProductController::class, 'show'])->middleware('permission:products.view')->name('products.show');
+        Route::get('products/{product}/edit', [AdminProductController::class, 'edit'])->middleware('permission:products.update')->name('products.edit');
+        Route::put('products/{product}', [AdminProductController::class, 'update'])->middleware('permission:products.update')->name('products.update');
+        Route::patch('products/{product}', [AdminProductController::class, 'update'])->middleware('permission:products.update')->name('products.update.patch');
+        Route::delete('products/{product}', [AdminProductController::class, 'destroy'])->middleware('permission:products.delete')->name('products.destroy');
+
+        Route::get('product-categories', [AdminProductCategoryController::class, 'index'])->middleware('permission:categories.view')->name('product-categories.index');
+        Route::get('product-categories/create', [AdminProductCategoryController::class, 'create'])->middleware('permission:categories.create')->name('product-categories.create');
+        Route::post('product-categories', [AdminProductCategoryController::class, 'store'])->middleware('permission:categories.create')->name('product-categories.store');
+        Route::get('product-categories/{product_category}', [AdminProductCategoryController::class, 'show'])->middleware('permission:categories.view')->name('product-categories.show');
+        Route::get('product-categories/{product_category}/edit', [AdminProductCategoryController::class, 'edit'])->middleware('permission:categories.update')->name('product-categories.edit');
+        Route::put('product-categories/{product_category}', [AdminProductCategoryController::class, 'update'])->middleware('permission:categories.update')->name('product-categories.update');
+        Route::patch('product-categories/{product_category}', [AdminProductCategoryController::class, 'update'])->middleware('permission:categories.update')->name('product-categories.update.patch');
+        Route::delete('product-categories/{product_category}', [AdminProductCategoryController::class, 'destroy'])->middleware('permission:categories.delete')->name('product-categories.destroy');
+
+        Route::get('schools', [AdminSchoolController::class, 'index'])->middleware('permission:schools.view')->name('schools.index');
+        Route::get('schools/create', [AdminSchoolController::class, 'create'])->middleware('permission:schools.create')->name('schools.create');
+        Route::post('schools', [AdminSchoolController::class, 'store'])->middleware('permission:schools.create')->name('schools.store');
+        Route::get('schools/{school}', [AdminSchoolController::class, 'show'])->middleware('permission:schools.view')->name('schools.show');
+        Route::get('schools/{school}/edit', [AdminSchoolController::class, 'edit'])->middleware('permission:schools.update')->name('schools.edit');
+        Route::put('schools/{school}', [AdminSchoolController::class, 'update'])->middleware('permission:schools.update')->name('schools.update');
+        Route::patch('schools/{school}', [AdminSchoolController::class, 'update'])->middleware('permission:schools.update')->name('schools.update.patch');
+        Route::delete('schools/{school}', [AdminSchoolController::class, 'destroy'])->middleware('permission:schools.delete')->name('schools.destroy');
+
+        Route::get('suppliers', [AdminSupplierController::class, 'index'])->middleware('permission:suppliers.view')->name('suppliers.index');
+        Route::get('suppliers/create', [AdminSupplierController::class, 'create'])->middleware('permission:suppliers.create')->name('suppliers.create');
+        Route::post('suppliers', [AdminSupplierController::class, 'store'])->middleware('permission:suppliers.create')->name('suppliers.store');
+        Route::patch('suppliers/{supplier}', [AdminSupplierController::class, 'update'])->middleware('permission:suppliers.update')->name('suppliers.update');
+        Route::patch('suppliers/{supplier}/approve', [AdminSupplierController::class, 'approve'])->middleware('permission:suppliers.approve')->name('suppliers.approve');
+        Route::patch('suppliers/{supplier}/suspend', [AdminSupplierController::class, 'suspend'])->middleware('permission:suppliers.suspend')->name('suppliers.suspend');
+        Route::patch('suppliers/{supplier}/reinstate', [AdminSupplierController::class, 'reinstate'])->middleware('permission:suppliers.suspend')->name('suppliers.reinstate');
+        Route::get('suppliers/{supplier}/download', [AdminSupplierController::class, 'download'])->middleware('permission:suppliers.download')->name('suppliers.download');
+
+        Route::get('supplier-products', [AdminSupplierOfferController::class, 'index'])->middleware('permission:supplier-products.view')->name('supplier-offers.index');
+        Route::patch('supplier-products/{offer}/approve', [AdminSupplierOfferController::class, 'approve'])->middleware('permission:supplier-products.approve')->name('supplier-offers.approve');
+        Route::patch('supplier-products/{offer}/reject', [AdminSupplierOfferController::class, 'reject'])->middleware('permission:supplier-products.reject')->name('supplier-offers.reject');
+
+        Route::get('shopping-lists', [AdminShoppingListController::class, 'index'])->middleware('permission:shopping-lists.view')->name('shopping-lists.index');
+        Route::get('shopping-lists/{shoppingList}', [AdminShoppingListController::class, 'show'])->middleware('permission:shopping-lists.view')->name('shopping-lists.show');
+        Route::get('shopping-lists/{shoppingList}/download', [AdminShoppingListController::class, 'download'])->middleware('permission:shopping-lists.download')->name('shopping-lists.download');
+
+        Route::get('drivers', [AdminDriverController::class, 'index'])->middleware('permission:drivers.view')->name('drivers.index');
+        Route::get('drivers/create', [AdminDriverController::class, 'create'])->middleware('permission:drivers.create')->name('drivers.create');
+        Route::post('drivers', [AdminDriverController::class, 'store'])->middleware('permission:drivers.create')->name('drivers.store');
+        Route::patch('drivers/{driver}', [AdminDriverController::class, 'update'])->middleware('permission:drivers.update')->name('drivers.update');
+        Route::patch('drivers/{driver}/approve', [AdminDriverController::class, 'approve'])->middleware('permission:drivers.approve')->name('drivers.approve');
+        Route::patch('drivers/{driver}/unavailable', [AdminDriverController::class, 'markUnavailable'])->middleware('permission:drivers.availability')->name('drivers.unavailable');
+        Route::patch('drivers/{driver}/available', [AdminDriverController::class, 'markAvailable'])->middleware('permission:drivers.availability')->name('drivers.available');
+        Route::get('drivers/{driver}/download', [AdminDriverController::class, 'download'])->middleware('permission:drivers.download')->name('drivers.download');
+
+        Route::get('users', [AdminUserController::class, 'index'])->middleware('permission:users.view')->name('users.index');
+        Route::get('users/create', [AdminUserController::class, 'create'])->middleware('permission:users.create')->name('users.create');
+        Route::post('users', [AdminUserController::class, 'store'])->middleware('permission:users.create')->name('users.store');
+        Route::get('users/{user}/edit', [AdminUserController::class, 'edit'])->middleware('permission:users.update')->name('users.edit');
+        Route::put('users/{user}', [AdminUserController::class, 'update'])->middleware('permission:users.update')->name('users.update');
+        Route::patch('users/{user}', [AdminUserController::class, 'update'])->middleware('permission:users.update')->name('users.update.patch');
+        Route::patch('users/{user}/status', [AdminUserController::class, 'toggleStatus'])->middleware('permission:users.deactivate')->name('users.status');
+        Route::post('users/{user}/password-link', [AdminUserController::class, 'sendPasswordLink'])->middleware('permission:users.reset-password')->name('users.password-link');
+
+        Route::get('roles', [AdminRoleController::class, 'index'])->middleware('permission:roles.view')->name('roles.index');
+        Route::get('roles/create', [AdminRoleController::class, 'create'])->middleware('permission:roles.create')->name('roles.create');
+        Route::post('roles', [AdminRoleController::class, 'store'])->middleware('permission:roles.create')->name('roles.store');
+        Route::get('roles/{role}/edit', [AdminRoleController::class, 'edit'])->middleware('permission:roles.update')->name('roles.edit');
+        Route::put('roles/{role}', [AdminRoleController::class, 'update'])->middleware('permission:roles.update')->name('roles.update');
+        Route::patch('roles/{role}', [AdminRoleController::class, 'update'])->middleware('permission:roles.update')->name('roles.update.patch');
+        Route::delete('roles/{role}', [AdminRoleController::class, 'destroy'])->middleware('permission:roles.delete')->name('roles.destroy');
+
+        Route::get('permissions', [AdminPermissionController::class, 'index'])->middleware('permission:permissions.view')->name('permissions.index');
+        Route::get('permissions/create', [AdminPermissionController::class, 'create'])->middleware('permission:permissions.create')->name('permissions.create');
+        Route::post('permissions', [AdminPermissionController::class, 'store'])->middleware('permission:permissions.create')->name('permissions.store');
+        Route::get('permissions/{permission}/edit', [AdminPermissionController::class, 'edit'])->middleware('permission:permissions.update')->name('permissions.edit');
+        Route::put('permissions/{permission}', [AdminPermissionController::class, 'update'])->middleware('permission:permissions.update')->name('permissions.update');
+        Route::patch('permissions/{permission}', [AdminPermissionController::class, 'update'])->middleware('permission:permissions.update')->name('permissions.update.patch');
+        Route::delete('permissions/{permission}', [AdminPermissionController::class, 'destroy'])->middleware('permission:permissions.delete')->name('permissions.destroy');
     });
 });

@@ -38,18 +38,18 @@
                         </td>
                         <td class="px-5 py-4">
                             <p class="text-xs font-semibold text-slate-600">Qty: <span class="text-slate-950">{{ number_format($movement->quantity) }}</span></p>
-                            <p class="mt-1 text-xs font-semibold text-slate-600">Warehouse: <span class="{{ $movement->warehouse_quantity_delta < 0 ? 'text-red-700' : 'text-emerald-700' }}">{{ $movement->warehouse_quantity_delta > 0 ? '+' : '' }}{{ number_format($movement->warehouse_quantity_delta) }}</span></p>
-                            <p class="mt-1 text-xs font-semibold text-slate-600">Display: <span class="{{ $movement->display_quantity_delta < 0 ? 'text-red-700' : 'text-emerald-700' }}">{{ $movement->display_quantity_delta > 0 ? '+' : '' }}{{ number_format($movement->display_quantity_delta) }}</span></p>
+                            <p class="mt-1 text-xs font-semibold text-slate-600">Warehouse: <span class="{{ $movement->warehouse_quantity_delta < 0 ? 'text-red-700' : 'text-orange-700' }}">{{ $movement->warehouse_quantity_delta > 0 ? '+' : '' }}{{ number_format($movement->warehouse_quantity_delta) }}</span></p>
+                            <p class="mt-1 text-xs font-semibold text-slate-600">Display: <span class="{{ $movement->display_quantity_delta < 0 ? 'text-red-700' : 'text-orange-700' }}">{{ $movement->display_quantity_delta > 0 ? '+' : '' }}{{ number_format($movement->display_quantity_delta) }}</span></p>
                         </td>
                         <td class="px-5 py-4">
                             <p class="whitespace-nowrap text-xs font-semibold text-slate-600">Cost: <span class="text-slate-950">UGX {{ number_format($movement->total_cost) }}</span></p>
                             <p class="mt-1 whitespace-nowrap text-xs font-semibold text-slate-600">Revenue: <span class="text-slate-950">UGX {{ number_format($movement->total_revenue) }}</span></p>
-                            <p class="mt-1 whitespace-nowrap text-xs font-bold text-emerald-700">Profit: UGX {{ number_format($movement->profit) }}</p>
+                            <p class="mt-1 whitespace-nowrap text-xs font-bold text-orange-700">Profit: UGX {{ number_format($movement->profit) }}</p>
                         </td>
                         <td class="px-5 py-4">
                             <div class="flex min-w-[120px] justify-end gap-2">
                                 @if ($movement->isEditable())
-                                    <button type="button" @click="$dispatch('open-admin-modal', 'edit-movement-{{ $movement->id }}')" class="grid size-9 place-items-center rounded border border-slate-200 text-slate-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" title="Edit movement" aria-label="Edit movement">
+                                    <button type="button" @click="$dispatch('open-admin-modal', 'edit-movement-{{ $movement->id }}')" class="grid size-9 place-items-center rounded border border-slate-200 text-slate-600 hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700" title="Edit movement" aria-label="Edit movement">
                                         <x-ui.icon name="edit" size="size-4" />
                                     </button>
                                     <form method="POST" action="{{ route('admin.inventory.movements.destroy', $movement) }}" onsubmit="return confirm('Delete this inventory movement?')">

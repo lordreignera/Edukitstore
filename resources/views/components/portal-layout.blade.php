@@ -2,15 +2,18 @@
     'title' => null,
     'portalName',
     'navigation' => [],
-    'theme' => 'emerald',
+    'theme' => 'orange',
     'searchAction' => null,
     'searchPlaceholder' => 'Search...',
 ])
 
 @php
-    $palette = $theme === 'violet'
-        ? ['sidebar' => 'bg-[#24204f]', 'sidebarFoot' => 'bg-[#1b183d]', 'soft' => 'bg-violet-100 text-violet-800', 'active' => 'text-[#24204f]']
-        : ['sidebar' => 'bg-[#007a52]', 'sidebarFoot' => 'bg-[#006744]', 'soft' => 'bg-emerald-100 text-emerald-800', 'active' => 'text-[#075d43]'];
+    $palette = [
+        'sidebar' => 'bg-[#071d4f] border-r border-orange-500/30',
+        'sidebarFoot' => 'bg-[#05163d] border-t border-orange-500/30',
+        'soft' => 'bg-orange-100 text-orange-800 ring-1 ring-inset ring-orange-200',
+        'active' => 'text-[#071d4f]',
+    ];
 @endphp
 
 <!DOCTYPE html>
@@ -20,6 +23,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ? $title.' | ' : '' }}{{ config('app.name', 'EduKit') }}</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/website/EDUKIT_STORE_logo2.png') }}">
+    <x-pwa-meta />
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -33,6 +38,7 @@
 
         <div class="min-h-screen lg:pl-[248px]">
             @include('portal.partials.topbar', ['palette' => $palette])
+            @include('components.temporary-password-notice')
             @if (isset($header))
                 <div class="border-b border-slate-200 bg-white px-4 py-5 sm:px-6 lg:px-8">{{ $header }}</div>
             @endif
@@ -41,5 +47,6 @@
     </div>
     @stack('modals')
     @livewireScripts
+    <x-pwa-install-prompt />
 </body>
 </html>

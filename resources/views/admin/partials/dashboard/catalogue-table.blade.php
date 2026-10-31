@@ -4,7 +4,7 @@
             <h3 class="text-sm font-extrabold text-slate-950">Latest Products</h3>
             <p class="mt-0.5 text-xs text-slate-500">Recently added items and display availability</p>
         </div>
-        <a href="{{ route('admin.products.index') }}" class="inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:text-emerald-700">
+        <a href="{{ route('admin.products.index') }}" class="inline-flex items-center gap-1 text-xs font-bold text-orange-700 hover:text-orange-800">
             View all <x-ui.icon name="arrow-right" size="size-3.5" />
         </a>
     </div>
@@ -28,7 +28,7 @@
                                     />
                                 </div>
                                 <div class="min-w-0">
-                                    <a href="{{ route('admin.products.edit', $product) }}" class="block truncate font-bold text-slate-900 hover:text-emerald-700">{{ $product->name }}</a>
+                                    <a href="{{ route('admin.products.edit', $product) }}" class="block truncate font-bold text-slate-900 hover:text-orange-700">{{ $product->name }}</a>
                                     <p class="truncate text-xs text-slate-500">{{ $product->category?->name ?? 'Uncategorised' }} &middot; {{ $product->sku }}</p>
                                 </div>
                             </div>
@@ -36,7 +36,7 @@
                         <td class="whitespace-nowrap px-5 py-3.5 font-bold text-slate-800">UGX {{ number_format($product->price) }}</td>
                         <td class="px-5 py-3.5 text-slate-600">{{ number_format($product->stock_quantity) }}</td>
                         <td class="px-5 py-3.5 text-slate-600">{{ number_format($product->warehouse_stock_quantity) }}</td>
-                        <td class="px-5 py-3.5"><span class="inline-flex rounded-full px-2 py-1 text-[11px] font-bold {{ $product->is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600' }}">{{ $product->is_active ? 'Live' : 'Hidden' }}</span></td>
+                        <td class="px-5 py-3.5"><span class="inline-flex rounded-full px-2 py-1 text-[11px] font-bold {{ $product->is_active ? 'bg-orange-50 text-orange-700' : 'bg-slate-100 text-slate-600' }}">{{ $product->is_active ? 'Live' : 'Hidden' }}</span></td>
                     </tr>
                 @empty
                     <tr><td colspan="5" class="px-5 py-10 text-center text-sm text-slate-500">No products have been added yet.</td></tr>

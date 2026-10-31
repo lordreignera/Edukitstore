@@ -41,7 +41,7 @@
                         <td class="px-5 py-4">
                             <p class="whitespace-nowrap text-xs font-bold text-slate-500">Cost: <span class="text-slate-900">UGX {{ number_format($product->cost_price) }}</span></p>
                             <p class="mt-1 whitespace-nowrap text-xs font-bold text-slate-500">Customer: <span class="text-slate-900">UGX {{ number_format($product->price) }}</span></p>
-                            <p class="mt-1 whitespace-nowrap text-xs font-bold text-emerald-700">Margin: UGX {{ number_format($product->profit_per_unit) }}</p>
+                            <p class="mt-1 whitespace-nowrap text-xs font-bold text-orange-700">Margin: UGX {{ number_format($product->profit_per_unit) }}</p>
                         </td>
                         <td class="px-5 py-4">
                             <p class="font-bold text-slate-900">{{ number_format($product->stock_quantity) }} display</p>
@@ -56,7 +56,7 @@
                             <p class="mt-1 text-xs font-semibold text-slate-500">{{ number_format($product->sold_units ?? 0) }} sold</p>
                         </td>
                         <td class="px-5 py-4">
-                            <p class="whitespace-nowrap font-black text-emerald-700">UGX {{ number_format($product->gross_profit ?? 0) }}</p>
+                            <p class="whitespace-nowrap font-black text-orange-700">UGX {{ number_format($product->gross_profit ?? 0) }}</p>
                             <p class="mt-1 text-xs text-slate-500">{{ $product->gross_margin_percentage }}% current margin</p>
                         </td>
                         <td class="px-5 py-4">
@@ -64,12 +64,12 @@
                                 @if ($product->has_opening_stock)
                                     <span class="rounded border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-500">Opening set</span>
                                 @else
-                                    <button type="button" @click="$dispatch('open-admin-modal', 'opening-product-{{ $product->id }}')" class="rounded border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100">Opening stock</button>
+                                    <button type="button" @click="$dispatch('open-admin-modal', 'opening-product-{{ $product->id }}')" class="rounded border border-orange-300 bg-orange-50 px-3 py-2 text-xs font-bold text-orange-800 hover:bg-orange-100">Opening stock</button>
                                 @endif
-                                <button type="button" @click="$dispatch('open-admin-modal', 'intake-product-{{ $product->id }}')" class="rounded bg-emerald-700 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-800">Stock intake</button>
+                                <button type="button" @click="$dispatch('open-admin-modal', 'intake-product-{{ $product->id }}')" class="rounded bg-orange-700 px-3 py-2 text-xs font-bold text-white hover:bg-orange-800">Stock intake</button>
                                 <button type="button" @click="$dispatch('open-admin-modal', 'transfer-product-{{ $product->id }}')" @disabled($product->warehouse_stock_quantity < 1) class="rounded border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">Move to display</button>
                                 <a href="{{ route('admin.products.show', $product) }}" class="rounded border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">View</a>
-                                <a href="{{ route('admin.products.edit', $product) }}" class="rounded border border-blue-200 px-3 py-2 text-xs font-bold text-blue-800 hover:bg-blue-50">Edit</a>
+                                <a href="{{ route('admin.products.edit', $product) }}" class="rounded border border-orange-200 px-3 py-2 text-xs font-bold text-orange-800 hover:bg-orange-50">Edit</a>
                                 <form method="POST" action="{{ route('admin.products.destroy', $product) }}" onsubmit="return confirm('Archive this product from the public catalogue?')">
                                     @csrf
                                     @method('DELETE')

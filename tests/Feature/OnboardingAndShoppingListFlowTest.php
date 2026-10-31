@@ -60,7 +60,7 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         $this->post(route('logout'));
 
         $this->post('/login', ['email' => 'moses.driver@example.com', 'password' => 'DriverPass123!'])
-            ->assertRedirect(route('dashboard'));
+            ->assertRedirect(route('driver.dashboard'));
     }
 
     public function test_customer_can_upload_school_shopping_list(): void
@@ -173,7 +173,7 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         $this->post(route('logout'));
 
         $this->post('/login', ['email' => 'supply@example.test', 'password' => 'SupplierPass123!'])
-            ->assertRedirect(route('dashboard'));
+            ->assertRedirect(route('supplier.dashboard'));
     }
 
     public function test_supplier_verification_document_uses_configured_documents_disk(): void

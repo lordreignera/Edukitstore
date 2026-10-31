@@ -1,12 +1,73 @@
 import './bootstrap';
 
+if ('serviceWorker' in navigator && window.isSecureContext) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {
+            // The app remains fully usable if service-worker support is unavailable.
+        });
+    });
+}
+
+const installPanel = document.querySelector('[data-pwa-install]');
+const installAction = installPanel?.querySelector('[data-pwa-install-action]');
+const installMessage = installPanel?.querySelector('[data-pwa-install-message]');
+const installDismissButtons = installPanel?.querySelectorAll('[data-pwa-install-dismiss]');
+const installDismissKey = 'edukit-pwa-install-dismissed';
+let deferredInstallPrompt = null;
+
+const isInstalled = () => window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true;
+
+const isIos = () => /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+
+const showInstallPanel = () => {
+    if (installPanel && !isInstalled() && !window.sessionStorage.getItem(installDismissKey)) {
+        installPanel.hidden = false;
+    }
+};
+
+const hideInstallPanel = () => {
+    if (installPanel) {
+        installPanel.hidden = true;
+    }
+    window.sessionStorage.setItem(installDismissKey, '1');
+};
+
+window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    showInstallPanel();
+});
+
+window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    hideInstallPanel();
+});
+
+installDismissButtons?.forEach((button) => button.addEventListener('click', hideInstallPanel));
+
+installAction?.addEventListener('click', async () => {
+    if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt = null;
+        hideInstallPanel();
+        return;
+    }
+
+    if (isIos() && installMessage) {
+        installMessage.textContent = 'In Safari, tap Share, then choose Add to Home Screen.';
+    }
+});
+
+if (isIos() && !isInstalled() && !window.sessionStorage.getItem(installDismissKey)) {
+    window.setTimeout(showInstallPanel, 2500);
+}
+
 if (document.body?.hasAttribute('data-private-page')) {
     // A browser may restore a dashboard from its back/forward cache without a request.
-    // Hide that snapshot when leaving and ask the server to authorize it again on return.
-    window.addEventListener('pagehide', () => {
-        document.documentElement.style.visibility = 'hidden';
-    });
-
+    // Revalidate that snapshot when it is restored. Do not hide the document on every
+    // ordinary navigation because that causes a visible flash before the next page loads.
     window.addEventListener('pageshow', (event) => {
         if (event.persisted) {
             window.location.reload();

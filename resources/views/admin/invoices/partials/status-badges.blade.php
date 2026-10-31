@@ -2,19 +2,19 @@
     $invoiceTone = match ($invoice->status) {
         \App\Models\ShoppingList::STATUS_PENDING => 'bg-amber-50 text-amber-700',
         \App\Models\ShoppingList::STATUS_REVIEWING => 'bg-blue-50 text-blue-700',
-        \App\Models\ShoppingList::STATUS_QUOTED => 'bg-violet-50 text-violet-700',
-        \App\Models\ShoppingList::STATUS_FULFILLED => 'bg-emerald-50 text-emerald-700',
+        \App\Models\ShoppingList::STATUS_QUOTED => 'bg-orange-50 text-orange-700',
+        \App\Models\ShoppingList::STATUS_FULFILLED => 'bg-orange-50 text-orange-700',
         \App\Models\ShoppingList::STATUS_REJECTED, \App\Models\ShoppingList::STATUS_CANCELLED => 'bg-red-50 text-red-700',
         default => 'bg-slate-100 text-slate-700',
     };
     $paymentTone = match ($invoice->payment_status) {
-        \App\Models\ShoppingList::PAYMENT_PAID => 'bg-emerald-50 text-emerald-700',
+        \App\Models\ShoppingList::PAYMENT_PAID => 'bg-orange-50 text-orange-700',
         \App\Models\ShoppingList::PAYMENT_PENDING => 'bg-blue-50 text-blue-700',
         \App\Models\ShoppingList::PAYMENT_FAILED, \App\Models\ShoppingList::PAYMENT_REFUNDED => 'bg-red-50 text-red-700',
         default => 'bg-amber-50 text-amber-700',
     };
     $deliveryTone = match ($invoice->deliveryStatus()) {
-        'delivered' => 'bg-emerald-50 text-emerald-700',
+        'delivered' => 'bg-orange-50 text-orange-700',
         'ready_for_delivery', 'in_transit' => 'bg-blue-50 text-blue-700',
         'awaiting_customer_confirmation' => 'bg-amber-50 text-amber-700',
         'under_review' => 'bg-red-50 text-red-700',

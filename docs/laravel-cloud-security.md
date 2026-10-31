@@ -28,8 +28,6 @@ SESSION_HTTP_ONLY=true
 SESSION_SAME_SITE=lax
 
 EDUKIT_PAYMENT_MODE=flutterwave
-EDUKIT_INITIAL_ADMIN_EMAIL=private-owner-address@example.com
-EDUKIT_INITIAL_ADMIN_PASSWORD=A-unique-random-password-of-16-or-more-characters-9!
 
 FLUTTERWAVE_PUBLIC_KEY=...
 FLUTTERWAVE_SECRET_KEY=...
@@ -38,7 +36,7 @@ FLUTTERWAVE_SECRET_HASH=...
 
 Laravel Cloud should generate and retain `APP_KEY`. Rotate it only with a planned key-rotation procedure using `APP_PREVIOUS_KEYS`, because changing it invalidates encrypted data and sessions.
 
-The initial administrator password is used only when the administrator account does not already exist. Sign in, replace it immediately, enable two-factor authentication or a passkey, and then remove `EDUKIT_INITIAL_ADMIN_PASSWORD` from the environment. Re-running the seeder does not reset an existing administrator password.
+The demo account seeder is disabled in production. Provision a production super administrator separately before launch, using a unique password, then enable two-factor authentication or a passkey.
 
 Use private object storage for uploaded shopping lists and partner documents. Set `DOCUMENTS_DISK` to the private Cloud storage disk. Product images may use the public disk.
 

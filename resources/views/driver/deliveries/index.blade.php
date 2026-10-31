@@ -5,7 +5,7 @@
         ['label' => 'My Deliveries', 'route' => 'driver.deliveries.index', 'pattern' => 'driver.deliveries.*', 'icon' => 'drivers', 'badge' => $readyCount ?: null],
     ];
 @endphp
-<x-portal-layout title="My Deliveries" portal-name="Delivery Partner" :navigation="$navigation" theme="violet" search-action="{{ route('driver.deliveries.index') }}" search-placeholder="Search reference, customer or phone...">
+<x-portal-layout title="My Deliveries" portal-name="Delivery Partner" :navigation="$navigation" theme="orange" search-action="{{ route('driver.deliveries.index') }}" search-placeholder="Search reference, customer or phone...">
     <x-slot name="header">
         <div>
             <h1 class="text-2xl font-extrabold text-[#071d4f]">My deliveries</h1>
@@ -16,7 +16,7 @@
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-[1500px] space-y-5">
             @if (session('status'))
-                <div class="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">{{ session('status') }}</div>
+                <div class="rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-semibold text-orange-800">{{ session('status') }}</div>
             @endif
             @if ($errors->any())
                 <div class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{{ $errors->first() }}</div>
@@ -33,7 +33,7 @@
                     <option value="waiting" @selected($status === 'waiting')>Awaiting payment</option>
                     <option value="completed" @selected($status === 'completed')>Customer confirmed receipt</option>
                 </select>
-                <button class="rounded-md bg-[#24204f] px-5 py-2.5 text-sm font-bold text-white">Filter</button>
+                <button class="rounded-md bg-[#c2410c] px-5 py-2.5 text-sm font-bold text-white">Filter</button>
             </form>
 
             <div class="grid gap-4">
@@ -44,8 +44,8 @@
                             <div>
                                 <div class="flex flex-wrap items-center gap-2">
                                     <h2 class="font-extrabold text-[#071d4f]">{{ $delivery->reference }}</h2>
-                                    <span class="rounded bg-violet-50 px-2 py-1 text-xs font-bold text-violet-700">{{ \App\Models\ShoppingList::deliveryStatuses()[$journeyStatus] ?? ucfirst($journeyStatus) }}</span>
-                                    <span class="rounded px-2 py-1 text-xs font-bold {{ $delivery->payment_status === \App\Models\ShoppingList::PAYMENT_PAID ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700' }}">{{ ucfirst($delivery->payment_status) }}</span>
+                                    <span class="rounded bg-orange-50 px-2 py-1 text-xs font-bold text-orange-700">{{ \App\Models\ShoppingList::deliveryStatuses()[$journeyStatus] ?? ucfirst($journeyStatus) }}</span>
+                                    <span class="rounded px-2 py-1 text-xs font-bold {{ $delivery->payment_status === \App\Models\ShoppingList::PAYMENT_PAID ? 'bg-orange-50 text-orange-700' : 'bg-amber-50 text-amber-700' }}">{{ ucfirst($delivery->payment_status) }}</span>
                                 </div>
                                 <dl class="mt-4 grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-3">
                                     <div><dt class="font-bold text-slate-500">Customer</dt><dd>{{ $delivery->parent_name }}</dd></div>
@@ -59,14 +59,14 @@
 
                             <div class="space-y-3">
                                 @if ($delivery->customer_received_at || $delivery->delivery_confirmed_at)
-                                    <div class="rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
+                                    <div class="rounded-md border border-orange-200 bg-orange-50 p-4 text-sm font-semibold text-orange-800">
                                         Customer confirmed receipt{{ $delivery->customer_received_at ? ' '.$delivery->customer_received_at->format('d M Y, H:i') : '' }}.
                                     </div>
                                 @elseif ($journeyStatus === 'ready_for_delivery')
                                     <form method="POST" action="{{ route('driver.deliveries.start', $delivery) }}">
                                         @csrf
                                         @method('PATCH')
-                                        <button class="w-full rounded-md bg-violet-700 px-4 py-3 text-sm font-bold text-white hover:bg-violet-800">Start journey</button>
+                                        <button class="w-full rounded-md bg-orange-700 px-4 py-3 text-sm font-bold text-white hover:bg-orange-800">Start journey</button>
                                         <p class="mt-2 text-xs leading-5 text-slate-500">This changes the customer status to In transit.</p>
                                     </form>
                                 @elseif ($journeyStatus === 'in_transit')
@@ -75,7 +75,7 @@
                                         @method('PATCH')
                                         <label class="text-sm font-bold" for="delivery_notes_{{ $delivery->id }}">Arrival note <span class="font-normal text-slate-500">(optional)</span></label>
                                         <textarea id="delivery_notes_{{ $delivery->id }}" name="delivery_notes" rows="3" class="w-full rounded-md border-slate-300 text-sm" placeholder="Tell the customer where you are waiting."></textarea>
-                                        <button class="w-full rounded-md bg-violet-700 px-4 py-3 text-sm font-bold text-white hover:bg-violet-800">I have reached</button>
+                                        <button class="w-full rounded-md bg-orange-700 px-4 py-3 text-sm font-bold text-white hover:bg-orange-800">I have reached</button>
                                     </form>
                                 @elseif ($journeyStatus === 'awaiting_customer_confirmation')
                                     <div class="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900">You have marked arrival. Ask the customer to review the items and confirm receipt.</div>

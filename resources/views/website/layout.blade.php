@@ -4,6 +4,8 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>@yield('title', config('app.name', 'EduKit'))</title>
+        <link rel="icon" type="image/png" href="{{ asset('images/website/EDUKIT_STORE_logo2.png') }}">
+        <x-pwa-meta />
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800&display=swap" rel="stylesheet" />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -12,10 +14,10 @@
         @include('website.partials.navbar')
 
         @if (session('cart_added'))
-            <div role="status" class="border-b border-emerald-200 bg-emerald-50">
-                <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm font-bold text-emerald-900 sm:px-6 lg:px-8">
+            <div role="status" class="border-b border-orange-200 bg-orange-50">
+                <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm font-bold text-orange-900 sm:px-6 lg:px-8">
                     <span>{{ session('cart_added') }}</span>
-                    <a href="{{ route('website.cart.index') }}#order-details" class="rounded-md bg-emerald-700 px-4 py-2 text-white hover:bg-emerald-800">Checkout</a>
+                    <a href="{{ route('website.cart.index') }}#order-details" class="rounded-md bg-orange-700 px-4 py-2 text-white hover:bg-orange-800">Checkout</a>
                 </div>
             </div>
         @endif
@@ -26,5 +28,6 @@
 
         @include('website.partials.footer')
         @stack('scripts')
+        <x-pwa-install-prompt />
     </body>
 </html>

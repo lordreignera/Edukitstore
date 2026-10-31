@@ -4,7 +4,7 @@
 
     <div>
         <label class="text-sm font-medium text-gray-700" for="status">Invoice status</label>
-        <select id="status" name="status" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+        <select id="status" name="status" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-orange-600 focus:ring-orange-600">
             @foreach ($statuses as $value => $label)
                 <option value="{{ $value }}" @selected(old('status', $invoice->status) === $value)>{{ $label }}</option>
             @endforeach
@@ -15,15 +15,15 @@
     @if ($invoice->source === \App\Models\ShoppingList::SOURCE_CART)
         @include('admin.invoices.partials.summary', ['invoice' => $invoice])
 
-        <div class="rounded border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-950">
+        <div class="rounded border border-orange-100 bg-orange-50 p-4 text-sm text-orange-950">
             <p class="font-bold">Convenience fee was calculated at checkout.</p>
-            <p class="mt-1 text-xs leading-5 text-emerald-800">To change future fees, edit the school record. This invoice keeps the fee that was shown to the customer.</p>
+            <p class="mt-1 text-xs leading-5 text-orange-800">To change future fees, edit the school record. This invoice keeps the fee that was shown to the customer.</p>
         </div>
     @else
         @if ($invoice->status !== \App\Models\ShoppingList::STATUS_QUOTED && $invoice->payment_status === \App\Models\ShoppingList::PAYMENT_UNPAID)
             <input type="hidden" name="items_present" value="1">
             <div class="space-y-3" data-invoice-items>
-                <div class="flex items-center justify-between"><p class="text-sm font-bold text-gray-800">Priced catalogue items</p><button type="button" data-add-invoice-item class="text-sm font-bold text-emerald-700">Add item</button></div>
+                <div class="flex items-center justify-between"><p class="text-sm font-bold text-gray-800">Priced catalogue items</p><button type="button" data-add-invoice-item class="text-sm font-bold text-orange-700">Add item</button></div>
                 @php($rows = old('items', $invoice->lineItems->map(fn ($item) => ['product_id' => $item->product_id, 'quantity' => $item->quantity, 'unit_price' => (int) $item->unit_price])->all()))
                 <div data-invoice-item-rows class="space-y-2">
                     @foreach ($rows ?: [['product_id' => '', 'quantity' => 1, 'unit_price' => '']] as $index => $row)
@@ -69,7 +69,7 @@
 
         <div>
             <label class="text-sm font-medium text-gray-700" for="delivery_fee">Convenience fee (UGX)</label>
-            <input id="delivery_fee" name="delivery_fee" type="number" min="0" step="1" value="{{ old('delivery_fee', $invoice->delivery_fee) }}" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+            <input id="delivery_fee" name="delivery_fee" type="number" min="0" step="1" value="{{ old('delivery_fee', $invoice->delivery_fee) }}" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-orange-600 focus:ring-orange-600">
             @error('delivery_fee') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             <p class="mt-1 text-xs text-gray-500">The total includes this fee and the item subtotal.</p>
         </div>
@@ -77,7 +77,7 @@
 
     <div>
         <label class="text-sm font-medium text-gray-700" for="assigned_driver_id">Assigned driver</label>
-        <select id="assigned_driver_id" name="assigned_driver_id" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+        <select id="assigned_driver_id" name="assigned_driver_id" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-orange-600 focus:ring-orange-600">
             <option value="">Select approved driver</option>
             @foreach ($drivers as $driver)
                 <option value="{{ $driver->id }}" @selected((int) old('assigned_driver_id', $invoice->assigned_driver_id) === $driver->id)>
@@ -90,12 +90,12 @@
     </div>
 
     @if ($invoice->assignedDriver)
-        <div class="rounded border border-emerald-100 bg-emerald-50 p-4 text-sm">
-            <p class="font-bold text-emerald-950">{{ $invoice->assignedDriver->name }}</p>
-            <p class="mt-1 text-emerald-800">{{ $invoice->assignedDriver->phone ?? 'No phone recorded' }}</p>
-            <p class="mt-1 text-xs text-emerald-700">{{ $invoice->customer_received_at ? 'Customer confirmed receipt on '.$invoice->customer_received_at->format('M d, Y H:i') : ($invoice->driver_reached_at ? 'Driver reached the destination; awaiting customer receipt.' : ($invoice->driver_started_at ? 'Driver is in transit.' : 'Awaiting the driver to start the journey.')) }}</p>
+        <div class="rounded border border-orange-100 bg-orange-50 p-4 text-sm">
+            <p class="font-bold text-orange-950">{{ $invoice->assignedDriver->name }}</p>
+            <p class="mt-1 text-orange-800">{{ $invoice->assignedDriver->phone ?? 'No phone recorded' }}</p>
+            <p class="mt-1 text-xs text-orange-700">{{ $invoice->customer_received_at ? 'Customer confirmed receipt on '.$invoice->customer_received_at->format('M d, Y H:i') : ($invoice->driver_reached_at ? 'Driver reached the destination; awaiting customer receipt.' : ($invoice->driver_started_at ? 'Driver is in transit.' : 'Awaiting the driver to start the journey.')) }}</p>
         </div>
     @endif
 
-    <button class="rounded bg-emerald-700 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-800">Save invoice</button>
+    <button class="rounded bg-orange-700 px-5 py-2 text-sm font-semibold text-white hover:bg-orange-800">Save invoice</button>
 </form>

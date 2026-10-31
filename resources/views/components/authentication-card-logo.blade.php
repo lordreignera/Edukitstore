@@ -1,3 +1,3 @@
 <a href="{{ route('website.home') }}" aria-label="EduKit Store home">
-    <img src="{{ asset('images/website/edukit-store-logo.png') }}" alt="EduKit Store" class="h-12 w-auto max-w-[190px] object-contain sm:h-14 sm:max-w-[210px]">
+    <x-edukit-logo class="h-20 w-20 rounded-full object-contain sm:h-24 sm:w-24" />
 </a>

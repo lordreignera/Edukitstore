@@ -5,7 +5,7 @@
         </x-slot>
 
         @session('status')
-            <div class="mb-4 font-medium text-sm text-green-600">
+            <div class="mb-4 font-medium text-sm text-orange-600">
                 {{ $value }}
             </div>
         @endsession
@@ -25,7 +25,7 @@
                     {{ __('Email Password Reset Link') }}
                 </x-button>
             </div>
-            <p class="mt-5 text-center text-sm text-slate-600"><a href="{{ route('login') }}" class="font-bold text-emerald-700">Back to sign in</a></p>
+            <p class="mt-5 text-center text-sm text-slate-600"><a href="{{ route('login') }}" class="font-bold text-orange-700">Back to sign in</a></p>
         </form>
     </x-authentication-card>
 </x-guest-layout>

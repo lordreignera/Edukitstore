@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Http\Responses\RoleAwareLoginResponse;
+use App\Http\Responses\RoleAwareTwoFactorLoginResponse;
 use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -13,6 +15,8 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
+use Laravel\Fortify\Contracts\TwoFactorLoginResponse as TwoFactorLoginResponseContract;
 use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
 use Laravel\Fortify\Fortify;
 
@@ -23,7 +27,8 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(LoginResponseContract::class, RoleAwareLoginResponse::class);
+        $this->app->singleton(TwoFactorLoginResponseContract::class, RoleAwareTwoFactorLoginResponse::class);
     }
 
     /**
@@ -42,13 +47,18 @@ class FortifyServiceProvider extends ServiceProvider
             ->symbols());
 
         Fortify::authenticateUsing(function (Request $request) {
-            $user = User::where('email', Str::lower((string) $request->input('email')))->first();
+            $email = Str::lower((string) $request->input('email'));
+
+            // A copied local database must not make documented demo credentials valid in production.
+            if (! app()->environment(['local', 'testing']) && Str::endsWith($email, '@edukit.test')) {
+                return null;
+            }
+
+            $user = User::where('email', $email)->first();
 
             if (! $user || ! $user->is_active || ! Hash::check((string) $request->input('password'), $user->password)) {
                 return null;
             }
-
-            $user->forceFill(['last_login_at' => now()])->save();
 
             return $user;
         });

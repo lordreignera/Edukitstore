@@ -6,16 +6,16 @@
                 <p class="mt-1 text-sm text-gray-500">Manage catalogue details, customer prices and stock visible on the website.</p>
             </div>
             <div class="flex flex-wrap gap-3">
-                <a href="{{ route('admin.inventory.index', ['open_import' => 1]) }}" class="inline-flex items-center gap-2 rounded border border-blue-700 px-4 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-50">
+                <a href="{{ route('admin.inventory.index', ['open_import' => 1]) }}" class="inline-flex items-center gap-2 rounded border border-orange-600 px-4 py-2 text-sm font-semibold text-orange-800 hover:bg-orange-50">
                     <x-ui.icon name="upload" size="size-4" /> Import CSV
                 </a>
-                <a href="{{ route('admin.inventory.export') }}" class="inline-flex items-center gap-2 rounded border border-blue-700 px-4 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-50">
+                <a href="{{ route('admin.inventory.export') }}" class="inline-flex items-center gap-2 rounded border border-orange-600 px-4 py-2 text-sm font-semibold text-orange-800 hover:bg-orange-50">
                     <x-ui.icon name="download" size="size-4" /> Export CSV
                 </a>
-                <a href="{{ route('admin.product-categories.create') }}" class="inline-flex items-center gap-2 rounded border border-emerald-700 px-4 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-50">
+                <a href="{{ route('admin.product-categories.create') }}" class="inline-flex items-center gap-2 rounded border border-orange-700 px-4 py-2 text-sm font-semibold text-orange-800 hover:bg-orange-50">
                     <x-ui.icon name="tag" size="size-4" /> Add category
                 </a>
-                <a href="{{ route('admin.products.create') }}" class="inline-flex items-center gap-2 rounded bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">
+                <a href="{{ route('admin.products.create') }}" class="inline-flex items-center gap-2 rounded bg-orange-700 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-800">
                     <x-ui.icon name="plus" size="size-4" /> Add product
                 </a>
             </div>
@@ -25,17 +25,17 @@
     <div class="py-8">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <form method="GET" class="mb-5 grid gap-3 border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-2 xl:grid-cols-[minmax(180px,1fr)_170px_140px_140px_auto_auto]">
-                <input name="q" value="{{ $search }}" placeholder="Search name, product code or brand" class="h-10 rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600">
-                <select name="category" class="h-10 rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600"><option value="">All categories</option>@foreach ($categories as $category)<option value="{{ $category->id }}" @selected($categoryId === (string) $category->id)>{{ $category->name }}</option>@endforeach</select>
-                <select name="status" class="h-10 rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600"><option value="">Any status</option><option value="active" @selected($status === 'active')>Active</option><option value="hidden" @selected($status === 'hidden')>Hidden</option></select>
-                <select name="featured" class="h-10 rounded border-slate-300 text-sm focus:border-emerald-600 focus:ring-emerald-600"><option value="">Featured or not</option><option value="yes" @selected($featured === 'yes')>Featured</option><option value="no" @selected($featured === 'no')>Not featured</option></select>
+                <input name="q" value="{{ $search }}" placeholder="Search name, product code or brand" class="h-10 rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
+                <select name="category" class="h-10 rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600"><option value="">All categories</option>@foreach ($categories as $category)<option value="{{ $category->id }}" @selected($categoryId === (string) $category->id)>{{ $category->name }}</option>@endforeach</select>
+                <select name="status" class="h-10 rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600"><option value="">Any status</option><option value="active" @selected($status === 'active')>Active</option><option value="hidden" @selected($status === 'hidden')>Hidden</option></select>
+                <select name="featured" class="h-10 rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600"><option value="">Featured or not</option><option value="yes" @selected($featured === 'yes')>Featured</option><option value="no" @selected($featured === 'no')>Not featured</option></select>
                 <button class="h-10 rounded bg-[#07215f] px-4 text-sm font-bold text-white hover:bg-[#0b2f7c]">Filter</button>
                 <a href="{{ route('admin.products.index') }}" class="grid h-10 place-items-center rounded border border-slate-300 px-4 text-sm font-bold text-slate-600 hover:bg-slate-50">Clear</a>
             </form>
             <section class="rounded border border-gray-200 bg-white shadow-sm">
                 <div class="border-b border-gray-100 px-5 py-4">
                     @if (session('status'))
-                        <p class="text-sm font-medium text-emerald-700">{{ session('status') }}</p>
+                        <p class="text-sm font-medium text-orange-700">{{ session('status') }}</p>
                     @else
                         <p class="text-sm text-gray-500">Website/display stock is the quantity parents can buy. Warehouse stock is moved through the inventory module.</p>
                     @endif
@@ -72,18 +72,18 @@
                                         @endif
                                     </td>
                                     <td class="px-5 py-4 text-gray-600">{{ number_format($product->warehouse_stock_quantity) }}</td>
-                                    <td class="px-5 py-4 font-semibold text-emerald-700">UGX {{ number_format($product->profit_per_unit) }}</td>
+                                    <td class="px-5 py-4 font-semibold text-orange-700">UGX {{ number_format($product->profit_per_unit) }}</td>
                                     <td class="px-5 py-4">
-                                        <span class="rounded px-2 py-1 text-xs font-semibold {{ $product->is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600' }}">
+                                        <span class="rounded px-2 py-1 text-xs font-semibold {{ $product->is_active ? 'bg-orange-50 text-orange-700' : 'bg-gray-100 text-gray-600' }}">
                                             {{ $product->is_active ? 'Active' : 'Hidden' }}
                                         </span>
                                     </td>
                                     <td class="px-5 py-4">
                                         <div class="flex justify-end gap-2">
-                                            <a href="{{ route('admin.products.show', $product) }}" class="grid size-9 place-items-center rounded border border-slate-200 text-slate-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" title="View product" aria-label="View {{ $product->name }}">
+                                            <a href="{{ route('admin.products.show', $product) }}" class="grid size-9 place-items-center rounded border border-slate-200 text-slate-600 hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700" title="View product" aria-label="View {{ $product->name }}">
                                                 <x-ui.icon name="eye" size="size-4" />
                                             </a>
-                                            <a href="{{ route('admin.products.edit', $product) }}" class="grid size-9 place-items-center rounded border border-slate-200 text-slate-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700" title="Edit product" aria-label="Edit {{ $product->name }}">
+                                            <a href="{{ route('admin.products.edit', $product) }}" class="grid size-9 place-items-center rounded border border-slate-200 text-slate-600 hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700" title="Edit product" aria-label="Edit {{ $product->name }}">
                                                 <x-ui.icon name="edit" size="size-4" />
                                             </a>
                                             <form method="POST" action="{{ route('admin.products.destroy', $product) }}" onsubmit="return confirm('Archive this product from the public catalogue?')">

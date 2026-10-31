@@ -9,8 +9,8 @@
             <fieldset>
                 <legend class="text-sm font-extrabold text-[#071d4f]">Product identity</legend>
                 <div class="mt-3 grid gap-3 sm:grid-cols-2">
-                    <label class="flex cursor-pointer gap-3 rounded-md border border-slate-200 p-4"><input type="radio" name="product_mode" value="existing" class="mt-1 text-emerald-700" @checked(old('product_mode', 'existing') === 'existing')><span><strong class="block text-sm">Use master product</strong><span class="text-xs text-slate-500">Use EduKit's approved name, category and image.</span></span></label>
-                    <label class="flex cursor-pointer gap-3 rounded-md border border-slate-200 p-4"><input type="radio" name="product_mode" value="new" class="mt-1 text-emerald-700" @checked(old('product_mode') === 'new')><span><strong class="block text-sm">Propose new product</strong><span class="text-xs text-slate-500">For a genuinely different bag, shoe, brand or item.</span></span></label>
+                    <label class="flex cursor-pointer gap-3 rounded-md border border-slate-200 p-4"><input type="radio" name="product_mode" value="existing" class="mt-1 text-orange-700" @checked(old('product_mode', 'existing') === 'existing')><span><strong class="block text-sm">Use master product</strong><span class="text-xs text-slate-500">Use EduKit's approved name, category and image.</span></span></label>
+                    <label class="flex cursor-pointer gap-3 rounded-md border border-slate-200 p-4"><input type="radio" name="product_mode" value="new" class="mt-1 text-orange-700" @checked(old('product_mode') === 'new')><span><strong class="block text-sm">Propose new product</strong><span class="text-xs text-slate-500">For a genuinely different bag, shoe, brand or item.</span></span></label>
                 </div>
             </fieldset>
 
@@ -37,7 +37,7 @@
                 <div><label class="text-sm font-bold">Your price per unit (UGX)</label><input name="supplier_price" type="number" min="1" value="{{ old('supplier_price') }}" required class="mt-1 w-full rounded-md border-slate-300"></div>
                 <div><label class="text-sm font-bold">Low stock alert</label><input name="reorder_level" type="number" min="0" value="{{ old('reorder_level', 5) }}" required class="mt-1 w-full rounded-md border-slate-300"></div>
             </div>
-            <div class="mt-6 flex justify-end gap-3"><a href="{{ route('supplier.offers.index') }}" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-bold">Cancel</a><button class="rounded-md bg-emerald-700 px-5 py-2 text-sm font-bold text-white">Submit for approval</button></div>
+            <div class="mt-6 flex justify-end gap-3"><a href="{{ route('supplier.offers.index') }}" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-bold">Cancel</a><button class="rounded-md bg-orange-700 px-5 py-2 text-sm font-bold text-white">Submit for approval</button></div>
         </form>
     </div>
     <script>

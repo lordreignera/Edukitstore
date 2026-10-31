@@ -12,7 +12,7 @@
                     <div>
                         <p class="font-bold text-gray-950">{{ data_get($item, 'product_name') ?? data_get($item, 'name') }}</p>
                         <p class="text-xs text-gray-500">{{ data_get($item, 'sku') }} | Qty {{ data_get($item, 'quantity') }} | UGX {{ number_format(data_get($item, 'unit_price')) }} each</p>
-                        <p class="mt-1 text-xs font-semibold {{ data_get($item, 'fulfilment_source', 'edukit') === 'supplier' ? 'text-emerald-700' : 'text-blue-700' }}">{{ data_get($item, 'fulfilment_source', 'edukit') === 'supplier' ? 'Supplier direct fulfilment' : 'EduKit warehouse fulfilment' }}</p>
+                        <p class="mt-1 text-xs font-semibold {{ data_get($item, 'fulfilment_source', 'edukit') === 'supplier' ? 'text-orange-700' : 'text-blue-700' }}">{{ data_get($item, 'fulfilment_source', 'edukit') === 'supplier' ? 'Supplier direct fulfilment' : 'EduKit warehouse fulfilment' }}</p>
                         @if(data_get($item, 'profit_total') !== null)<p class="mt-1 text-xs text-gray-500">Cost: UGX {{ number_format(data_get($item, 'cost_total')) }} | EduKit profit: UGX {{ number_format(data_get($item, 'profit_total')) }}@if(data_get($item, 'supplier_payable') > 0) | Supplier payable: UGX {{ number_format(data_get($item, 'supplier_payable')) }}@endif</p>@endif
                     </div>
                     <p class="font-bold text-gray-950">UGX {{ number_format(data_get($item, 'line_total')) }}</p>

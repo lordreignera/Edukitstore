@@ -14,10 +14,10 @@
         <p class="mt-2 text-3xl font-extrabold text-slate-950">UGX {{ number_format($stats['stock_value']) }}</p>
         <p class="mt-2 text-xs font-semibold text-indigo-700">Remaining stock at cost</p>
     </article>
-    <article class="rounded-md border border-violet-100 bg-violet-50 p-4">
+    <article class="rounded-md border border-orange-100 bg-orange-50 p-4">
         <p class="text-xs font-bold text-slate-600">Gross profit</p>
         <p class="mt-2 text-3xl font-extrabold text-slate-950">UGX {{ number_format($stats['gross_profit']) }}</p>
-        <p class="mt-2 text-xs font-semibold text-violet-700">For the selected period</p>
+        <p class="mt-2 text-xs font-semibold text-orange-700">For the selected period</p>
     </article>
     <article class="rounded-md border border-slate-200 bg-white p-4">
         <p class="text-xs font-bold text-slate-600">Opening balance</p>
@@ -34,9 +34,9 @@
         <p class="mt-2 text-3xl font-extrabold text-slate-950">{{ number_format($stats['low_display_products']) }}</p>
         <p class="mt-2 text-xs font-semibold text-amber-700">Need transfer or buying</p>
     </article>
-    <article class="rounded-md border border-emerald-100 bg-emerald-50 p-4">
+    <article class="rounded-md border border-orange-100 bg-orange-50 p-4">
         <p class="text-xs font-bold text-slate-600">Sold units</p>
         <p class="mt-2 text-3xl font-extrabold text-slate-950">{{ number_format($stats['sold_units']) }}</p>
-        <p class="mt-2 text-xs font-semibold text-emerald-700">From verified payments in period</p>
+        <p class="mt-2 text-xs font-semibold text-orange-700">From verified payments in period</p>
     </article>
 </section>

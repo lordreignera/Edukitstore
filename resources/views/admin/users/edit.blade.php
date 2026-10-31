@@ -1,6 +1,6 @@
 <x-admin-layout>
     <x-slot name="header">
-        <div><p class="text-sm font-bold text-emerald-700">Users &amp; Roles</p><h1 class="mt-1 text-2xl font-extrabold text-[#071d4f]">Edit account</h1></div>
+        <div><p class="text-sm font-bold text-orange-700">User management / Users</p><h1 class="mt-1 text-2xl font-extrabold text-[#071d4f]">Edit account</h1></div>
     </x-slot>
 
     <div class="py-8">

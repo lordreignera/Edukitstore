@@ -2,59 +2,178 @@
 
 namespace Database\Seeders;
 
+use App\Models\Driver;
+use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolesAndSuperAdminSeeder extends Seeder
 {
+    /**
+     * Seed local demo accounts for each EduKit workspace.
+     *
+     * These accounts are intentionally limited to local/testing environments.
+     * Users are reminded to change their temporary password after login.
+     */
     public function run(): void
     {
-        foreach ([
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $roles = [
             'super-admin',
             'admin',
             'finance-admin',
             'supplier',
+            // Kept for compatibility with older records; new driver accounts
+            // use the delivery-person role required by the driver routes.
             'driver',
             'delivery-person',
             'school-admin',
             'school-receiver',
             'parent',
-        ] as $role) {
-            Role::findOrCreate($role);
+        ];
+
+        foreach ($roles as $role) {
+            Role::findOrCreate($role, 'web');
         }
 
-        $email = config('edukit.initial_admin_email');
-        $password = config('edukit.initial_admin_password');
-        if (! $email || ! $password) {
-            return;
-        }
+        $this->call(PermissionSeeder::class);
 
-        if (app()->isProduction() && in_array(Str::lower($password), [
-            'password',
-            'password123',
-            'admin',
-            'admin123',
-        ], true)) {
-            throw new \RuntimeException('EDUKIT_INITIAL_ADMIN_PASSWORD cannot be a commonly used password in production.');
-        }
-
-        if (strlen($password) < 16) {
-            throw new \RuntimeException('EDUKIT_INITIAL_ADMIN_PASSWORD must contain at least 16 characters.');
-        }
-
-        $superAdmin = User::firstOrCreate(
-            ['email' => Str::lower($email)],
+        // Demo accounts require an explicit local opt-in.
+        $accounts = config('edukit.seed_demo_accounts') && app()->environment(['local', 'testing']) ? [
             [
                 'name' => 'EduKit Super Admin',
-                'password' => $password,
-                'email_verified_at' => now(),
+                'email' => 'superadmin@edukit.test',
+                'password' => 'Edukit@Super2026!Secure',
+                'role' => 'super-admin',
+            ],
+            [
+                'name' => 'EduKit Administrator',
+                'email' => 'admin@edukit.test',
+                'password' => 'Edukit@Admin2026!Secure',
+                'role' => 'admin',
+            ],
+            [
+                'name' => 'Finance Administrator',
+                'email' => 'finance@edukit.test',
+                'password' => 'Edukit@Finance2026!Secure',
+                'role' => 'finance-admin',
+            ],
+            [
+                'name' => 'EduKit Supplier',
+                'email' => 'supplier@edukit.test',
+                'password' => 'Edukit@Supplier2026!Secure',
+                'role' => 'supplier',
+                'profile' => 'supplier',
+            ],
+            [
+                'name' => 'EduKit Driver',
+                'email' => 'driver@edukit.test',
+                'password' => 'Edukit@Driver2026!Secure',
+                // This is the role used by routes/web.php for the driver workspace.
+                'role' => 'delivery-person',
+                'profile' => 'driver',
+            ],
+            [
+                'name' => 'School Administrator',
+                'email' => 'schooladmin@edukit.test',
+                'password' => 'Edukit@School2026!Secure',
+                'role' => 'school-admin',
+            ],
+            [
+                'name' => 'School Receiver',
+                'email' => 'receiver@edukit.test',
+                'password' => 'Edukit@Receiver2026!Secure',
+                'role' => 'school-receiver',
+            ],
+            [
+                'name' => 'EduKit Parent',
+                'email' => 'parent@edukit.test',
+                'password' => 'Edukit@Parent2026!Secure',
+                'role' => 'parent',
+            ],
+        ] : [];
+        DB::transaction(function () use ($accounts): void {
+            foreach ($accounts as $account) {
+                $user = User::firstOrNew([
+                    'email' => Str::lower($account['email']),
+                ]);
+
+                $isNew = ! $user->exists;
+                $user->fill([
+                    'name' => $account['name'],
+                    'email_verified_at' => $user->email_verified_at ?? now(),
+                    'is_active' => true,
+                ]);
+
+                // Existing seeded users still on a temporary password receive
+                // the documented credential. A password already changed by a
+                // user is preserved on later seed runs.
+                if ($isNew || $user->must_change_password) {
+                    $user->password = Hash::make($account['password']);
+                    $user->must_change_password = true;
+                }
+
+                $user->save();
+                $user->syncRoles([$account['role']]);
+
+                if (($account['profile'] ?? null) === 'supplier') {
+                    $this->seedSupplierProfile($user);
+                }
+
+                if (($account['profile'] ?? null) === 'driver') {
+                    $this->seedDriverProfile($user);
+                }
+
+                $this->command?->info("Seeded {$account['role']}: {$account['email']}");
+            }
+        });
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $this->command?->info('EduKit roles and demo accounts seeded successfully.');
+    }
+
+    private function seedSupplierProfile(User $user): void
+    {
+        Supplier::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'business_name' => 'EduKit Demo Supplier',
+                'contact_person' => $user->name,
+                'phone' => '0700000000',
+                'email' => $user->email,
+                'district' => 'Kampala',
+                'product_categories' => 'Books, stationery and school bags',
+                'supply_capacity' => 'Demo account',
+                'source' => 'seed',
+                'is_approved' => true,
                 'is_active' => true,
-                'must_change_password' => true,
+                'approved_at' => now(),
             ]
         );
+    }
 
-        $superAdmin->assignRole('super-admin');
+    private function seedDriverProfile(User $user): void
+    {
+        Driver::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'phone' => '0700000001',
+                'email' => $user->email,
+                'district' => 'Kampala',
+                'vehicle_type' => 'Motorcycle',
+                'vehicle_registration' => 'DEMO-001',
+                'source' => 'seed',
+                'is_approved' => true,
+                'is_available' => true,
+                'approved_at' => now(),
+            ]
+        );
     }
 }

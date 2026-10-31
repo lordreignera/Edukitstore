@@ -2,12 +2,12 @@
     <x-slot name="header">
         <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-                <p class="text-sm font-bold text-emerald-700">Delivery Setup</p>
+                <p class="text-sm font-bold text-orange-700">Delivery Setup</p>
                 <h1 class="mt-1 text-2xl font-extrabold text-[#071d4f]">{{ $school->name }}</h1>
                 <p class="mt-1 text-sm text-slate-500">{{ $school->district?->name ?? 'District pending' }}</p>
             </div>
             <div class="flex gap-2">
-                <a href="{{ route('admin.schools.edit', $school) }}" class="rounded bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800">Edit school</a>
+                <a href="{{ route('admin.schools.edit', $school) }}" class="rounded bg-orange-700 px-4 py-2 text-sm font-bold text-white hover:bg-orange-800">Edit school</a>
                 <a href="{{ route('admin.schools.index') }}" class="rounded border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50">Back</a>
             </div>
         </div>
@@ -21,7 +21,7 @@
                         <p class="text-xs font-bold uppercase text-slate-500">Checkout school</p>
                         <h2 class="mt-1 text-xl font-black text-[#071d4f]">{{ $school->name }}</h2>
                     </div>
-                    <span class="rounded px-2 py-1 text-xs font-bold {{ $school->is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600' }}">
+                    <span class="rounded px-2 py-1 text-xs font-bold {{ $school->is_active ? 'bg-orange-50 text-orange-700' : 'bg-slate-100 text-slate-600' }}">
                         {{ $school->is_active ? 'Active' : 'Hidden' }}
                     </span>
                 </div>
@@ -72,7 +72,7 @@
                                     <td class="px-5 py-4 text-slate-600">{{ \App\Models\ShoppingList::paymentStatuses()[$invoice->payment_status] ?? ucfirst($invoice->payment_status) }}</td>
                                     <td class="px-5 py-4 font-semibold text-slate-900">{{ $invoice->estimated_total ? 'UGX '.number_format($invoice->estimated_total) : 'Pending' }}</td>
                                     <td class="px-5 py-4 text-right">
-                                        <a href="{{ route('admin.invoices.show', $invoice) }}" class="rounded bg-[#07215f] px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700">Open</a>
+                                        <a href="{{ route('admin.invoices.show', $invoice) }}" class="rounded bg-[#07215f] px-3 py-1.5 text-xs font-bold text-white hover:bg-orange-700">Open</a>
                                     </td>
                                 </tr>
                             @empty

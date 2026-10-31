@@ -1,14 +1,16 @@
 <?php
 
-use App\Http\Middleware\EnsurePasswordHasBeenChanged;
+use App\Http\Middleware\EnsureWebAccountIsAllowed;
 use App\Http\Middleware\NoStoreAuthenticatedResponses;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
+use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -20,13 +22,17 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(SecurityHeaders::class);
         $middleware->appendToGroup('web', NoStoreAuthenticatedResponses::class);
+        $middleware->appendToGroup('web', EnsureWebAccountIsAllowed::class);
         $middleware->alias([
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
-            'password.changed' => EnsurePasswordHasBeenChanged::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->respond(function (Response $response, \Throwable $exception, Request $request): Response {
+            $response = app(NoStoreAuthenticatedResponses::class)->apply($request, $response);
+
+            return app(SecurityHeaders::class)->apply($request, $response);
+        });
     })->create();

@@ -3,7 +3,7 @@
     <div class="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-6">
         @foreach ($whyChoose as $item)
             <div class="text-center">
-                <div class="mx-auto grid size-12 place-items-center text-emerald-600">
+                <div class="mx-auto grid size-12 place-items-center text-orange-600">
                     <svg viewBox="0 0 24 24" class="size-9" fill="none" aria-hidden="true">
                         <path d="{{ $item['icon'] }}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>

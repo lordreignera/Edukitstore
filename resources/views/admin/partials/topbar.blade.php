@@ -3,18 +3,18 @@
 @endphp
 
 <header class="sticky top-0 z-30 flex min-h-[72px] flex-wrap items-center gap-3 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur sm:px-6 lg:px-7">
-    <button type="button" class="grid size-10 shrink-0 place-items-center rounded-md border border-slate-200 text-slate-700 lg:hidden" aria-label="Open navigation" @click="adminMenuOpen = true">
+    <button type="button" class="grid size-10 shrink-0 place-items-center rounded-md border border-orange-200 text-[#071d4f] transition hover:border-orange-400 hover:bg-orange-50 lg:hidden" aria-label="Open navigation" @click="adminMenuOpen = true">
         <x-ui.icon name="menu" />
     </button>
 
     <form method="GET" action="{{ route('admin.products.index') }}" class="relative order-3 w-full sm:order-none sm:min-w-0 sm:max-w-md sm:flex-1">
         <label for="admin-search" class="sr-only">Search products</label>
         <x-ui.icon name="search" size="size-[18px]" class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input id="admin-search" name="q" value="{{ request('q') }}" placeholder="Search products by name or code..." class="h-10 w-full rounded-md border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:ring-emerald-600">
+        <input id="admin-search" name="q" value="{{ request('q') }}" placeholder="Search products by name or code..." class="h-10 w-full rounded-md border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:border-orange-600 focus:bg-white focus:ring-orange-600">
     </form>
 
     <div class="ml-auto flex items-center gap-2 sm:gap-3">
-        <a href="{{ route('admin.shopping-lists.index') }}" class="relative grid size-10 place-items-center rounded-md text-slate-600 transition hover:bg-slate-100 hover:text-[#071d4f]" aria-label="Open operational alerts">
+        <a href="{{ route('admin.shopping-lists.index') }}" class="relative grid size-10 place-items-center rounded-md text-slate-600 transition hover:bg-orange-50 hover:text-orange-700" aria-label="Open operational alerts">
             <x-ui.icon name="bell" />
             @if ($pendingTotal > 0)
                 <span class="absolute right-1.5 top-1.5 size-2 rounded-full bg-red-500 ring-2 ring-white"></span>
@@ -23,10 +23,10 @@
 
         <div class="relative" x-data="{ userMenuOpen: false }">
             <button type="button" class="flex h-11 items-center gap-2 rounded-md px-2 text-left transition hover:bg-slate-100" @click="userMenuOpen = !userMenuOpen" :aria-expanded="userMenuOpen">
-                <span class="grid size-9 place-items-center rounded-full bg-emerald-100 text-xs font-extrabold text-emerald-800">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</span>
+                <span class="grid size-9 place-items-center rounded-full bg-orange-100 text-xs font-extrabold text-orange-800 ring-1 ring-inset ring-orange-200">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</span>
                 <span class="hidden max-w-36 sm:block">
                     <span class="block truncate text-sm font-bold text-slate-900">{{ auth()->user()->name }}</span>
-                    <span class="block truncate text-xs text-slate-500">Administrator</span>
+                    <span class="block truncate text-xs text-slate-500">{{ str(auth()->user()->getRoleNames()->first() ?? 'Administrator')->replace('-', ' ')->title() }}</span>
                 </span>
                 <x-ui.icon name="chevron-down" size="size-4" class="hidden text-slate-400 sm:block" />
             </button>
