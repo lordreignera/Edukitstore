@@ -18,6 +18,11 @@ class PermissionSeeder extends Seeder
             Permission::findOrCreate($name, 'web');
         }
 
+        // Permission creation clears the cache through model events, but an
+        // explicit refresh here also makes a fresh migration deterministic
+        // when a persistent cache contains an older permission list.
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
         foreach (PermissionCatalog::defaultRolePermissions() as $roleName => $permissions) {
             $role = Role::findOrCreate($roleName, 'web');
 
