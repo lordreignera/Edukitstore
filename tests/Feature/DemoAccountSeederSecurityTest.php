@@ -76,4 +76,23 @@ class DemoAccountSeederSecurityTest extends TestCase
         $this->get(route('admin.dashboard'))->assertRedirect(route('login'));
         $this->assertStringContainsString('no-store', $response->headers->get('Cache-Control'));
     }
+
+    public function test_demo_credentials_can_sign_in_online_when_explicitly_enabled(): void
+    {
+        config([
+            'edukit.seed_demo_accounts' => true,
+            'edukit.allow_demo_accounts_online' => true,
+        ]);
+        $this->app['env'] = 'production';
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+
+        app(RolesAndSuperAdminSeeder::class)->run();
+
+        $this->post('/login', [
+            'email' => 'superadmin@edukit.test',
+            'password' => 'Edukit@Super2026!Secure',
+        ])->assertRedirect(route('admin.dashboard', absolute: false));
+
+        $this->get(route('admin.dashboard'))->assertOk();
+    }
 }

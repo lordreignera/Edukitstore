@@ -12,6 +12,21 @@
     </x-slot>
 
     <div class="px-4 py-6 sm:px-6 lg:px-8"><div class="mx-auto max-w-[1500px] space-y-5">
+        <x-dashboard-guide
+            eyebrow="Finance workflow"
+            title="How to read this report"
+            intro="This workspace is read-only. Use the filters and settlement columns to reconcile paid sales without mixing EduKit warehouse stock with supplier-direct stock."
+            :steps="[
+                ['title' => 'Set the reporting period', 'description' => 'Choose a source and date range, or leave the filters broad to review all paid sales.', 'route' => 'finance.dashboard', 'action' => 'Refresh report'],
+                ['title' => 'Separate stock owners', 'description' => 'EduKit warehouse sales show stock cost and gross profit; supplier-direct sales show supplier payable and EduKit margin.'],
+                ['title' => 'Check settlement', 'description' => 'Supplier-direct earnings become earned after delivery; use the settlement column to identify pending or reserved amounts.'],
+                ['title' => 'Reconcile each line', 'description' => 'Use the order reference, product, quantity, revenue and cost/payable columns to trace a paid sale back to its source.'],
+            ]"
+            :notes="[
+                'Finance does not approve products, stock, users or deliveries from this workspace.',
+                'Operational corrections belong in the administrator workspace and should be followed by a report refresh.',
+            ]"
+        />
         <form method="GET" action="{{ route('finance.dashboard') }}" class="grid gap-3 rounded-md border border-slate-200 bg-white p-4 sm:grid-cols-4">
             <select name="source" class="rounded-md border-slate-300 text-sm"><option value="">All stock owners</option><option value="edukit" @selected($source === 'edukit')>EduKit warehouse</option><option value="supplier" @selected($source === 'supplier')>Supplier direct</option></select>
             <input type="date" name="from" value="{{ $from?->format('Y-m-d') }}" class="rounded-md border-slate-300 text-sm" aria-label="From date">

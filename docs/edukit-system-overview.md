@@ -284,7 +284,7 @@ Authentication is provided by Laravel Fortify/Jetstream:
 1. User submits email and password.
 2. Email is normalized to lowercase.
 3. Inactive accounts are rejected.
-4. Documented `@edukit.test` demo accounts are rejected outside local/testing environments.
+4. Documented `@edukit.test` demo accounts are rejected outside local/testing environments unless both `EDUKIT_SEED_DEMO_ACCOUNTS=true` and `EDUKIT_ALLOW_DEMO_ACCOUNTS_ONLINE=true` explicitly enable them.
 5. Login attempts are rate-limited by email/IP and by account.
 6. If enabled, two-factor authentication or passkey authentication completes before the login event is treated as successful.
 7. `last_login_at` is recorded on the successful web login event.
@@ -397,7 +397,7 @@ For local demo payment testing, use `EDUKIT_PAYMENT_MODE=demo`, then clear cache
 php artisan config:clear
 ```
 
-For normal payment integration, use `EDUKIT_PAYMENT_MODE=flutterwave` and configure the Flutterwave secret key and webhook hash. Do not use demo credentials or demo payment mode in production.
+For normal payment integration, use `EDUKIT_PAYMENT_MODE=flutterwave` and configure the Flutterwave secret key and webhook hash. Demo payment mode remains disabled in production. Shared demo credentials are also disabled online by default and should only be enabled deliberately for a controlled deployment, then changed or disabled immediately.
 
 The automated test suite currently verifies authentication, role routing, account activation, seeded-account behavior, catalogue, inventory, shopping-list, payment, supplier, driver, delivery, and security behavior. The last full run completed with 127 tests passing and 1,102 assertions.
 

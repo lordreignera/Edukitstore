@@ -22,6 +22,24 @@
                 </div>
             @endif
 
+            <x-dashboard-guide
+                title="Administrator workflow"
+                intro="Work through the queues in order: keep the catalogue and stock accurate, review partner and customer requests, then monitor fulfilment and settlement."
+                :steps="[
+                    ['title' => 'Maintain the catalogue', 'description' => 'Create categories and products before stock or customer orders are processed.', 'route' => 'admin.products.index', 'action' => 'Open products', 'permission' => 'products.view'],
+                    ['title' => 'Keep stock accurate', 'description' => 'Record opening stock, intake and transfers, then watch low-stock and display-stock indicators.', 'route' => 'admin.inventory.index', 'action' => 'Open inventory', 'permission' => 'inventory.view'],
+                    ['title' => 'Approve partners', 'description' => 'Review supplier and driver applications before their accounts can be used for fulfilment.', 'route' => 'admin.suppliers.index', 'action' => 'Review suppliers', 'permission' => 'suppliers.view'],
+                    ['title' => 'Review supplier offers', 'description' => 'Approve or reject supplier products and stock proposals before they become available for customer orders.', 'route' => 'admin.supplier-offers.index', 'action' => 'Review offers', 'permission' => 'supplier-products.view'],
+                    ['title' => 'Process customer requests', 'description' => 'Review shopping lists and quotes, verify payment or exceptions, and resolve paid stock before delivery.', 'route' => 'admin.shopping-lists.index', 'action' => 'Open shopping lists', 'permission' => 'shopping-lists.view'],
+                    ['title' => 'Monitor delivery', 'description' => 'Use invoices to check fulfilment and delivery progress; assigned drivers start journeys and record arrival.', 'route' => 'admin.invoices.index', 'action' => 'Open invoices', 'permission' => 'invoices.view'],
+                    ['title' => 'Manage access and results', 'description' => 'Use users, roles and permissions to control access, then use the profit report for performance review.', 'route' => 'admin.users.index', 'action' => 'Open users', 'permission' => 'users.view'],
+                ]"
+                :notes="[
+                    'Supplier and driver logins become usable after their application or account is approved and active.',
+                    'Do not treat a quote as ready for delivery until payment and stock checks have been completed.',
+                ]"
+            />
+
             @include('admin.partials.dashboard.stat-cards')
 
             @include('admin.partials.dashboard.insights')

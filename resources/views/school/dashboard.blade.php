@@ -16,6 +16,26 @@
     </x-slot>
 
     <div class="px-4 py-6 sm:px-6 lg:px-8"><div class="mx-auto max-w-5xl space-y-5">
+        <x-dashboard-guide
+            eyebrow="School workflow"
+            :title="$isSchoolAdmin ? 'How to request school supplies' : 'How to receive a school delivery'"
+            :intro="$isSchoolAdmin ? 'Browse the catalogue or send a shopping list for quotation, then use the order reference and matching contact details to follow delivery.' : 'Use the order reference and the matching contact details supplied with the order to check progress and complete receipt.'"
+            :steps="$isSchoolAdmin ? [
+                ['title' => 'Browse the catalogue', 'description' => 'Review the current EduKit products before deciding whether to shop directly or send a full list.', 'route' => 'website.products.index', 'action' => 'Browse products'],
+                ['title' => 'Send a shopping list', 'description' => 'Upload the required items and quantities so EduKit can prepare a quotation.', 'route' => 'website.upload-list', 'action' => 'Upload a list'],
+                ['title' => 'Review the quote', 'description' => 'Use the reference returned after submission to open the quote, review the items and complete payment when ready.'],
+                ['title' => 'Track the order', 'description' => 'Enter the order reference and the same phone number or email used with the request.', 'route' => 'website.track-order', 'action' => 'Track an order'],
+                ['title' => 'Confirm receipt', 'description' => 'After delivery, inspect the items and acknowledge receipt from the order page.'],
+            ] : [
+                ['title' => 'Get the order details', 'description' => 'Ask the school office or order contact for the reference and the phone number or email used with the order.'],
+                ['title' => 'Track the delivery', 'description' => 'Use those matching details to view the current delivery status.', 'route' => 'website.track-order', 'action' => 'Track an order'],
+                ['title' => 'Check the delivered items', 'description' => 'When the driver arrives, compare the delivery with the order before accepting it.'],
+                ['title' => 'Confirm receipt', 'description' => 'Acknowledge receipt from the order page after the delivery has been checked.'],
+            ]"
+            :notes="[
+                'The current tracking flow uses an order reference plus matching phone number or email; it does not yet display an account-based order history.',
+            ]"
+        />
         <section class="rounded-md border border-slate-200 bg-white p-6">
             <h2 class="text-lg font-bold text-[#071d4f]">{{ $isSchoolAdmin ? 'School supply requests' : 'Receiving deliveries' }}</h2>
             <p class="mt-2 text-sm leading-6 text-slate-600">{{ $isSchoolAdmin ? 'Browse supplies, submit a shopping list, or check a submitted order.' : 'Check a delivery using its order reference and the contact details supplied with the order.' }}</p>

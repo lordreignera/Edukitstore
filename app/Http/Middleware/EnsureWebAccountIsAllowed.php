@@ -2,9 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\DemoAccountAccess;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureWebAccountIsAllowed
@@ -15,8 +15,7 @@ class EnsureWebAccountIsAllowed
         $user = $sessionUser?->fresh();
 
         if ($sessionUser && (! $user || ! $user->is_active || (
-            ! app()->environment(['local', 'testing'])
-            && Str::endsWith(Str::lower($user->email), '@edukit.test')
+            ! DemoAccountAccess::isAllowed($user->email)
         ))) {
             auth()->guard('web')->logout();
             $request->session()->invalidate();

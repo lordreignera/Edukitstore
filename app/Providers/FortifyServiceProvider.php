@@ -8,6 +8,7 @@ use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Http\Responses\RoleAwareLoginResponse;
 use App\Http\Responses\RoleAwareTwoFactorLoginResponse;
 use App\Models\User;
+use App\Support\DemoAccountAccess;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -49,8 +50,9 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::authenticateUsing(function (Request $request) {
             $email = Str::lower((string) $request->input('email'));
 
-            // A copied local database must not make documented demo credentials valid in production.
-            if (! app()->environment(['local', 'testing']) && Str::endsWith($email, '@edukit.test')) {
+            // A copied local database must not make documented demo credentials
+            // valid online unless online demo access was explicitly enabled.
+            if (! DemoAccountAccess::isAllowed($email)) {
                 return null;
             }
 

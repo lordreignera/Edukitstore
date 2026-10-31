@@ -9,7 +9,7 @@ For the complete implementation map, including technology versions, role-to-rout
 1. Run `composer install` and `npm install`.
 2. Copy `.env.example` to `.env`, set the database and mail settings, then run `php artisan key:generate`.
 3. For local demo accounts, keep `EDUKIT_SEED_DEMO_ACCOUNTS=true`, then run `php artisan migrate --seed`, `php artisan storage:link`, and `npm run build`.
-4. In local/testing environments, the seed creates demo accounts for each EduKit workspace. Every demo account is active, assigned its role, and shown a reminder to replace its temporary password. Production and staging skip demo accounts; provision the first production administrator separately before launch.
+4. In local/testing environments, the seed creates demo accounts for each EduKit workspace. Every demo account is active, assigned its role, and shown a reminder to replace its temporary password. Production and staging skip these accounts by default. If the deployed site is intentionally using the same shared accounts, set both `EDUKIT_SEED_DEMO_ACCOUNTS=true` and `EDUKIT_ALLOW_DEMO_ACCOUNTS_ONLINE=true`, then run the seeder on the deployed database.
 5. Run `php artisan test`.
 
 The local demo credentials are:
@@ -26,6 +26,17 @@ The local demo credentials are:
 | Parent | `parent@edukit.test` | `Edukit@Parent2026!Secure` |
 
 Re-running the seeder updates only accounts that still have `must_change_password=true`; it does not reset a password already changed by a user.
+
+For an explicitly enabled deployed site, run the following after setting those two environment variables:
+
+```powershell
+php artisan optimize:clear
+php artisan migrate --force
+php artisan db:seed --class=RolesAndSuperAdminSeeder --force
+php artisan config:cache
+```
+
+These are shared temporary credentials. Change them immediately after the first online login, or disable online demo access when they are no longer needed.
 
 First login opens the assigned role workspace directly: admin, finance profit report, supplier, delivery partner, school staff, or parent. An account still using its temporary password sees a security reminder linking to the optional change-password form; changing the password is recommended but not required to enter the workspace. `/dashboard` remains a role-aware compatibility dispatcher for existing links and verification flows. Finance cannot open admin management pages. School and parent workspaces link to the existing catalogue, list-upload, and reference-based order-tracking flows; school and order records are not yet linked directly to those user accounts.
 

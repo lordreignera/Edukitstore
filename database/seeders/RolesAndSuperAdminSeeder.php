@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Driver;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Support\DemoAccountAccess;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -15,10 +16,10 @@ use Spatie\Permission\PermissionRegistrar;
 class RolesAndSuperAdminSeeder extends Seeder
 {
     /**
-     * Seed local demo accounts for each EduKit workspace.
+     * Seed the optional shared accounts for each EduKit workspace.
      *
-     * These accounts are intentionally limited to local/testing environments.
-     * Users are reminded to change their temporary password after login.
+     * Online use requires an explicit environment opt-in. Users are reminded
+     * to change their temporary password after login.
      */
     public function run(): void
     {
@@ -44,8 +45,9 @@ class RolesAndSuperAdminSeeder extends Seeder
 
         $this->call(PermissionSeeder::class);
 
-        // Demo accounts require an explicit local opt-in.
-        $accounts = config('edukit.seed_demo_accounts') && app()->environment(['local', 'testing']) ? [
+        // Demo accounts require an explicit opt-in. Online use additionally
+        // requires EDUKIT_ALLOW_DEMO_ACCOUNTS_ONLINE=true.
+        $accounts = DemoAccountAccess::shouldSeed() ? [
             [
                 'name' => 'EduKit Super Admin',
                 'email' => 'superadmin@edukit.test',
