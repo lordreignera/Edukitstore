@@ -2,7 +2,7 @@
     $pendingTotal = array_sum($adminNavStats);
 @endphp
 
-<header class="sticky top-0 z-30 flex min-h-[72px] flex-wrap items-center gap-3 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur sm:px-6 lg:px-7">
+<header class="sticky top-0 z-30 flex min-h-[72px] flex-wrap items-center gap-3 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur print:hidden sm:px-6 lg:px-7">
     <button type="button" class="grid size-10 shrink-0 place-items-center rounded-md border border-orange-200 text-[#071d4f] transition hover:border-orange-400 hover:bg-orange-50 lg:hidden" aria-label="Open navigation" @click="adminMenuOpen = true">
         <x-ui.icon name="menu" />
     </button>

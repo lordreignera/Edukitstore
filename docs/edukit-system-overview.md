@@ -35,7 +35,7 @@ Both sources become a `ShoppingList` record. The same record acts as the custome
 | Front-end build | Vite `^7.0.7`, Axios, Tailwind CSS, Tailwind Vite integration |
 | Database | Local `.env` uses MySQL; `.env.example` defaults to SQLite |
 | Session storage | Database sessions |
-| Payment provider | Flutterwave in normal operation; demo payment mode for local/testing |
+| Payment provider | Flutterwave in normal operation; demo payment mode for local/testing or an explicitly enabled online dry run |
 | File storage | Laravel filesystem; local disk by default, S3-compatible disk supported |
 | Test framework | PHPUnit `^11.5.50` through Laravel's test runner |
 | Runtime tooling verified | Node.js `22.14.0` |
@@ -137,7 +137,7 @@ Payment states are separate from order states:
 - `failed`
 - `refunded`
 
-For local/testing demo mode:
+For local/testing demo mode, or an online dry run explicitly enabled with `EDUKIT_ALLOW_DEMO_PAYMENTS_ONLINE=true`:
 
 1. The customer confirms the itemized total.
 2. `DemoPaymentService` records a demo payment attempt.
@@ -397,7 +397,9 @@ For local demo payment testing, use `EDUKIT_PAYMENT_MODE=demo`, then clear cache
 php artisan config:clear
 ```
 
-For normal payment integration, use `EDUKIT_PAYMENT_MODE=flutterwave` and configure the Flutterwave secret key and webhook hash. Demo payment mode remains disabled in production. Shared demo credentials are also disabled online by default and should only be enabled deliberately for a controlled deployment, then changed or disabled immediately.
+For a controlled online dry run, set `EDUKIT_PAYMENT_MODE=demo` and `EDUKIT_ALLOW_DEMO_PAYMENTS_ONLINE=true`, then run `php artisan optimize:clear` and `php artisan config:cache`. This does not contact Flutterwave or collect money, but it does consume stock and create demo-paid order records. Use test stock and clean up dry-run records before real operations.
+
+For normal payment integration, use `EDUKIT_PAYMENT_MODE=flutterwave` and configure the Flutterwave secret key and webhook hash. To end the dry run, set `EDUKIT_PAYMENT_MODE=flutterwave` and `EDUKIT_ALLOW_DEMO_PAYMENTS_ONLINE=false`, then clear and recache configuration.
 
 The automated test suite currently verifies authentication, role routing, account activation, seeded-account behavior, catalogue, inventory, shopping-list, payment, supplier, driver, delivery, and security behavior. The last full run completed with 127 tests passing and 1,102 assertions.
 

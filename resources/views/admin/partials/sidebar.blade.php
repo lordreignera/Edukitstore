@@ -14,7 +14,7 @@
     ];
 @endphp
 
-<aside class="fixed inset-y-0 left-0 z-50 flex w-[248px] -translate-x-full flex-col border-r border-orange-500/30 bg-[#071d4f] text-white shadow-2xl transition-transform duration-200 lg:translate-x-0"
+<aside class="fixed inset-y-0 left-0 z-50 flex w-[248px] -translate-x-full flex-col border-r border-orange-500/30 bg-[#071d4f] text-white shadow-2xl transition-transform duration-200 print:hidden lg:translate-x-0"
     :class="adminMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
     <div class="relative flex h-[80px] items-center justify-center border-b border-orange-200 border-t-4 border-t-orange-600 bg-white px-5">
         <a href="{{ route('admin.dashboard') }}" class="flex items-center justify-center">
@@ -45,6 +45,13 @@
                 @endcan
             @endforeach
         </nav>
+
+        @can('admin.dashboard.view')
+            <a href="{{ route('user-guide') }}" class="mt-6 flex min-h-11 items-center gap-3 rounded-md border px-3 py-2.5 text-sm font-semibold transition {{ request()->routeIs('user-guide*') ? 'border-orange-300 bg-white text-[#071d4f] shadow-sm' : 'border-transparent text-slate-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-white' }}">
+                <x-ui.icon name="file" size="size-[18px]" />
+                <span>User guide</span>
+            </a>
+        @endcan
 
         @canany(['users.view', 'roles.view', 'permissions.view'])
             <details class="group mt-8">

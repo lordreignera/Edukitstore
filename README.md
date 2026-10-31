@@ -46,9 +46,11 @@ EduKit includes a Progressive Web App (PWA) manifest and service worker. On a su
 
 ## Payments
 
-For local testing before Flutterwave credentials are available, set `EDUKIT_PAYMENT_MODE=demo` in `.env` and run `php artisan config:clear`. The invoice then offers **Complete demo payment** after the customer reviews and confirms the itemized total. Demo payments collect no money, are labeled on the invoice, and are excluded from financial reports. Demo mode runs only when `APP_ENV` is `local` or `testing`; production cannot enable it. Demo orders consume test inventory, so use local test data.
+For local testing before Flutterwave credentials are available, set `EDUKIT_PAYMENT_MODE=demo` in `.env` and run `php artisan config:clear`. The invoice then offers **Complete demo payment** after the customer reviews and confirms the itemized total. Demo payments collect no money, are labeled on the invoice, and are excluded from financial reports. Demo orders consume test inventory, so use local test data.
 
-When credentials arrive, set `EDUKIT_PAYMENT_MODE=flutterwave`, add the Flutterwave secret key and webhook hash, and run `php artisan config:clear`. Flutterwave also provides its own [test mode](https://developer.flutterwave.com/docs/testing) for testing the real checkout integration without real money.
+For a controlled online dry run, set both `EDUKIT_PAYMENT_MODE=demo` and `EDUKIT_ALLOW_DEMO_PAYMENTS_ONLINE=true` on the deployed environment, then run `php artisan optimize:clear` and `php artisan config:cache`. Demo payments do not contact Flutterwave or collect money, but they consume inventory and create demo-paid order and delivery records. Use test stock and reset or remove dry-run records before real operations.
+
+When the dry run is complete, set `EDUKIT_PAYMENT_MODE=flutterwave` and `EDUKIT_ALLOW_DEMO_PAYMENTS_ONLINE=false`, then run `php artisan optimize:clear` and `php artisan config:cache` before accepting real orders. Flutterwave also provides its own [test mode](https://developer.flutterwave.com/docs/testing) for testing the real checkout integration without real money.
 
 Set `FLUTTERWAVE_SECRET_KEY` and `FLUTTERWAVE_SECRET_HASH`. Configure the Flutterwave dashboard webhook URL as `/api/payments/flutterwave/webhook` with the same secret hash. Flutterwave's [webhook guide](https://developer.flutterwave.com/docs/webhooks) describes the `verif-hash` header. The callback and webhook both re-query the transaction verification API before marking an invoice paid.
 

@@ -40,7 +40,7 @@
                     @endif
                 </a>
 
-                <a href="{{ route('login') }}" class="hidden min-h-10 items-center gap-1 rounded-md px-2.5 hover:bg-slate-50 hover:text-orange-700 sm:inline-flex">
+                <a href="{{ route('login') }}" class="inline-flex min-h-10 items-center gap-1 rounded-md px-2.5 text-xs hover:bg-slate-50 hover:text-orange-700 sm:text-sm">
                     <x-ui.icon name="user" size="size-4" />
                     Sign In
                 </a>
@@ -60,7 +60,6 @@
                             @endforeach
                         </nav>
                         <div class="grid gap-2 border-t border-slate-100 p-3 min-[460px]:hidden">
-                            <a href="{{ route('login') }}" class="rounded-md border border-[#d8e5f0] px-4 py-3 text-center text-sm font-black text-[#07215f]">Sign In</a>
                             <a href="{{ route('website.join') }}" class="rounded-md bg-orange-600 px-4 py-3 text-center text-sm font-black text-white">Join EduKit</a>
                         </div>
                     </div>

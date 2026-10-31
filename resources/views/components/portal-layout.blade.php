@@ -28,6 +28,7 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @stack('styles')
     @livewireStyles
 </head>
 <body data-private-page class="bg-slate-50 font-sans text-slate-900 antialiased">
@@ -36,7 +37,7 @@
         <div x-cloak x-show="portalMenuOpen" x-transition.opacity class="fixed inset-0 z-40 bg-slate-950/55 lg:hidden" @click="portalMenuOpen = false"></div>
         @include('portal.partials.sidebar', ['palette' => $palette])
 
-        <div class="min-h-screen lg:pl-[248px]">
+        <div class="min-h-screen lg:pl-[248px] print:pl-0">
             @include('portal.partials.topbar', ['palette' => $palette])
             @include('components.temporary-password-notice')
             @if (isset($header))

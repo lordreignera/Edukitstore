@@ -28,6 +28,8 @@ SESSION_HTTP_ONLY=true
 SESSION_SAME_SITE=lax
 
 EDUKIT_PAYMENT_MODE=flutterwave
+# Keep false in production; enable only for a controlled dry run with demo payment mode.
+EDUKIT_ALLOW_DEMO_PAYMENTS_ONLINE=false
 
 FLUTTERWAVE_PUBLIC_KEY=...
 FLUTTERWAVE_SECRET_KEY=...
@@ -36,7 +38,7 @@ FLUTTERWAVE_SECRET_HASH=...
 
 Laravel Cloud should generate and retain `APP_KEY`. Rotate it only with a planned key-rotation procedure using `APP_PREVIOUS_KEYS`, because changing it invalidates encrypted data and sessions.
 
-The demo account seeder is disabled in production. Provision a production super administrator separately before launch, using a unique password, then enable two-factor authentication or a passkey.
+The demo account seeder and online demo payments are disabled in production by default. For a controlled dry run only, explicitly set `EDUKIT_PAYMENT_MODE=demo` and `EDUKIT_ALLOW_DEMO_PAYMENTS_ONLINE=true`, use test stock, and switch both settings back before real operations. Provision a production super administrator separately before launch, using a unique password, then enable two-factor authentication or a passkey.
 
 Use private object storage for uploaded shopping lists and partner documents. Set `DOCUMENTS_DISK` to the private Cloud storage disk. Product images may use the public disk.
 

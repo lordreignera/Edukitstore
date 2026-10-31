@@ -69,6 +69,17 @@ class DemoPaymentTest extends TestCase
         $this->assertFalse(\App\Support\PaymentMode::demoEnabled());
     }
 
+    public function test_demo_mode_can_be_explicitly_enabled_for_an_online_dry_run(): void
+    {
+        config([
+            'edukit.payment_mode' => 'demo',
+            'edukit.allow_demo_payments_online' => true,
+            'app.env' => 'production',
+        ]);
+
+        $this->assertTrue(\App\Support\PaymentMode::demoEnabled());
+    }
+
     public function test_direct_checkout_completes_demo_payment_and_records_profit(): void
     {
         config(['edukit.payment_mode' => 'demo', 'app.env' => 'testing']);

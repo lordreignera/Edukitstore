@@ -133,6 +133,29 @@ class SeededAccountsTest extends TestCase
         }
     }
 
+    public function test_each_seeded_workspace_can_open_and_download_its_user_guide(): void
+    {
+        config(['edukit.seed_demo_accounts' => true]);
+        $this->seed(RolesAndSuperAdminSeeder::class);
+
+        foreach ($this->accounts() as $account) {
+            $this->flushSession();
+            $this->app['auth']->forgetGuards();
+
+            $user = User::where('email', $account['email'])->firstOrFail();
+
+            $this->actingAs($user)
+                ->get(route('user-guide'))
+                ->assertOk()
+                ->assertSee('User guide')
+                ->assertSee('Download guide');
+
+            $this->get(route('user-guide.download'))
+                ->assertOk()
+                ->assertHeader('Content-Disposition');
+        }
+    }
+
     /**
      * @return array<int, array{email: string, password: string, role: string}>
      */

@@ -59,6 +59,8 @@ class WebsiteProductFlowTest extends TestCase
             ->assertSee('Everything for their education')
             ->assertSee('Ugandan Exercise Book 96 Pages')
             ->assertSee('UGX 2,500')
+            ->assertSee('Sign In')
+            ->assertSee(route('login'))
             ->assertSee('Mobile apps are being prepared');
     }
 

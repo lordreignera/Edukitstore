@@ -1,4 +1,4 @@
-<aside class="fixed inset-y-0 left-0 z-50 flex w-[248px] -translate-x-full flex-col text-white shadow-2xl transition-transform duration-200 lg:translate-x-0 {{ $palette['sidebar'] }}"
+<aside class="fixed inset-y-0 left-0 z-50 flex w-[248px] -translate-x-full flex-col text-white shadow-2xl transition-transform duration-200 print:hidden lg:translate-x-0 {{ $palette['sidebar'] }}"
     :class="portalMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
     <div class="relative flex h-[80px] items-center justify-center border-b border-orange-200 border-t-4 border-t-orange-600 bg-white px-5">
         <a href="{{ route('dashboard') }}" class="flex items-center justify-center">
@@ -18,6 +18,11 @@
                 </a>
             @endforeach
         </nav>
+
+        <a href="{{ route('user-guide') }}" class="mt-6 flex min-h-11 items-center gap-3 rounded-md border px-3 py-2.5 text-sm font-semibold transition {{ request()->routeIs('user-guide*') ? 'border-orange-300 bg-white shadow-sm '.$palette['active'] : 'border-transparent text-slate-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-white' }}">
+            <x-ui.icon name="file" size="size-[18px]" />
+            <span>User guide</span>
+        </a>
 
         <p class="mt-8 px-3 text-[11px] font-bold uppercase text-orange-200/80">EduKit</p>
         <a href="{{ route('website.home') }}" target="_blank" class="mt-3 flex min-h-11 items-center gap-3 rounded-md border border-transparent px-3 py-2.5 text-sm font-semibold text-slate-100 transition hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-white">
