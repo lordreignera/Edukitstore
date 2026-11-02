@@ -1,23 +1,26 @@
 @if ($featuredProducts->isNotEmpty())
-    <section class="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
-        <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+    <section id="shop" class="border-b border-[#dbe8f3] bg-white">
+        <div class="mx-auto max-w-7xl px-4 pb-8 pt-5 sm:px-6 lg:px-8">
+            <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div>
-                <p class="text-[11px] font-black uppercase text-orange-700">Popular now</p>
-                <h2 class="text-[24px] font-black text-[#07215f] sm:text-[28px]">Featured school supplies</h2>
-                <p class="mt-1 text-sm font-medium text-slate-600">Live prices from the EduKit product catalogue.</p>
+                <p class="text-[11px] font-black uppercase tracking-[0.18em] text-orange-700">Shop EduKit</p>
+                <h1 class="mt-1 text-[25px] font-black leading-tight text-[#07215f] sm:text-[30px]">School essentials, ready to order</h1>
+                <p class="mt-1 text-sm font-medium text-slate-600">Browse books, pens, uniforms, bags and more from the EduKit catalogue.</p>
             </div>
-            <div class="no-scrollbar flex gap-5 overflow-x-auto text-[12px] font-black text-slate-500">
-                <a href="{{ route('website.products.index') }}" class="border-b-2 border-orange-500 pb-2 text-orange-700">All</a>
+            <a href="{{ route('website.products.index') }}" class="inline-flex min-h-10 items-center justify-center rounded-md bg-orange-600 px-4 py-2 text-xs font-black text-white shadow-sm hover:bg-orange-700">View all products</a>
+            </div>
+
+            <div class="no-scrollbar mt-4 flex gap-2 overflow-x-auto pb-1 text-[11px] font-black text-slate-600">
+                <a href="{{ route('website.products.index') }}" class="whitespace-nowrap rounded-full border border-orange-500 bg-orange-50 px-3 py-1.5 text-orange-700">All products</a>
                 @foreach ($featuredTabs as $tab)
-                    <a href="{{ route('website.products.index', ['category' => \Illuminate\Support\Str::slug($tab)]) }}" class="whitespace-nowrap border-b-2 border-transparent pb-2 hover:text-orange-700">{{ $tab }}</a>
+                    <a href="{{ route('website.products.index', ['category' => \Illuminate\Support\Str::slug($tab)]) }}" class="whitespace-nowrap rounded-full border border-[#d7e4ef] bg-white px-3 py-1.5 hover:border-orange-500 hover:text-orange-700">{{ $tab }}</a>
                 @endforeach
             </div>
-        </div>
 
-        <div class="mt-6 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
             @foreach ($featuredProducts->take(6) as $product)
                 <article class="group overflow-hidden rounded-md border border-[#dbe8f3] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                    <a href="{{ route('website.products.show', $product) }}" class="relative block aspect-[1.05] bg-[#f8fbff]">
+                    <a href="{{ route('website.products.show', $product) }}" class="relative block aspect-[4/3] bg-[#f8fbff] sm:aspect-square">
                         <span class="absolute left-2 top-2 z-10 rounded bg-white/95 px-2 py-1 text-[10px] font-black uppercase text-orange-700 shadow-sm">{{ $product->category?->name ?? 'Supply' }}</span>
                         <x-ui.responsive-image
                             :src="$product->image_url"
@@ -29,14 +32,13 @@
                     <div class="p-3">
                         <a href="{{ route('website.products.show', $product) }}" class="line-clamp-2 block min-h-10 text-[12px] font-black leading-5 text-[#07215f] group-hover:text-orange-700 sm:text-[13px]">{{ $product->name }}</a>
                         <p class="mt-2 text-[15px] font-black text-slate-950">UGX {{ number_format($product->marketplace_price) }}</p>
-                        <p class="mt-0.5 text-[11px] font-semibold text-slate-500">{{ number_format($product->marketplace_stock_quantity) }} available</p>
                         @if ($product->marketplace_stock_quantity > 0)
-                            <form method="POST" action="{{ route('website.cart.store', $product) }}" class="mt-3 grid grid-cols-2 gap-2">
+                            <form method="POST" action="{{ route('website.cart.store', $product) }}" class="mt-3 grid grid-cols-[3.5rem_minmax(0,1fr)_minmax(0,1fr)] gap-1.5 min-[420px]:grid-cols-2 min-[420px]:gap-2">
                                 @csrf
                                 <label class="sr-only" for="featured-quantity-{{ $product->id }}">Quantity</label>
-                                <input id="featured-quantity-{{ $product->id }}" name="quantity" type="number" min="1" max="{{ $product->marketplace_stock_quantity }}" value="1" class="col-span-2 h-9 w-full rounded-md border-[#d7e4ef] text-center text-xs font-bold text-[#07215f] focus:border-orange-600 focus:ring-orange-600">
-                                <button class="w-full rounded-md bg-orange-600 px-1 py-2 text-[11px] font-black text-white hover:bg-orange-700">Add to cart</button>
-                                <button name="checkout" value="1" class="w-full rounded-md bg-[#07215f] px-1 py-2 text-[11px] font-black text-white hover:bg-orange-700">Checkout</button>
+                                <input id="featured-quantity-{{ $product->id }}" name="quantity" type="number" min="1" max="{{ $product->marketplace_stock_quantity }}" value="1" class="h-9 w-full rounded-md border-[#d7e4ef] text-center text-xs font-bold text-[#07215f] focus:border-orange-600 focus:ring-orange-600 min-[420px]:col-span-2">
+                                <button class="min-w-0 rounded-md bg-orange-600 px-1 py-2 text-[10px] font-black text-white hover:bg-orange-700 sm:text-[11px]" aria-label="Add {{ $product->name }} to cart"><span class="sm:hidden">Add</span><span class="hidden sm:inline">Add to cart</span></button>
+                                <button name="checkout" value="1" class="min-w-0 rounded-md bg-[#07215f] px-1 py-2 text-[10px] font-black text-white hover:bg-orange-700 sm:text-[11px]" aria-label="Buy {{ $product->name }} now"><span class="sm:hidden">Buy now</span><span class="hidden sm:inline">Checkout</span></button>
                             </form>
                         @else
                             <span class="mt-3 grid h-9 place-items-center rounded-md bg-slate-100 px-3 py-2 text-[11px] font-black text-slate-500">Out of stock</span>
@@ -47,7 +49,8 @@
         </div>
 
         <div class="mt-5 text-center">
-            <a href="{{ route('website.products.index') }}" class="inline-flex min-h-11 items-center justify-center rounded-md border border-[#d7e4ef] bg-white px-5 py-2 text-sm font-black text-[#07215f] hover:border-orange-500 hover:text-orange-700">View full catalogue</a>
+            <a href="{{ route('website.products.index') }}" class="inline-flex min-h-11 items-center justify-center rounded-md border border-[#d7e4ef] bg-white px-5 py-2 text-sm font-black text-[#07215f] hover:border-orange-500 hover:text-orange-700">Browse the full catalogue</a>
+        </div>
         </div>
     </section>
 @endif

@@ -20,7 +20,6 @@ class ProductController extends Controller
 
         $categories = ProductCategory::query()
             ->where('is_active', true)
-            ->withCount(['products' => fn ($query) => $query->active()])
             ->orderBy('name')
             ->get();
 
@@ -79,6 +78,7 @@ class ProductController extends Controller
             $inner->where('name', 'like', "%{$search}%")
                 ->orWhere('sku', 'like', "%{$search}%")
                 ->orWhere('brand', 'like', "%{$search}%")
+                ->orWhere('color', 'like', "%{$search}%")
                 ->orWhereHas('category', fn (Builder $category) => $category->where('name', 'like', "%{$search}%"));
         });
     }

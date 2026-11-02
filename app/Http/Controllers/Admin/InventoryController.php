@@ -41,7 +41,8 @@ class InventoryController extends Controller
                 $query->where(function ($productQuery) use ($search) {
                     $productQuery->where('name', 'like', "%{$search}%")
                         ->orWhere('sku', 'like', "%{$search}%")
-                        ->orWhere('brand', 'like', "%{$search}%");
+                        ->orWhere('brand', 'like', "%{$search}%")
+                        ->orWhere('color', 'like', "%{$search}%");
                 });
             })
             ->when($categoryId !== '', fn ($query) => $query->where('product_category_id', $categoryId))
@@ -227,6 +228,7 @@ class InventoryController extends Controller
                             $product->category?->name,
                             $product->description,
                             $product->brand,
+                            $product->color,
                             $product->unit,
                             (int) $product->cost_price,
                             (int) $product->price,

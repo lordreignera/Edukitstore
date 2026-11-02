@@ -40,6 +40,7 @@ class AdminProductManagementTest extends TestCase
             'sku' => 'MANUAL-CODE-SHOULD-BE-IGNORED',
             'description' => 'Revision book for Ugandan primary candidates.',
             'brand' => 'EduKit Books',
+            'color' => 'Blue and white',
             'unit' => 'Book',
             'cost_price' => 22000,
             'price' => 28000,
@@ -59,6 +60,7 @@ class AdminProductManagementTest extends TestCase
         $this->assertMatchesRegularExpression('/^EDK\d{9}$/', $product->sku);
         $this->assertNotSame('MANUAL-CODE-SHOULD-BE-IGNORED', $product->sku);
         $this->assertSame(28000, (int) $product->price);
+        $this->assertSame('Blue and white', $product->color);
         $this->assertSame(40, $product->warehouse_stock_quantity);
         $this->assertSame(25, $product->stock_quantity);
         $this->assertTrue($product->is_active);
@@ -79,6 +81,7 @@ class AdminProductManagementTest extends TestCase
         $this->get(route('website.products.index'))
             ->assertOk()
             ->assertSee('P.7 Integrated Science Revision Book')
+            ->assertSee('Blue and white')
             ->assertSee('UGX 28,000');
     }
 
@@ -506,7 +509,7 @@ class AdminProductManagementTest extends TestCase
 
         $headers = \App\Services\InventoryImportService::HEADERS;
         $csv = implode(',', $headers)."\n"
-            .'opening_stock,'.now()->toDateString().',,"Chalk Box","Stationery","Dustless chalk for classroom boards","Assorted","Box",3000,4500,20,5,3,1,0,"Opening stock import"';
+            .'opening_stock,'.now()->toDateString().',,"Chalk Box","Stationery","Dustless chalk for classroom boards","Assorted","White","Box",3000,4500,20,5,3,1,0,"Opening stock import"';
 
         $this->actingAs($admin)
             ->post(route('admin.inventory.import'), [
@@ -518,6 +521,7 @@ class AdminProductManagementTest extends TestCase
         $product = Product::where('name', 'Chalk Box')->firstOrFail();
 
         $this->assertMatchesRegularExpression('/^EDK\d{9}$/', $product->sku);
+        $this->assertSame('White', $product->color);
         $this->assertSame(20, $product->warehouse_stock_quantity);
         $this->assertSame(5, $product->stock_quantity);
         $this->assertDatabaseHas('inventory_movements', [

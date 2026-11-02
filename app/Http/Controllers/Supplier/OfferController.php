@@ -46,6 +46,7 @@ class OfferController extends Controller
             'submitted_name' => ['nullable', 'required_without:product_id', 'string', 'max:255'],
             'submitted_description' => ['nullable', 'string', 'max:3000'],
             'submitted_brand' => ['nullable', 'string', 'max:120'],
+            'submitted_color' => ['nullable', 'string', 'max:120'],
             'submitted_unit' => ['nullable', 'string', 'max:80'],
             'supplier_price' => ['required', 'numeric', 'min:1'],
             'quantity_submitted' => ['required', 'integer', 'min:1'],
@@ -59,6 +60,7 @@ class OfferController extends Controller
             $data['product_category_id'] = $product->product_category_id;
             $data['submitted_description'] = $product->description;
             $data['submitted_brand'] = $product->brand;
+            $data['submitted_color'] = $product->color;
             $data['submitted_unit'] = $product->unit;
         }
 

@@ -45,8 +45,14 @@
 
     <div>
         <label class="text-sm font-medium text-gray-700" for="{{ $prefix }}-brand">Brand</label>
-        <input id="{{ $prefix }}-brand" name="brand" value="{{ old('brand', $product->brand) }}" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-orange-600 focus:ring-orange-600">
+        <input id="{{ $prefix }}-brand" name="brand" value="{{ old('brand', $product->brand) }}" placeholder="e.g. Bic, Oxford, Bata" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-orange-600 focus:ring-orange-600">
         @error('brand') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+    </div>
+
+    <div>
+        <label class="text-sm font-medium text-gray-700" for="{{ $prefix }}-color">Colour</label>
+        <input id="{{ $prefix }}-color" name="color" value="{{ old('color', $product->color) }}" placeholder="e.g. Blue, black, assorted" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-orange-600 focus:ring-orange-600">
+        @error('color') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
     </div>
 
     <div>

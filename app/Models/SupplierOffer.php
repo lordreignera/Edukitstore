@@ -18,7 +18,7 @@ class SupplierOffer extends Model
 
     protected $fillable = [
         'supplier_id', 'product_id', 'product_category_id', 'submitted_name',
-        'submitted_description', 'submitted_brand', 'submitted_unit', 'submitted_image_path',
+        'submitted_description', 'submitted_brand', 'submitted_color', 'submitted_unit', 'submitted_image_path',
         'supplier_price', 'customer_price', 'quantity_submitted', 'pending_quantity', 'quantity_available',
         'quantity_sold', 'reorder_level', 'direct_fulfilment', 'status', 'review_notes',
         'approved_at', 'approved_by',

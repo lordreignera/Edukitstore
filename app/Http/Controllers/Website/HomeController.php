@@ -14,14 +14,13 @@ class HomeController extends Controller
         $featuredProducts = Product::query()
             ->active()
             ->with('category', 'approvedSupplierOffers.supplier')
-            ->where('is_featured', true)
+            ->orderByDesc('is_featured')
             ->latest()
             ->take(8)
             ->get();
 
         $categories = ProductCategory::query()
             ->where('is_active', true)
-            ->withCount(['products' => fn ($query) => $query->active()])
             ->orderBy('name')
             ->get();
 

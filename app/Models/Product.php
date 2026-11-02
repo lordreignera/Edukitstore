@@ -21,6 +21,7 @@ class Product extends Model
         'sku',
         'description',
         'brand',
+        'color',
         'unit',
         'cost_price',
         'price',

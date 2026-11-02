@@ -56,9 +56,11 @@ class WebsiteProductFlowTest extends TestCase
 
         $this->get('/')
             ->assertOk()
+            ->assertSeeInOrder(['School essentials, ready to order', 'Ugandan Exercise Book 96 Pages', 'Everything for their education'])
             ->assertSee('Everything for their education')
             ->assertSee('Ugandan Exercise Book 96 Pages')
             ->assertSee('UGX 2,500')
+            ->assertDontSee('40 available')
             ->assertSee('Sign In')
             ->assertSee(route('login'))
             ->assertSee('Mobile apps are being prepared');

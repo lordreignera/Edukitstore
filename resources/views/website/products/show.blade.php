@@ -3,7 +3,7 @@
 @section('title', $product->name . ' - EduKit')
 
 @section('content')
-    <section class="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-2 lg:px-8">
+    <section class="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:gap-8 sm:px-6 sm:py-12 lg:grid-cols-2 lg:px-8">
         <div class="overflow-hidden rounded-md border border-[#dbe8f3] bg-white shadow-sm">
             <div class="aspect-[4/3] bg-slate-100">
                 <x-ui.responsive-image
@@ -20,19 +20,24 @@
             <p class="text-[11px] font-extrabold uppercase text-orange-700">{{ $product->category?->name ?? 'School supply' }}</p>
             <h1 class="mt-3 text-[30px] font-extrabold leading-tight text-[#07215f] sm:text-[38px]">{{ $product->name }}</h1>
             <p class="mt-4 text-[24px] font-extrabold text-slate-950 sm:text-[28px]">From UGX {{ number_format($product->marketplace_price) }}</p>
+            @if ($product->brand || $product->color)
+                <p class="mt-2 text-sm font-semibold text-slate-500">{{ collect([$product->brand, $product->color])->filter()->join(' · ') }}</p>
+            @endif
             <dl class="mt-6 grid gap-3 text-sm sm:grid-cols-2">
                 <div class="rounded border border-slate-200 bg-white p-4">
                     <dt class="font-semibold text-slate-500">Product code</dt>
                     <dd class="mt-1 text-slate-950">{{ $product->sku }}</dd>
                 </div>
-                <div class="rounded border border-slate-200 bg-white p-4">
-                    <dt class="font-semibold text-slate-500">Available for sale</dt>
-                    <dd class="mt-1 text-slate-950">{{ $product->marketplace_stock_quantity }}</dd>
-                </div>
                 @if ($product->brand)
                     <div class="rounded border border-slate-200 bg-white p-4">
                         <dt class="font-semibold text-slate-500">Brand</dt>
                         <dd class="mt-1 text-slate-950">{{ $product->brand }}</dd>
+                    </div>
+                @endif
+                @if ($product->color)
+                    <div class="rounded border border-slate-200 bg-white p-4">
+                        <dt class="font-semibold text-slate-500">Colour</dt>
+                        <dd class="mt-1 text-slate-950">{{ $product->color }}</dd>
                     </div>
                 @endif
                 @if ($product->unit)
@@ -50,7 +55,7 @@
                     @if ($product->stock_quantity > 0)
                         <form method="POST" action="{{ route('website.cart.store', $product) }}" class="grid gap-3 rounded-md border border-slate-200 bg-white p-4 sm:grid-cols-[1fr_100px_auto] sm:items-center">
                             @csrf
-                            <div><p class="font-bold text-[#07215f]">Fulfilled by EduKit</p><p class="text-xs text-slate-500">From the EduKit warehouse | {{ number_format($product->stock_quantity) }} available</p><p class="mt-1 font-black">UGX {{ number_format($product->price) }}</p></div>
+                            <div><p class="font-bold text-[#07215f]">Fulfilled by EduKit</p><p class="text-xs text-slate-500">From the EduKit warehouse</p><p class="mt-1 font-black">UGX {{ number_format($product->price) }}</p></div>
                             <label class="sr-only" for="edukit-quantity">Quantity</label>
                             <input id="edukit-quantity" name="quantity" type="number" min="1" max="{{ $product->stock_quantity }}" value="1" class="rounded-md border-slate-300 text-center">
                             <div class="flex flex-wrap gap-2">
@@ -63,7 +68,7 @@
                         <form method="POST" action="{{ route('website.cart.store', $product) }}" class="grid gap-3 rounded-md border border-slate-200 bg-white p-4 sm:grid-cols-[1fr_100px_auto] sm:items-center">
                             @csrf
                             <input type="hidden" name="supplier_offer_id" value="{{ $offer->id }}">
-                            <div><p class="font-bold text-[#07215f]">Dispatched by {{ $offer->supplier->business_name }}</p><p class="text-xs text-slate-500">Supplier warehouse in {{ $offer->supplier->district ?: 'Uganda' }} | {{ number_format($offer->quantity_available) }} available</p><p class="mt-1 font-black">UGX {{ number_format($offer->customer_price) }}</p></div>
+                            <div><p class="font-bold text-[#07215f]">Dispatched by {{ $offer->supplier->business_name }}</p><p class="text-xs text-slate-500">Supplier warehouse in {{ $offer->supplier->district ?: 'Uganda' }}</p><p class="mt-1 font-black">UGX {{ number_format($offer->customer_price) }}</p></div>
                             <label class="sr-only" for="supplier-quantity-{{ $offer->id }}">Quantity</label>
                             <input id="supplier-quantity-{{ $offer->id }}" name="quantity" type="number" min="1" max="{{ $offer->quantity_available }}" value="1" class="rounded-md border-slate-300 text-center">
                             <div class="flex flex-wrap gap-2">

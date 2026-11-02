@@ -64,6 +64,7 @@ class SupplierOfferController extends Controller
                     'sku' => $codes->next(),
                     'description' => $offer->submitted_description,
                     'brand' => $offer->submitted_brand,
+                    'color' => $offer->submitted_color,
                     'unit' => $offer->submitted_unit,
                     'cost_price' => $offer->supplier_price,
                     'price' => $data['customer_price'],

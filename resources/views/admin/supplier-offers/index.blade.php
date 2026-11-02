@@ -17,6 +17,9 @@
                     <div>
                         <div class="flex flex-wrap items-center gap-2"><h2 class="font-extrabold text-[#071d4f]">{{ $offer->submitted_name }}</h2><span class="rounded px-2 py-1 text-xs font-bold {{ $offer->status === 'approved' ? 'bg-orange-50 text-orange-700' : ($offer->status === 'rejected' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700') }}">{{ ucfirst($offer->status) }}</span><span class="rounded bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600">{{ $offer->product_id ? 'Master catalogue item' : 'New product proposal' }}</span></div>
                         <p class="mt-1 text-sm font-semibold text-slate-600">{{ $offer->supplier->business_name }}</p>
+                        @if($offer->submitted_brand || $offer->submitted_color)
+                            <p class="mt-1 text-xs font-semibold text-slate-500">{{ collect([$offer->submitted_brand, $offer->submitted_color])->filter()->join(' · ') }}</p>
+                        @endif
                         <div class="mt-4 flex flex-wrap gap-4">
                             @if($offer->product?->image_url)<figure><img src="{{ $offer->product->image_url }}" alt="Master product" class="h-32 w-32 rounded-md border border-slate-200 object-contain"><figcaption class="mt-1 text-xs font-semibold text-slate-500">Master image</figcaption></figure>@endif
                             @if($offer->submitted_image_path)<figure><img src="{{ $offer->image_url }}" alt="Supplier proposal" class="h-32 w-32 rounded-md border border-amber-300 object-contain"><figcaption class="mt-1 text-xs font-semibold text-amber-700">Image awaiting review</figcaption></figure>@endif

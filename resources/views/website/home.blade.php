@@ -65,11 +65,11 @@
         $featuredTabs = $featuredProducts->pluck('category.name')->filter()->unique()->take(5);
     @endphp
 
-    @include('website.partials.home.hero', ['heroSlides' => $heroSlides, 'categories' => $categories])
     @include('website.partials.home.featured-products', [
         'featuredProducts' => $featuredProducts,
         'featuredTabs' => $featuredTabs,
     ])
+    @include('website.partials.home.hero', ['heroSlides' => $heroSlides, 'categories' => $categories])
     @include('website.partials.home.categories', [
         'categories' => $categories,
         'categoryArtwork' => $categoryArtwork,

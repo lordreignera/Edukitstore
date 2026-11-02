@@ -74,6 +74,10 @@
                         <dd class="mt-1 text-sm font-semibold text-slate-900">{{ $product->brand ?: 'Not set' }}</dd>
                     </div>
                     <div class="bg-white p-5">
+                        <dt class="text-xs font-bold uppercase text-slate-500">Colour</dt>
+                        <dd class="mt-1 text-sm font-semibold text-slate-900">{{ $product->color ?: 'Not set' }}</dd>
+                    </div>
+                    <div class="bg-white p-5">
                         <dt class="text-xs font-bold uppercase text-slate-500">Unit</dt>
                         <dd class="mt-1 text-sm font-semibold text-slate-900">{{ $product->unit ?: 'Not set' }}</dd>
                     </div>

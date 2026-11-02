@@ -28,7 +28,8 @@ class ProductController extends Controller
                     $productQuery
                         ->where('name', 'like', "%{$search}%")
                         ->orWhere('sku', 'like', "%{$search}%")
-                        ->orWhere('brand', 'like', "%{$search}%");
+                        ->orWhere('brand', 'like', "%{$search}%")
+                        ->orWhere('color', 'like', "%{$search}%");
                 });
             })
             ->when($categoryId !== '', fn ($query) => $query->where('product_category_id', $categoryId))
@@ -143,6 +144,7 @@ class ProductController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'brand' => ['nullable', 'string', 'max:120'],
+            'color' => ['nullable', 'string', 'max:120'],
             'unit' => ['nullable', 'string', 'max:80'],
             'cost_price' => ['required', 'numeric', 'min:0'],
             'price' => ['required', 'numeric', 'min:0'],

@@ -1,5 +1,5 @@
 <section class="border-b border-[#dbe8f3] bg-[#eef6fb]">
-    <div class="mx-auto grid max-w-7xl gap-4 px-4 py-5 sm:px-6 lg:grid-cols-[236px_minmax(0,1fr)_250px] lg:px-8">
+    <div class="mx-auto grid max-w-7xl items-start gap-4 px-4 py-5 sm:px-6 lg:grid-cols-[236px_minmax(0,1fr)_250px] lg:px-8">
         <aside class="hidden overflow-hidden rounded-md border border-[#dbe8f3] bg-white shadow-sm lg:block">
             <div class="border-b border-slate-100 px-4 py-3">
                 <p class="text-sm font-black text-[#07215f]">Shop categories</p>
@@ -8,7 +8,6 @@
                 @foreach ($categories->take(9) as $category)
                     <a href="{{ route('website.products.index', ['category' => $category->slug]) }}" class="flex items-center justify-between rounded px-3 py-2.5 hover:bg-orange-50 hover:text-orange-700">
                         <span>{{ $category->name }}</span>
-                        <span class="text-[11px] text-slate-400">{{ $category->products_count }}</span>
                     </a>
                 @endforeach
             </nav>
@@ -23,9 +22,9 @@
                         <div class="relative grid min-h-[310px] content-center px-5 py-8 sm:min-h-[340px] sm:px-8">
                             <div class="max-w-[520px]">
                                 <p class="inline-flex rounded border border-orange-200 bg-orange-50 px-2.5 py-1 text-[10px] font-black uppercase text-orange-700">{{ $slide['eyebrow'] }}</p>
-                                <h1 class="mt-3 text-[28px] font-black leading-tight text-[#07215f] sm:text-[42px]">
+                                <h2 class="mt-3 text-[28px] font-black leading-tight text-[#07215f] sm:text-[42px]">
                                     {{ \Illuminate\Support\Str::before($slide['title'], $slide['accent']) }}<span class="text-orange-600">{{ $slide['accent'] }}</span>
-                                </h1>
+                                </h2>
                                 <p class="mt-3 max-w-md text-sm font-semibold leading-6 text-slate-600">{{ $slide['copy'] }}</p>
                                 <div class="mt-5 flex flex-wrap gap-2">
                                     <a href="{{ $slide['primary']['route'] }}" class="rounded-md bg-orange-600 px-4 py-2.5 text-xs font-black text-white shadow-sm hover:bg-orange-700">{{ $slide['primary']['label'] }}</a>

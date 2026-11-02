@@ -182,7 +182,7 @@ class CartController extends Controller
                 : (int) $product?->stock_quantity;
 
             if (! $product || $available < $item['quantity']) {
-                return back()->withErrors(['cart' => "{$item['name']} has only ".number_format($available).' available from the selected source.']);
+                return back()->withErrors(['cart' => "{$item['name']} is no longer available in the selected quantity. Please review your cart and try again."]);
             }
         }
 

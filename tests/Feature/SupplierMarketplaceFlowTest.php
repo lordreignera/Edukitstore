@@ -31,6 +31,8 @@ class SupplierMarketplaceFlowTest extends TestCase
             'product_category_id' => $category->id,
             'submitted_name' => 'Supplier Exercise Book',
             'submitted_description' => 'A4 ruled exercise book',
+            'submitted_brand' => 'Supplier Books',
+            'submitted_color' => 'Red',
             'submitted_unit' => 'book',
             'supplier_price' => 1600,
             'quantity_submitted' => 100,
@@ -54,9 +56,12 @@ class SupplierMarketplaceFlowTest extends TestCase
         $this->assertSame(100, $offer->quantity_available);
         $this->assertNotNull($offer->product_id);
         $this->assertNotNull($offer->submitted_image_path);
+        $this->assertSame('Red', $offer->submitted_color);
         $this->assertDatabaseCount('products', 1);
 
         $product = $offer->product;
+        $this->assertSame('Supplier Books', $product->brand);
+        $this->assertSame('Red', $product->color);
         $this->assertSame(0, $product->stock_quantity);
         $source = app(MarketplaceSourceService::class)->source($product);
         $this->assertSame('supplier', $source['type']);
