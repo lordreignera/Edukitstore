@@ -63,7 +63,7 @@ class PartnerDashboardTest extends TestCase
         ]);
 
         $this->actingAs($user)->get(route('dashboard'))->assertRedirect(route('supplier.dashboard'));
-        $this->actingAs($user)->get(route('supplier.dashboard'))->assertOk()->assertSee('Kikuubo Stationers')->assertSee('BATCH-001')->assertDontSee('PRIVATE-BATCH');
+        $this->actingAs($user)->get(route('supplier.dashboard'))->assertOk()->assertSee('Kikuubo Stationers')->assertSee('BATCH-001')->assertDontSee('PRIVATE-BATCH')->assertSee('data-push-notifications', false);
         $this->actingAs($user)->get(route('supplier.stock.index'))->assertOk()->assertSee('BATCH-001')->assertDontSee('PRIVATE-BATCH');
     }
 
@@ -95,7 +95,7 @@ class PartnerDashboardTest extends TestCase
         ]);
 
         $this->actingAs($user)->get(route('dashboard'))->assertRedirect(route('driver.dashboard'));
-        $this->actingAs($user)->get(route('driver.dashboard'))->assertOk()->assertSee('EDK-260919-1000')->assertDontSee('EDK-260919-1001');
+        $this->actingAs($user)->get(route('driver.dashboard'))->assertOk()->assertSee('EDK-260919-1000')->assertDontSee('EDK-260919-1001')->assertSee('data-push-notifications', false);
         $this->actingAs($user)->get(route('driver.deliveries.index'))->assertOk()->assertSee('EDK-260919-1000')->assertDontSee('EDK-260919-1001');
 
         $this->actingAs($user)->patch(route('driver.availability'), [

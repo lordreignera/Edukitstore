@@ -33,7 +33,9 @@
                                     <p class="font-black text-slate-950">{{ $product->name }}</p>
                                     <p class="mt-1 text-xs text-slate-500">{{ $product->category?->name ?? 'Uncategorised' }} | {{ $product->sku }}</p>
                                     @if ($product->stock_quantity <= $product->reorder_level)
-                                        <span class="mt-2 inline-flex rounded bg-amber-50 px-2 py-1 text-[11px] font-bold text-amber-700">Low display stock</span>
+                                        <span class="mt-2 inline-flex rounded border border-red-200 bg-red-50 px-2 py-1 text-[11px] font-bold text-red-700">Low stock</span>
+                                    @else
+                                        <span class="mt-2 inline-flex rounded border border-emerald-200 bg-emerald-50 px-2 py-1 text-[11px] font-bold text-emerald-700">In stock</span>
                                     @endif
                                 </div>
                             </div>
@@ -44,7 +46,7 @@
                             <p class="mt-1 whitespace-nowrap text-xs font-bold text-orange-700">Margin: UGX {{ number_format($product->profit_per_unit) }}</p>
                         </td>
                         <td class="px-5 py-4">
-                            <p class="font-bold text-slate-900">{{ number_format($product->stock_quantity) }} display</p>
+                            <p class="font-extrabold {{ $product->stock_quantity <= $product->reorder_level ? 'text-red-700' : 'text-emerald-700' }}">{{ number_format($product->stock_quantity) }} display</p>
                             <p class="mt-1 text-xs font-semibold text-slate-500">{{ number_format($product->warehouse_stock_quantity) }} warehouse</p>
                             <p class="mt-1 text-xs font-semibold text-slate-500">{{ number_format($product->costed_stock_remaining ?? 0) }} costed remaining</p>
                             <p class="mt-1 text-xs font-semibold text-slate-500">{{ number_format($product->reorder_level) }} reorder level</p>
@@ -53,7 +55,7 @@
                             <p class="text-xs font-semibold text-slate-500">{{ number_format($product->ordered_units) }} awaiting payment</p>
                             <p class="mt-1 text-xs font-semibold text-slate-500">{{ number_format($product->paid_pending_units) }} paid, needs driver</p>
                             <p class="mt-1 text-xs font-semibold text-slate-500">{{ number_format($product->in_transit_units) }} assigned to driver</p>
-                            <p class="mt-1 text-xs font-semibold text-slate-500">{{ number_format($product->sold_units ?? 0) }} sold</p>
+                            <p class="mt-1 text-xs font-bold text-emerald-700">{{ number_format($product->sold_units ?? 0) }} sold</p>
                         </td>
                         <td class="px-5 py-4">
                             <p class="whitespace-nowrap font-black text-orange-700">UGX {{ number_format($product->gross_profit ?? 0) }}</p>

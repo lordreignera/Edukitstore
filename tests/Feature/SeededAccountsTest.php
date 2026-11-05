@@ -75,7 +75,7 @@ class SeededAccountsTest extends TestCase
         $finance = User::where('email', 'finance@edukit.test')->firstOrFail();
         $this->actingAs($finance)->get(route('finance.dashboard'))->assertOk()->assertSee('Security reminder:');
         $finance->update(['must_change_password' => false]);
-        $this->actingAs($finance)->get(route('finance.dashboard'))->assertOk()->assertSee('Finance Dashboard');
+        $this->actingAs($finance)->get(route('finance.dashboard'))->assertOk()->assertSee('Finance Dashboard')->assertSee('data-push-notifications', false);
         $this->get(route('password.change'))->assertRedirect(route('dashboard'));
         $this->get(route('admin.users.index'))->assertForbidden();
         $this->get(route('school.dashboard'))->assertForbidden();
@@ -84,14 +84,14 @@ class SeededAccountsTest extends TestCase
         $this->app['auth']->forgetGuards();
         $schoolAdmin = User::where('email', 'schooladmin@edukit.test')->firstOrFail();
         $schoolAdmin->update(['must_change_password' => false]);
-        $this->actingAs($schoolAdmin)->get(route('school.dashboard'))->assertOk()->assertSee('School Administrator Dashboard');
+        $this->actingAs($schoolAdmin)->get(route('school.dashboard'))->assertOk()->assertSee('School Administrator Dashboard')->assertSee('data-push-notifications', false);
         $this->get(route('finance.dashboard'))->assertForbidden();
 
         $this->flushSession();
         $this->app['auth']->forgetGuards();
         $receiver = User::where('email', 'receiver@edukit.test')->firstOrFail();
         $receiver->update(['must_change_password' => false]);
-        $this->actingAs($receiver)->get(route('school.dashboard'))->assertOk()->assertSee('School Receiver Dashboard');
+        $this->actingAs($receiver)->get(route('school.dashboard'))->assertOk()->assertSee('School Receiver Dashboard')->assertSee('data-push-notifications', false);
         $this->get(route('admin.dashboard'))->assertForbidden();
 
     }

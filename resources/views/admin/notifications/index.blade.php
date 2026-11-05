@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div>
             <h1 class="text-2xl font-extrabold text-[#071d4f]">Notifications</h1>
-            <p class="mt-1 text-sm text-slate-500">Order alerts for your EduKit administrator account.</p>
+            <p class="mt-1 text-sm text-slate-500">Order and low-stock alerts for your EduKit administrator account.</p>
         </div>
     </x-slot>
 
@@ -26,7 +26,7 @@
                 <button class="shrink-0 rounded-md bg-[#07215f] px-3 py-2 text-xs font-bold text-white hover:bg-orange-700">{{ $notification->read_at ? 'Open' : 'Review' }}</button>
             </form>
         @empty
-            <div class="rounded-md border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">No order notifications yet.</div>
+            <div class="rounded-md border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">No notifications yet.</div>
         @endforelse
 
         {{ $notifications->links() }}

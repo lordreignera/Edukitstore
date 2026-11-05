@@ -12,6 +12,7 @@
     @endif
 
     <div class="ml-auto flex items-center gap-2">
+        <x-push-notifications />
         <a href="{{ route('profile.show') }}" class="grid size-10 place-items-center rounded-md text-slate-600 transition hover:bg-orange-50 hover:text-orange-700" aria-label="Profile settings"><x-ui.icon name="user" /></a>
         <div class="relative" x-data="{ userMenuOpen: false }">
             <button type="button" class="flex h-11 items-center gap-2 rounded-md px-2 text-left transition hover:bg-orange-50" @click="userMenuOpen = !userMenuOpen" :aria-expanded="userMenuOpen">

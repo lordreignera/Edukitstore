@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\ShoppingList;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -78,6 +79,122 @@ class ReportingIntegrityTest extends TestCase
         $this->actingAs($admin)->get(route('admin.reports.profit'))
             ->assertOk()
             ->assertViewHas('summary', fn ($summary) => $summary->isEmpty());
+    }
+
+    public function test_admin_can_include_demo_profit_for_dry_run_without_adding_it_to_finance_totals(): void
+    {
+        $admin = $this->admin();
+        $demo = $this->invoice([
+            'payment_status' => ShoppingList::PAYMENT_PAID,
+            'payment_provider' => 'demo',
+            'paid_at' => now(),
+        ]);
+        $demo->lineItems()->create([
+            'fulfilment_source' => 'edukit', 'product_name' => 'Dry-run school shoes',
+            'quantity' => 1, 'unit_price' => 45000, 'line_total' => 45000,
+            'cost_total' => 30000, 'profit_total' => 15000,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.reports.profit', ['include_demo' => 1]))
+            ->assertOk()
+            ->assertSee('Dry-run view: demo payments are included')
+            ->assertViewHas('summary', fn ($summary) => (int) $summary->get('edukit')?->profit === 15000);
+
+        $financeRole = Role::findOrCreate('finance-admin', 'web');
+        $financeRole->givePermissionTo(Permission::findOrCreate('finance.dashboard.view', 'web'));
+        $financeUser = User::factory()->create();
+        $financeUser->assignRole($financeRole);
+
+        $this->actingAs($financeUser)
+            ->get(route('finance.dashboard', ['include_demo' => 1]))
+            ->assertOk()
+            ->assertViewHas('summary', fn ($summary) => $summary->isEmpty());
+    }
+
+    public function test_paid_order_profit_is_visible_in_the_admin_order_queue_and_detail(): void
+    {
+        $admin = $this->admin();
+        $invoice = $this->invoice([
+            'payment_status' => ShoppingList::PAYMENT_PAID,
+            'payment_provider' => 'demo',
+            'paid_at' => now(),
+            'estimated_total' => 45000,
+        ]);
+        $invoice->lineItems()->create([
+            'fulfilment_source' => 'edukit', 'product_name' => 'Dry-run school shoes',
+            'quantity' => 1, 'unit_price' => 45000, 'line_total' => 45000,
+            'cost_total' => 30000, 'profit_total' => 15000,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.invoices.index'))
+            ->assertOk()
+            ->assertSee('EduKit profit')
+            ->assertSee('Test profit')
+            ->assertSee('UGX 15,000');
+
+        $this->get(route('admin.invoices.show', $invoice))
+            ->assertOk()
+            ->assertSee('Test profit')
+            ->assertSee('UGX 15,000')
+            ->assertSee('no funds were collected');
+    }
+
+    public function test_admin_dashboard_filters_order_and_payment_performance_by_date_and_demo_choice(): void
+    {
+        $admin = $this->admin();
+        $paidOrder = $this->invoice([
+            'payment_status' => ShoppingList::PAYMENT_PAID,
+            'payment_provider' => 'manual',
+            'paid_at' => '2026-11-03 09:30:00',
+        ]);
+        $paidOrder->lineItems()->create([
+            'fulfilment_source' => 'edukit', 'product_name' => 'Paid notebook',
+            'quantity' => 2, 'unit_price' => 5000, 'line_total' => 10000,
+            'cost_total' => 6000, 'profit_total' => 4000,
+        ]);
+
+        $demoOrder = $this->invoice([
+            'payment_status' => ShoppingList::PAYMENT_PAID,
+            'payment_provider' => 'demo',
+            'paid_at' => '2026-11-04 15:00:00',
+        ]);
+        $demoOrder->lineItems()->create([
+            'fulfilment_source' => 'edukit', 'product_name' => 'Demo pen',
+            'quantity' => 1, 'unit_price' => 2000, 'line_total' => 2000,
+            'cost_total' => 1000, 'profit_total' => 1000,
+        ]);
+
+        $outsideRangeOrder = $this->invoice([
+            'payment_status' => ShoppingList::PAYMENT_PAID,
+            'payment_provider' => 'manual',
+            'paid_at' => '2026-10-31 23:59:59',
+        ]);
+        $outsideRangeOrder->lineItems()->create([
+            'fulfilment_source' => 'edukit', 'product_name' => 'Earlier book',
+            'quantity' => 1, 'unit_price' => 9000, 'line_total' => 9000,
+            'cost_total' => 5000, 'profit_total' => 4000,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.dashboard', [
+                'period' => 'custom', 'from' => '2026-11-01', 'to' => '2026-11-05',
+            ]))
+            ->assertOk()
+            ->assertSee('Performance for period')
+            ->assertViewHas('performance', fn ($performance) => $performance['orders_received'] === 3
+                && $performance['paid_orders'] === 1
+                && (int) $performance['item_revenue'] === 10000
+                && (int) $performance['gross_profit'] === 4000);
+
+        $this->get(route('admin.dashboard', [
+            'period' => 'custom', 'from' => '2026-11-01', 'to' => '2026-11-05', 'include_demo' => 1,
+        ]))->assertOk()
+            ->assertSee('Demo/test payments included')
+            ->assertViewHas('performance', fn ($performance) => $performance['paid_orders'] === 2
+                && (int) $performance['item_revenue'] === 12000
+                && (int) $performance['gross_profit'] === 5000);
     }
 
     private function admin(): User

@@ -1,11 +1,12 @@
 <?php
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\DeliveryFeeReportController as AdminDeliveryFeeReportController;
 use App\Http\Controllers\Admin\DriverController as AdminDriverController;
 use App\Http\Controllers\Admin\InventoryController as AdminInventoryController;
 use App\Http\Controllers\Admin\InvoiceController as AdminInvoiceController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
-use App\Http\Controllers\Admin\PushSubscriptionController as AdminPushSubscriptionController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\Admin\ProductCategoryController as AdminProductCategoryController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ProfitReportController as AdminProfitReportController;
@@ -86,6 +87,11 @@ Route::middleware([
         return view('dashboard');
     })->name('dashboard');
 
+    Route::post('/push-subscriptions', [PushSubscriptionController::class, 'store'])
+        ->middleware('throttle:10,1')->name('push-subscriptions.store');
+    Route::delete('/push-subscriptions', [PushSubscriptionController::class, 'destroy'])
+        ->middleware('throttle:10,1')->name('push-subscriptions.destroy');
+
     Route::get('/customer', CustomerDashboardController::class)
         ->middleware(['role:customer', 'verified'])
         ->name('customer.dashboard');
@@ -113,6 +119,8 @@ Route::middleware([
 
     Route::middleware('role:finance-admin')->prefix('finance')->name('finance.')->group(function () {
         Route::get('/', AdminProfitReportController::class)->name('dashboard');
+        Route::get('profit/export', [AdminProfitReportController::class, 'export'])->middleware('permission:reports.profit.view')->name('profit.export');
+        Route::get('delivery-fees', AdminDeliveryFeeReportController::class)->middleware('permission:reports.profit.view')->name('delivery-fees');
     });
 
     Route::middleware('role:school-admin|school-receiver')->prefix('school')->name('school.')->group(function () {
@@ -124,9 +132,6 @@ Route::middleware([
 
         Route::get('notifications', [AdminNotificationController::class, 'index'])->middleware('permission:invoices.view')->name('notifications.index');
         Route::post('notifications/{notification}/open', [AdminNotificationController::class, 'open'])->middleware('permission:invoices.view')->name('notifications.open');
-        Route::post('push-subscriptions', [AdminPushSubscriptionController::class, 'store'])->middleware('permission:invoices.view')->name('push-subscriptions.store');
-        Route::delete('push-subscriptions', [AdminPushSubscriptionController::class, 'destroy'])->middleware('permission:invoices.view')->name('push-subscriptions.destroy');
-
         Route::get('invoices', [AdminInvoiceController::class, 'index'])->middleware('permission:invoices.view')->name('invoices.index');
         Route::get('invoices/{invoice}', [AdminInvoiceController::class, 'show'])->middleware('permission:invoices.view')->name('invoices.show');
         Route::patch('invoices/{invoice}', [AdminInvoiceController::class, 'update'])->middleware('permission:invoices.update')->name('invoices.update');
@@ -134,6 +139,8 @@ Route::middleware([
 
         Route::get('inventory', [AdminInventoryController::class, 'index'])->middleware('permission:inventory.view')->name('inventory.index');
         Route::get('reports/profit', AdminProfitReportController::class)->middleware('permission:reports.profit.view')->name('reports.profit');
+        Route::get('reports/profit/export', [AdminProfitReportController::class, 'export'])->middleware('permission:reports.profit.view')->name('reports.profit.export');
+        Route::get('reports/delivery-fees', AdminDeliveryFeeReportController::class)->middleware('permission:reports.profit.view')->name('reports.delivery-fees');
         Route::get('inventory/export', [AdminInventoryController::class, 'export'])->middleware('permission:inventory.export')->name('inventory.export');
         Route::get('inventory/import-template', [AdminInventoryController::class, 'template'])->middleware('permission:inventory.export')->name('inventory.template');
         Route::post('inventory/import', [AdminInventoryController::class, 'import'])->middleware('permission:inventory.import')->name('inventory.import');

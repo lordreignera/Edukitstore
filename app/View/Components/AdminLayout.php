@@ -15,10 +15,6 @@ class AdminLayout extends Component
 
     public int $unreadNotificationCount;
 
-    public bool $phoneAlertsEnabled;
-
-    public bool $phoneAlertsConfigured;
-
     public function __construct()
     {
         $user = auth()->user();
@@ -35,8 +31,6 @@ class AdminLayout extends Component
             'low_stock' => Product::whereColumn('stock_quantity', '<=', 'reorder_level')->count(),
         ];
         $this->unreadNotificationCount = $user?->unreadNotifications()->count() ?? 0;
-        $this->phoneAlertsEnabled = $user?->pushSubscriptions()->exists() ?? false;
-        $this->phoneAlertsConfigured = app(\App\Services\PushNotificationService::class)->isConfigured();
     }
 
     public function render(): View

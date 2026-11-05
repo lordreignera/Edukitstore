@@ -8,6 +8,7 @@ use App\Models\ShoppingList;
 use App\Models\Product;
 use App\Services\InvoiceWorkflow;
 use App\Services\InventoryService;
+use App\Services\PushNotificationService;
 use App\Services\SupplierSaleService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -28,6 +29,7 @@ class InvoiceController extends Controller
 
         $invoices = ShoppingList::query()
             ->with('assignedDriver', 'school.district')
+            ->withSum('lineItems as realized_profit', 'profit_total')
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($invoiceQuery) use ($search) {
                     $invoiceQuery->where('reference', 'like', "%{$search}%")
@@ -90,7 +92,7 @@ class InvoiceController extends Controller
         ]);
     }
 
-    public function update(Request $request, ShoppingList $invoice, InvoiceWorkflow $workflow): RedirectResponse
+    public function update(Request $request, ShoppingList $invoice, InvoiceWorkflow $workflow, PushNotificationService $pushNotifications): RedirectResponse
     {
         $data = $request->validate([
             'status' => ['required', Rule::in(array_keys(ShoppingList::statuses()))],
@@ -111,7 +113,21 @@ class InvoiceController extends Controller
             ])->validate()['items'];
         }
 
-        $workflow->updateFromAdmin($invoice, $data, auth()->id());
+        $previousDriverId = $invoice->assigned_driver_id;
+        $updatedInvoice = $workflow->updateFromAdmin($invoice, $data, auth()->id());
+
+        if ($updatedInvoice->assigned_driver_id && (int) $updatedInvoice->assigned_driver_id !== (int) $previousDriverId) {
+            $driverUser = Driver::with('user')->find($updatedInvoice->assigned_driver_id)?->user;
+
+            if ($driverUser) {
+                $pushNotifications->sendTo($driverUser, [
+                    'title' => 'New delivery assigned',
+                    'body' => "Order {$updatedInvoice->reference} is ready in your deliveries.",
+                    'url' => route('driver.deliveries.index', ['status' => 'ready']),
+                    'tag' => 'edukit-driver-order-'.$updatedInvoice->id,
+                ]);
+            }
+        }
 
         return back()->with('status', 'Order updated.');
     }

@@ -1,13 +1,14 @@
 @php
     $navigation = [
         ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'pattern' => 'admin.dashboard', 'icon' => 'home', 'permission' => 'admin.dashboard.view'],
+        ['label' => 'Orders & Fulfilment', 'route' => 'admin.invoices.index', 'pattern' => 'admin.invoices.*', 'icon' => 'invoice', 'permission' => 'invoices.view'],
+        ['label' => 'Profit Report', 'route' => 'admin.reports.profit', 'pattern' => 'admin.reports.profit', 'icon' => 'chart', 'permission' => 'reports.profit.view'],
+        ['label' => 'Delivery Fees', 'route' => 'admin.reports.delivery-fees', 'pattern' => 'admin.reports.delivery-fees', 'icon' => 'invoice', 'permission' => 'reports.profit.view'],
         ['label' => 'Products', 'route' => 'admin.products.index', 'pattern' => 'admin.products.*', 'icon' => 'products', 'permission' => 'products.view'],
         ['label' => 'Inventory', 'route' => 'admin.inventory.index', 'pattern' => 'admin.inventory.*', 'icon' => 'warehouse', 'permission' => 'inventory.view'],
-        ['label' => 'Profit Report', 'route' => 'admin.reports.profit', 'pattern' => 'admin.reports.*', 'icon' => 'chart', 'permission' => 'reports.profit.view'],
         ['label' => 'Categories', 'route' => 'admin.product-categories.index', 'pattern' => 'admin.product-categories.*', 'icon' => 'tag', 'permission' => 'categories.view'],
         ['label' => 'Schools', 'route' => 'admin.schools.index', 'pattern' => 'admin.schools.*', 'icon' => 'school', 'permission' => 'schools.view'],
         ['label' => 'Shopping Lists', 'route' => 'admin.shopping-lists.index', 'pattern' => 'admin.shopping-lists.*', 'icon' => 'list', 'permission' => 'shopping-lists.view'],
-        ['label' => 'Orders & Fulfilment', 'route' => 'admin.invoices.index', 'pattern' => 'admin.invoices.*', 'icon' => 'invoice', 'permission' => 'invoices.view'],
         ['label' => 'Suppliers', 'route' => 'admin.suppliers.index', 'pattern' => 'admin.suppliers.*', 'icon' => 'suppliers', 'permission' => 'suppliers.view'],
         ['label' => 'Supplier Products', 'route' => 'admin.supplier-offers.index', 'pattern' => 'admin.supplier-offers.*', 'icon' => 'products', 'permission' => 'supplier-products.view'],
         ['label' => 'Drivers', 'route' => 'admin.drivers.index', 'pattern' => 'admin.drivers.*', 'icon' => 'drivers', 'permission' => 'drivers.view'],

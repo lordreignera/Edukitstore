@@ -17,20 +17,9 @@
                     <span class="absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-red-600 px-1 text-center text-[10px] font-black leading-4 text-white">{{ min($unreadNotificationCount, 99) }}</span>
                 @endif
             </a>
-            <button type="button"
-                data-admin-push
-                data-vapid-public-key="{{ config('services.webpush.public_key') }}"
-                data-subscribed="{{ $phoneAlertsEnabled ? 'true' : 'false' }}"
-                data-subscribe-url="{{ route('admin.push-subscriptions.store') }}"
-                data-unsubscribe-url="{{ route('admin.push-subscriptions.destroy') }}"
-                @disabled(! $phoneAlertsConfigured)
-                title="{{ $phoneAlertsConfigured ? ($phoneAlertsEnabled ? 'Disable order alerts on this device' : 'Enable order alerts on this device') : 'Phone alerts need VAPID keys configured' }}"
-                class="inline-flex min-h-10 items-center gap-2 rounded-md border border-orange-200 px-3 text-xs font-bold text-[#071d4f] hover:bg-orange-50 disabled:cursor-not-allowed disabled:opacity-50">
-                <x-ui.icon name="bell" size="size-4" />
-                <span class="text-[10px] sm:text-xs" data-admin-push-label>{{ ! $phoneAlertsConfigured ? 'Setup needed' : ($phoneAlertsEnabled ? 'Alerts on' : 'Enable alerts') }}</span>
-            </button>
-            <span data-admin-push-status class="max-w-28 text-[10px] leading-3 text-slate-600 sm:max-w-56 sm:text-xs sm:leading-4" aria-live="polite"></span>
         @endcan
+
+        <x-push-notifications />
 
         <div class="relative" x-data="{ userMenuOpen: false }">
             <button type="button" class="flex h-11 items-center gap-2 rounded-md px-2 text-left transition hover:bg-slate-100" @click="userMenuOpen = !userMenuOpen" :aria-expanded="userMenuOpen">

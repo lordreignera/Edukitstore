@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Mail\OrderReceivedMail;
+use App\Models\Driver;
 use App\Models\ShoppingList;
 use App\Models\User;
 use App\Notifications\NewOrderReceivedNotification;
@@ -65,7 +66,8 @@ class OrderNotificationTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.notifications.index'))
             ->assertOk()
-            ->assertSee($order->reference);
+            ->assertSee($order->reference)
+            ->assertSee('data-push-notifications', false);
 
         $this->post(route('admin.notifications.open', $notificationId))
             ->assertRedirect(route('admin.invoices.show', $order));
@@ -78,6 +80,7 @@ class OrderNotificationTest extends TestCase
         config([
             'services.webpush.public_key' => 'test-public-key',
             'services.webpush.private_key' => 'test-private-key',
+            'services.webpush.subject' => 'mailto:alerts@example.test',
         ]);
         $admin = $this->adminWithOrderPermission();
         $endpoint = 'https://fcm.googleapis.com/fcm/send/test-device-token';
@@ -87,7 +90,7 @@ class OrderNotificationTest extends TestCase
         ];
 
         $this->actingAs($admin)
-            ->postJson(route('admin.push-subscriptions.store'), $subscription)
+            ->postJson(route('push-subscriptions.store'), $subscription)
             ->assertOk();
 
         $this->assertDatabaseHas('push_subscriptions', [
@@ -97,10 +100,73 @@ class OrderNotificationTest extends TestCase
         ]);
 
         $this->actingAs($admin)
-            ->postJson(route('admin.push-subscriptions.store'), array_replace($subscription, [
+            ->postJson(route('push-subscriptions.store'), array_replace($subscription, [
                 'endpoint' => 'https://127.0.0.1/private-service',
             ]))
             ->assertUnprocessable();
+    }
+
+    public function test_driver_can_enable_push_notifications(): void
+    {
+        config([
+            'services.webpush.public_key' => 'test-public-key',
+            'services.webpush.private_key' => 'test-private-key',
+            'services.webpush.subject' => 'mailto:alerts@example.test',
+        ]);
+        $driver = User::factory()->create(['is_active' => true]);
+        $driver->assignRole(Role::findOrCreate('delivery-person', 'web'));
+        $endpoint = 'https://fcm.googleapis.com/fcm/send/driver-device-token';
+
+        $this->actingAs($driver)
+            ->postJson(route('push-subscriptions.store'), [
+                'endpoint' => $endpoint,
+                'keys' => ['p256dh' => 'driver-public-key', 'auth' => 'driver-auth-token'],
+            ])
+            ->assertOk();
+
+        $this->assertDatabaseHas('push_subscriptions', [
+            'user_id' => $driver->id,
+            'endpoint_hash' => hash('sha256', $endpoint),
+        ]);
+    }
+
+    public function test_driver_receives_a_push_when_a_paid_order_is_assigned(): void
+    {
+        $admin = $this->adminWithOrderPermission();
+        $admin->givePermissionTo(Permission::findOrCreate('invoices.update', 'web'));
+        $driverUser = User::factory()->create(['is_active' => true]);
+        $driverUser->assignRole(Role::findOrCreate('delivery-person', 'web'));
+        $driver = Driver::create([
+            'user_id' => $driverUser->id,
+            'name' => 'Driver Test',
+            'email' => $driverUser->email,
+            'is_approved' => true,
+            'is_available' => true,
+        ]);
+        $order = $this->orderFor(User::factory()->create());
+        $order->update(['payment_status' => ShoppingList::PAYMENT_PAID]);
+        $push = new class extends PushNotificationService
+        {
+            public array $sent = [];
+
+            public function sendTo(User $user, array $payload): void
+            {
+                $this->sent[] = ['user' => $user, 'payload' => $payload];
+            }
+        };
+        $this->app->instance(PushNotificationService::class, $push);
+
+        $this->actingAs($admin)
+            ->patch(route('admin.invoices.update', $order), [
+                'status' => ShoppingList::STATUS_QUOTED,
+                'assigned_driver_id' => $driver->id,
+            ])
+            ->assertRedirect();
+
+        $this->assertCount(1, $push->sent);
+        $this->assertSame($driverUser->id, $push->sent[0]['user']->id);
+        $this->assertSame('New delivery assigned', $push->sent[0]['payload']['title']);
+        $this->assertSame(route('driver.deliveries.index', ['status' => 'ready']), $push->sent[0]['payload']['url']);
     }
 
     private function adminWithOrderPermission(): User

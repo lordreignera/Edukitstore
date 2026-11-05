@@ -8,9 +8,9 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
     });
 }
 
-const adminPushButton = document.querySelector('[data-admin-push]');
-const adminPushLabel = adminPushButton?.querySelector('[data-admin-push-label]');
-const adminPushStatus = document.querySelector('[data-admin-push-status]');
+const pushButton = document.querySelector('[data-push-notifications]');
+const pushLabel = pushButton?.querySelector('[data-push-notifications-label]');
+const pushStatus = document.querySelector('[data-push-notifications-status]');
 
 const decodeVapidKey = (encodedKey) => {
     const padding = '='.repeat((4 - encodedKey.length % 4) % 4);
@@ -36,28 +36,28 @@ const sendPushSubscription = async (url, method, subscription) => {
     }
 };
 
-adminPushButton?.addEventListener('click', async () => {
-    const vapidPublicKey = adminPushButton.dataset.vapidPublicKey;
+pushButton?.addEventListener('click', async () => {
+    const vapidPublicKey = pushButton.dataset.vapidPublicKey;
     if (!window.isSecureContext) {
-        if (adminPushStatus) adminPushStatus.textContent = 'Phone alerts require a secure HTTPS connection.';
+        if (pushStatus) pushStatus.textContent = 'Phone alerts require a secure HTTPS connection.';
         return;
     }
     if (!vapidPublicKey || !('PushManager' in window) || !('Notification' in window) || !('serviceWorker' in navigator)) {
-        if (adminPushStatus) adminPushStatus.textContent = 'Phone alerts need VAPID setup and a browser that supports push notifications.';
+        if (pushStatus) pushStatus.textContent = 'Phone alerts need VAPID setup and a browser that supports push notifications.';
         return;
     }
 
-    adminPushButton.disabled = true;
+    pushButton.disabled = true;
     try {
         const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
         let subscription = await registration.pushManager.getSubscription();
 
-        if (adminPushButton.dataset.subscribed === 'true' && subscription) {
-            await sendPushSubscription(adminPushButton.dataset.unsubscribeUrl, 'DELETE', { endpoint: subscription.endpoint });
+        if (pushButton.dataset.subscribed === 'true' && subscription) {
+            await sendPushSubscription(pushButton.dataset.unsubscribeUrl, 'DELETE', { endpoint: subscription.endpoint });
             await subscription.unsubscribe();
-            adminPushButton.dataset.subscribed = 'false';
-            if (adminPushLabel) adminPushLabel.textContent = 'Enable phone alerts';
-            if (adminPushStatus) adminPushStatus.textContent = 'Phone alerts disabled on this device.';
+            pushButton.dataset.subscribed = 'false';
+            if (pushLabel) pushLabel.textContent = 'Enable notifications';
+            if (pushStatus) pushStatus.textContent = 'Notifications disabled on this device.';
             return;
         }
 
@@ -71,14 +71,14 @@ adminPushButton?.addEventListener('click', async () => {
             applicationServerKey: decodeVapidKey(vapidPublicKey),
         });
 
-        await sendPushSubscription(adminPushButton.dataset.subscribeUrl, 'POST', subscription.toJSON());
-        adminPushButton.dataset.subscribed = 'true';
-        if (adminPushLabel) adminPushLabel.textContent = 'Phone alerts on';
-        if (adminPushStatus) adminPushStatus.textContent = 'Phone alerts enabled on this device.';
+        await sendPushSubscription(pushButton.dataset.subscribeUrl, 'POST', subscription.toJSON());
+        pushButton.dataset.subscribed = 'true';
+        if (pushLabel) pushLabel.textContent = 'Notifications on';
+        if (pushStatus) pushStatus.textContent = 'Notifications enabled on this device.';
     } catch (error) {
-        if (adminPushStatus) adminPushStatus.textContent = error.message || 'Could not enable phone alerts.';
+        if (pushStatus) pushStatus.textContent = error.message || 'Could not enable notifications.';
     } finally {
-        adminPushButton.disabled = false;
+        pushButton.disabled = false;
     }
 });
 

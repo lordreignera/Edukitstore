@@ -22,6 +22,8 @@
                 </div>
             @endif
 
+            @include('admin.partials.dashboard.period-summary')
+
             @include('admin.partials.dashboard.stat-cards')
 
             @include('admin.partials.dashboard.order-queues')

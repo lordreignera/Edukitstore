@@ -36,6 +36,34 @@
                     <p class="mt-4 rounded border border-amber-300 bg-amber-50 p-3 text-sm font-bold text-amber-900">Demo payment only. No money was collected.</p>
                 @endif
                 @include('admin.invoices.partials.items', ['invoice' => $invoice])
+                @php
+                    $profitLines = $invoice->lineItems->filter(fn ($item) => $item->profit_total !== null);
+                    $realizedProfit = $profitLines->sum('profit_total');
+                    $recordedCost = $profitLines->sum('cost_total');
+                @endphp
+                @if ($invoice->payment_status === \App\Models\ShoppingList::PAYMENT_PAID && ! $invoice->payment_exception && $profitLines->isNotEmpty())
+                    <section class="mt-5 rounded-md border {{ $invoice->payment_provider === 'demo' ? 'border-amber-300 bg-amber-50' : 'border-emerald-200 bg-emerald-50' }} p-4" aria-label="Order profit summary">
+                        <div class="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                                <p class="text-xs font-extrabold uppercase tracking-wide {{ $invoice->payment_provider === 'demo' ? 'text-amber-800' : 'text-emerald-800' }}">
+                                    {{ $invoice->payment_provider === 'demo' ? 'Test profit — demo payment' : 'Realized EduKit profit' }}
+                                </p>
+                                <p class="mt-1 text-2xl font-black {{ $invoice->payment_provider === 'demo' ? 'text-amber-950' : 'text-emerald-950' }}">UGX {{ number_format($realizedProfit) }}</p>
+                            </div>
+                            <div class="text-right text-xs font-semibold text-slate-600">
+                                <p>Item revenue: UGX {{ number_format($profitLines->sum('line_total')) }}</p>
+                                <p class="mt-1">Recorded item cost/payable: UGX {{ number_format($recordedCost) }}</p>
+                            </div>
+                        </div>
+                        @if ($invoice->payment_provider === 'demo')
+                            <p class="mt-2 text-xs font-semibold text-amber-900">For dry-run review only; no funds were collected and this is excluded from normal financial totals.</p>
+                        @endif
+                    </section>
+                @elseif ($invoice->payment_status === \App\Models\ShoppingList::PAYMENT_PAID)
+                    <p class="mt-4 rounded border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">Profit will appear after payment is verified and stock costs are allocated.</p>
+                @else
+                    <p class="mt-4 rounded border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">Profit is recorded after payment is verified and item costs are allocated.</p>
+                @endif
                 @if ($invoice->payment_exception)
                     <div class="mt-5 rounded border border-red-300 bg-red-50 p-4 text-sm font-bold text-red-800">Payment needs review: {{ $invoice->payment_exception }}</div>
                     @if ($invoice->payment_exception_type === 'stock')

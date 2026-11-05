@@ -8,13 +8,68 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\School;
 use App\Models\ShoppingList;
+use App\Models\ShoppingListItem;
 use App\Models\Supplier;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class DashboardController extends Controller
 {
-    public function __invoke(): View
+    public function __invoke(Request $request): View
     {
+        $period = $request->query('period', 'month');
+        if (! in_array($period, ['week', 'month', 'year', 'custom'], true)) {
+            $period = 'month';
+        }
+
+        if ($period === 'custom') {
+            $dates = $request->validate([
+                'from' => ['required', 'date'],
+                'to' => ['required', 'date', 'after_or_equal:from'],
+            ]);
+            $periodFrom = $dates['from'];
+            $periodTo = $dates['to'];
+        } else {
+            $today = now();
+            $periodFrom = match ($period) {
+                'week' => $today->copy()->startOfWeek()->toDateString(),
+                'year' => $today->copy()->startOfYear()->toDateString(),
+                default => $today->copy()->startOfMonth()->toDateString(),
+            };
+            $periodTo = $today->toDateString();
+        }
+
+        $periodStart = Carbon::parse($periodFrom)->startOfDay();
+        $periodEnd = Carbon::parse($periodTo)->endOfDay();
+        $includeDemo = $request->boolean('include_demo');
+
+        $paidOrders = ShoppingList::query()
+            ->where('payment_status', ShoppingList::PAYMENT_PAID)
+            ->whereBetween('paid_at', [$periodStart, $periodEnd])
+            ->when(! $includeDemo, fn ($query) => $query->where(fn ($provider) => $provider
+                ->whereNull('payment_provider')
+                ->orWhere('payment_provider', '!=', 'demo')));
+
+        $paidItems = ShoppingListItem::query()
+            ->whereIn('shopping_list_id', (clone $paidOrders)->select('id'));
+
+        $performance = [
+            'orders_received' => ShoppingList::query()
+                ->whereBetween('created_at', [$periodStart, $periodEnd])
+                ->count(),
+            'paid_orders' => (clone $paidOrders)->count(),
+            'item_revenue' => (clone $paidItems)->sum('line_total'),
+            'gross_profit' => (clone $paidItems)->sum('profit_total'),
+        ];
+
+        $periodLabel = match ($period) {
+            'week' => 'This week',
+            'year' => 'This year',
+            'custom' => 'Custom date range',
+            default => 'This month',
+        };
+
         $stats = [
             'products' => Product::count(),
             'active_products' => Product::where('is_active', true)->count(),
@@ -141,6 +196,12 @@ class DashboardController extends Controller
             'productCategorySummary',
             'shoppingListStatusSummary',
             'orderQueues',
+            'performance',
+            'period',
+            'periodFrom',
+            'periodTo',
+            'periodLabel',
+            'includeDemo',
         ));
     }
 }

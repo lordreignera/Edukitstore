@@ -570,6 +570,7 @@ class WebsiteProductFlowTest extends TestCase
         $this->actingAs($customer)
             ->get(route('customer.dashboard'))
             ->assertOk()
+            ->assertSee('data-push-notifications', false)
             ->assertSee($ownOrder->reference)
             ->assertDontSee($otherOrder->reference);
 

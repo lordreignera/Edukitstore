@@ -54,6 +54,7 @@
                                 <th class="px-5 py-3">Driver</th>
                                 <th class="px-5 py-3">Statuses</th>
                                 <th class="px-5 py-3">Total</th>
+                                <th class="px-5 py-3">EduKit profit</th>
                                 <th class="px-5 py-3"></th>
                             </tr>
                         </thead>
@@ -75,13 +76,25 @@
                                         @include('admin.invoices.partials.status-badges', ['invoice' => $invoice])
                                     </td>
                                     <td class="px-5 py-4 font-semibold text-gray-900">{{ $invoice->estimated_total ? 'UGX '.number_format($invoice->estimated_total) : 'Pending' }}</td>
+                                    <td class="px-5 py-4">
+                                        @if ($invoice->payment_status === \App\Models\ShoppingList::PAYMENT_PAID && $invoice->payment_exception)
+                                            <span class="text-xs font-bold text-amber-700">Pending stock review</span>
+                                        @elseif ($invoice->payment_status === \App\Models\ShoppingList::PAYMENT_PAID && $invoice->realized_profit !== null)
+                                            <span class="font-extrabold text-emerald-700">UGX {{ number_format($invoice->realized_profit) }}</span>
+                                            @if ($invoice->payment_provider === 'demo')<span class="mt-1 block text-[10px] font-bold uppercase text-amber-700">Test profit</span>@endif
+                                        @elseif ($invoice->payment_status === \App\Models\ShoppingList::PAYMENT_PAID)
+                                            <span class="text-xs font-semibold text-slate-500">Awaiting allocation</span>
+                                        @else
+                                            <span class="text-xs text-slate-400">After payment</span>
+                                        @endif
+                                    </td>
                                     <td class="px-5 py-4 text-right">
                                         <a href="{{ route('admin.invoices.show', $invoice) }}" class="rounded bg-orange-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-800">Open order</a>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="px-5 py-8 text-center text-gray-500">No orders match these filters.</td>
+                                    <td colspan="7" class="px-5 py-8 text-center text-gray-500">No orders match these filters.</td>
                                 </tr>
                             @endforelse
                         </tbody>

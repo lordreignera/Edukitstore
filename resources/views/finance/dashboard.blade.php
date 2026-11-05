@@ -1,6 +1,7 @@
 @php
     $navigation = [
         ['label' => 'Profit report', 'route' => 'finance.dashboard', 'pattern' => 'finance.dashboard', 'icon' => 'chart'],
+        ['label' => 'Delivery fees', 'route' => 'finance.delivery-fees', 'pattern' => 'finance.delivery-fees', 'icon' => 'invoice'],
     ];
     $warehouse = $summary->get('edukit');
     $supplier = $summary->get('supplier');
@@ -18,6 +19,12 @@
             <input type="date" name="to" value="{{ $to?->format('Y-m-d') }}" class="rounded-md border-slate-300 text-sm" aria-label="To date">
             <button class="rounded-md bg-[#07215f] px-4 py-2 text-sm font-bold text-white">Filter</button>
         </form>
+        <div class="flex justify-end">
+            <a href="{{ route('finance.profit.export', array_filter(['source' => $source, 'from' => $from?->format('Y-m-d'), 'to' => $to?->format('Y-m-d')], fn ($value) => $value !== null && $value !== '')) }}" class="inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-orange-300 bg-orange-50 px-4 py-2 text-sm font-bold text-orange-800 transition hover:border-orange-500 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                <x-ui.icon name="download" size="size-4" />
+                Download filtered CSV
+            </a>
+        </div>
         <section class="grid gap-4 md:grid-cols-2">
             <article class="rounded-md border border-blue-200 bg-white p-5"><p class="text-xs font-bold uppercase text-blue-700">EduKit warehouse</p><div class="mt-4 grid grid-cols-2 gap-4 text-sm"><div><p class="text-slate-500">Revenue</p><p class="text-xl font-black text-[#071d4f]">UGX {{ number_format($warehouse?->revenue ?? 0) }}</p></div><div><p class="text-slate-500">Gross profit</p><p class="text-xl font-black text-blue-700">UGX {{ number_format($warehouse?->profit ?? 0) }}</p></div><div><p class="text-slate-500">Stock cost</p><p class="font-bold">UGX {{ number_format($warehouse?->cost ?? 0) }}</p></div><div><p class="text-slate-500">Units sold</p><p class="font-bold">{{ number_format($warehouse?->units ?? 0) }}</p></div></div></article>
             <article class="rounded-md border border-orange-200 bg-white p-5"><p class="text-xs font-bold uppercase text-orange-700">Supplier direct</p><div class="mt-4 grid grid-cols-2 gap-4 text-sm"><div><p class="text-slate-500">Revenue</p><p class="text-xl font-black text-[#071d4f]">UGX {{ number_format($supplier?->revenue ?? 0) }}</p></div><div><p class="text-slate-500">EduKit margin</p><p class="text-xl font-black text-orange-700">UGX {{ number_format($supplier?->profit ?? 0) }}</p></div><div><p class="text-slate-500">Supplier payable</p><p class="font-bold">UGX {{ number_format($supplier?->supplier_payable ?? 0) }}</p></div><div><p class="text-slate-500">Earned after delivery</p><p class="font-bold">UGX {{ number_format($supplierSettlement['earned'] ?? 0) }}</p></div></div></article>

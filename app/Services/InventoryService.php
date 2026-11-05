@@ -200,7 +200,9 @@ class InventoryService
             return;
         }
 
-        DB::transaction(function () use ($shoppingList, $userId): void {
+        $thresholdCrossings = [];
+
+        DB::transaction(function () use ($shoppingList, $userId, &$thresholdCrossings): void {
             $lockedInvoice = ShoppingList::whereKey($shoppingList->id)->lockForUpdate()->firstOrFail();
 
             if (InventoryMovement::where('shopping_list_id', $lockedInvoice->id)
@@ -224,10 +226,23 @@ class InventoryService
                 $costing = $this->consumeCostBatches($product, $quantity);
                 $totalRevenue = $quantity * $unitPrice;
                 $averageUnitCost = $quantity > 0 ? $costing['total_cost'] / $quantity : 0;
+                $previousDisplayStock = (int) $product->stock_quantity;
+                $newDisplayStock = $previousDisplayStock - $quantity;
 
                 $product->forceFill([
-                    'stock_quantity' => $product->stock_quantity - $quantity,
+                    'stock_quantity' => $newDisplayStock,
                 ])->save();
+
+                if ($previousDisplayStock > (int) $product->reorder_level
+                    && $newDisplayStock <= (int) $product->reorder_level) {
+                    $thresholdCrossings[] = [
+                        'product_id' => (int) $product->id,
+                        'name' => (string) $product->name,
+                        'sku' => (string) $product->sku,
+                        'stock_quantity' => $newDisplayStock,
+                        'reorder_level' => (int) $product->reorder_level,
+                    ];
+                }
 
                 ShoppingListItem::updateOrCreate(
                     [
@@ -272,6 +287,10 @@ class InventoryService
                 ]);
             }
         });
+
+        if ($thresholdCrossings !== []) {
+            DB::afterCommit(fn () => app(InventoryAlertService::class)->notifyThresholdCrossings($thresholdCrossings));
+        }
     }
 
     public function updateMovement(InventoryMovement $movement, array $data, ?int $userId = null): InventoryMovement
