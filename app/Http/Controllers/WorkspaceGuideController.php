@@ -46,7 +46,7 @@ class WorkspaceGuideController extends Controller
                     ['title' => 'Approve partners', 'description' => 'Review supplier and driver applications before their accounts can be used for fulfilment.', 'route' => 'admin.suppliers.index', 'action' => 'Review suppliers', 'permission' => 'suppliers.view'],
                     ['title' => 'Review supplier offers', 'description' => 'Approve or reject supplier products and stock proposals before they become available for customer orders.', 'route' => 'admin.supplier-offers.index', 'action' => 'Review offers', 'permission' => 'supplier-products.view'],
                     ['title' => 'Process customer requests', 'description' => 'Review shopping lists and quotes, verify payment or exceptions, and resolve paid stock before delivery.', 'route' => 'admin.shopping-lists.index', 'action' => 'Open shopping lists', 'permission' => 'shopping-lists.view'],
-                    ['title' => 'Monitor delivery', 'description' => 'Use invoices to check fulfilment and delivery progress; assigned drivers start journeys and record arrival.', 'route' => 'admin.invoices.index', 'action' => 'Open invoices', 'permission' => 'invoices.view'],
+                    ['title' => 'Monitor orders', 'description' => 'Use Orders & Fulfilment to review payment, assign drivers and follow deliveries through customer receipt.', 'route' => 'admin.invoices.index', 'action' => 'Open orders', 'permission' => 'invoices.view'],
                     ['title' => 'Manage access and results', 'description' => 'Use users, roles and permissions to control access, then use the profit report for performance review.', 'route' => 'admin.users.index', 'action' => 'Open users', 'permission' => 'users.view'],
                 ],
                 'notes' => [
@@ -131,42 +131,43 @@ class WorkspaceGuideController extends Controller
                 'eyebrow' => 'School workflow',
                 'title' => $isSchoolAdmin ? 'How to request school supplies' : 'How to receive a school delivery',
                 'intro' => $isSchoolAdmin
-                    ? 'Browse the catalogue or send a shopping list for quotation, then use the order reference and matching contact details to follow delivery.'
-                    : 'Use the order reference and the matching contact details supplied with the order to check progress and complete receipt.',
+                    ? 'Browse the catalogue or send a shopping list for quotation. Sign in with your EduKit account to keep each order in your history.'
+                    : 'Use your EduKit account to reopen an order, check progress and complete receipt.',
                 'steps' => $isSchoolAdmin ? [
                     ['title' => 'Browse the catalogue', 'description' => 'Review the current EduKit products before deciding whether to shop directly or send a full list.', 'route' => 'website.products.index', 'action' => 'Browse products'],
                     ['title' => 'Send a shopping list', 'description' => 'Upload the required items and quantities so EduKit can prepare a quotation.', 'route' => 'website.upload-list', 'action' => 'Upload a list'],
-                    ['title' => 'Review the quote', 'description' => 'Use the reference returned after submission to open the quote, review the items and complete payment when ready.'],
-                    ['title' => 'Track the order', 'description' => 'Enter the order reference and the same phone number or email used with the request.', 'route' => 'website.track-order', 'action' => 'Track an order'],
+                    ['title' => 'Review the quote', 'description' => 'Open My Orders to review the itemized quote and complete payment when ready.'],
+                    ['title' => 'Track the order', 'description' => 'Sign in to My Orders to follow payment, driver assignment and delivery progress.', 'route' => 'customer.dashboard', 'action' => 'Open my orders'],
                     ['title' => 'Confirm receipt', 'description' => 'After delivery, inspect the items and acknowledge receipt from the order page.'],
                 ] : [
-                    ['title' => 'Get the order details', 'description' => 'Ask the school office or order contact for the reference and the phone number or email used with the order.'],
-                    ['title' => 'Track the delivery', 'description' => 'Use those matching details to view the current delivery status.', 'route' => 'website.track-order', 'action' => 'Track an order'],
+                    ['title' => 'Get the order page', 'description' => 'Ask the signed-in order contact to open the order from their My Orders dashboard.'],
+                    ['title' => 'Track the delivery', 'description' => 'Use the order page to view current delivery status.', 'route' => 'website.track-order', 'action' => 'Order tracking'],
                     ['title' => 'Check the delivered items', 'description' => 'When the driver arrives, compare the delivery with the order before accepting it.'],
                     ['title' => 'Confirm receipt', 'description' => 'Acknowledge receipt from the order page after the delivery has been checked.'],
                 ],
                 'notes' => [
-                    'The current tracking flow uses an order reference plus matching phone number or email; it does not yet display an account-based order history.',
+                    'Only the signed-in account that placed an order can open its private order details.',
                 ],
             ];
         }
 
         return [
-            'slug' => 'parent',
+            'slug' => 'customer-checkout',
             'layout' => 'portal',
-            'portalName' => 'Parent Portal',
-            'eyebrow' => 'Parent workflow',
-            'title' => 'How to order supplies',
-            'intro' => 'You can shop from the catalogue, send a complete list for quotation, and follow delivery with the order reference and matching contact details.',
+            'portalName' => 'Customer checkout',
+            'eyebrow' => 'Customer account workflow',
+            'title' => 'How to place and follow an order',
+            'intro' => 'Create an account or sign in before checkout. Your orders then stay together in the My Orders dashboard.',
             'steps' => [
                 ['title' => 'Shop supplies', 'description' => 'Browse the catalogue and add the supplies you need to your cart.', 'route' => 'website.products.index', 'action' => 'Browse products'],
-                ['title' => 'Send a list for a quote', 'description' => 'Use Upload a list when you already have a list of items and quantities to price.', 'route' => 'website.upload-list', 'action' => 'Upload a list'],
-                ['title' => 'Review and pay', 'description' => 'Use the order reference returned by EduKit to review the quote and pay when you are ready.'],
-                ['title' => 'Track delivery', 'description' => 'Enter the reference and the same phone number or email used with the order.', 'route' => 'website.track-order', 'action' => 'Track an order'],
+                ['title' => 'Create an account or sign in', 'description' => 'Use your email address and password so EduKit can keep your orders together.', 'route' => 'login', 'action' => 'Sign in'],
+                ['title' => 'Enter your order contact', 'description' => 'Provide your name and the active MTN MoMo or Airtel Money number you intend to pay with. The number is saved with the order.'],
+                ['title' => 'Send a list for a quote', 'description' => 'Upload your school list while signed in; EduKit will prepare the quote in your account.', 'route' => 'website.upload-list', 'action' => 'Upload a list'],
+                ['title' => 'Review, pay and track', 'description' => 'Open My Orders any time to review the quote, pay and follow delivery progress.', 'route' => 'customer.dashboard', 'action' => 'Open my orders'],
                 ['title' => 'Confirm receipt', 'description' => 'Inspect the delivery and acknowledge receipt from the order page once everything is received.'],
             ],
             'notes' => [
-                'The current parent flow tracks orders by reference and matching contact details; the dashboard does not yet show an account-based order history.',
+                'The Mobile Money number is stored on each order. Private order details are available only after signing in to the account that placed the order.',
             ],
         ];
     }
@@ -193,7 +194,7 @@ class WorkspaceGuideController extends Controller
         if ($user->hasAnyRole(['school-admin', 'school-receiver'])) {
             $navigation = [
                 ['label' => 'Dashboard', 'route' => 'school.dashboard', 'pattern' => 'school.dashboard', 'icon' => 'home'],
-                ['label' => 'Track an order', 'route' => 'website.track-order', 'pattern' => 'website.track-order', 'icon' => 'drivers'],
+                ['label' => 'Order tracking help', 'route' => 'website.track-order', 'pattern' => 'website.track-order', 'icon' => 'drivers'],
             ];
 
             if ($user->hasRole('school-admin')) {
@@ -205,10 +206,9 @@ class WorkspaceGuideController extends Controller
         }
 
         return [
-            ['label' => 'Dashboard', 'route' => 'parent.dashboard', 'pattern' => 'parent.dashboard', 'icon' => 'home'],
             ['label' => 'Shop supplies', 'route' => 'website.products.index', 'pattern' => 'website.products.*', 'icon' => 'products'],
             ['label' => 'Upload a list', 'route' => 'website.upload-list', 'pattern' => 'website.upload-list', 'icon' => 'upload'],
-            ['label' => 'Track an order', 'route' => 'website.track-order', 'pattern' => 'website.track-order', 'icon' => 'drivers'],
+            ['label' => 'Order tracking help', 'route' => 'website.track-order', 'pattern' => 'website.track-order', 'icon' => 'drivers'],
         ];
     }
 }

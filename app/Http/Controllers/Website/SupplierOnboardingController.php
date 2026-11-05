@@ -7,6 +7,7 @@ use App\Models\Supplier;
 use App\Models\ProductCategory;
 use App\Models\District;
 use App\Services\AccountProvisioner;
+use App\Services\OrderNotificationService;
 use App\Support\DocumentStorage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -25,7 +26,7 @@ class SupplierOnboardingController extends Controller
         ]);
     }
 
-    public function store(Request $request, AccountProvisioner $provisioner): RedirectResponse
+    public function store(Request $request, AccountProvisioner $provisioner, OrderNotificationService $notifications): RedirectResponse
     {
         $data = $request->validate([
             'business_name' => ['required', 'string', 'max:255'],
@@ -72,9 +73,11 @@ class SupplierOnboardingController extends Controller
             ]);
         });
 
+        $notifications->applicationReceived($data['email'], $data['contact_person'], 'supplier');
+
         return redirect()
             ->route('website.suppliers')
-            ->with('status', 'Your application and login details have been received. You can sign in after EduKit approves your business.');
+            ->with('status', 'Your application has been received. We sent a confirmation email, and we will email you again when EduKit reviews your business.');
     }
 
     private function selectedProductCategories(array $categoryIds, ?string $otherCategories): string

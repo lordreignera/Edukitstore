@@ -14,6 +14,7 @@ class FlutterwavePaymentService
     public function __construct(
         private readonly InventoryService $inventory,
         private readonly SupplierSaleService $supplierSales,
+        private readonly OrderNotificationService $notifications,
     ) {}
 
     public function attempt(string $txRef): PaymentAttempt
@@ -75,7 +76,8 @@ class FlutterwavePaymentService
             && is_numeric($data['amount'] ?? null)
             && (float) $data['amount'] === (float) $attempt->amount;
 
-        return DB::transaction(function () use ($attempt, $transactionId, $matchedAmountAndCurrency): bool {
+        $paymentConfirmed = false;
+        $result = DB::transaction(function () use ($attempt, $transactionId, $matchedAmountAndCurrency, &$paymentConfirmed): bool {
             $invoice = ShoppingList::whereKey($attempt->shopping_list_id)->lockForUpdate()->firstOrFail();
             $attempt = PaymentAttempt::whereKey($attempt->id)->lockForUpdate()->firstOrFail();
 
@@ -130,6 +132,7 @@ class FlutterwavePaymentService
                     'payment_exception' => 'Payment arrived after this order was closed. Review the transaction and arrange a refund or a new order.',
                     'payment_exception_type' => 'late_payment',
                 ]);
+                $paymentConfirmed = true;
 
                 return true;
             }
@@ -154,8 +157,15 @@ class FlutterwavePaymentService
                 'payment_exception_type' => $exception ? 'stock' : null,
                 'status' => $exception ? ShoppingList::STATUS_REVIEWING : $invoice->status,
             ]);
+            $paymentConfirmed = true;
 
             return true;
         });
+
+        if ($paymentConfirmed) {
+            $this->notifications->paymentConfirmed(ShoppingList::findOrFail($attempt->shopping_list_id));
+        }
+
+        return $result;
     }
 }

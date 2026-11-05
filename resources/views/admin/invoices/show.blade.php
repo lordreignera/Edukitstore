@@ -2,10 +2,10 @@
     <x-slot name="header">
         <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">Invoice {{ $invoice->reference }}</h2>
-                <p class="mt-1 text-sm text-gray-500">Monitor payment, assign a driver and follow the journey through customer receipt.</p>
+                <h2 class="text-xl font-semibold leading-tight text-gray-800">Order {{ $invoice->reference }}</h2>
+                <p class="mt-1 text-sm text-gray-500">Review the invoice, assign an available driver and follow the delivery through customer receipt.</p>
             </div>
-            <a href="{{ route('admin.invoices.index') }}" class="rounded border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Back to invoices</a>
+            <a href="{{ route('admin.invoices.index') }}" class="rounded border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Back to orders</a>
         </div>
     </x-slot>
 
@@ -59,7 +59,7 @@
             </section>
 
             <section class="rounded border border-gray-200 bg-white p-6 shadow-sm">
-                <h3 class="text-lg font-bold text-gray-950">Invoice workflow</h3>
+                <h3 class="text-lg font-bold text-gray-950">Order workflow</h3>
                 <div class="mt-4 grid gap-3 text-sm sm:grid-cols-3">
                     <div class="rounded border border-slate-200 bg-slate-50 p-3">
                         <p class="font-bold text-slate-500">Payment</p>

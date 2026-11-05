@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Product;
+use App\Models\ShoppingList;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -43,7 +45,7 @@ class AdminInterfaceTest extends TestCase
             ->assertSee('Shopping List Workflow')
             ->assertSee('Latest Products')
             ->assertSee('Uganda Primary Atlas')
-            ->assertSee('Invoices')
+            ->assertSee('Orders & Fulfilment')
             ->assertSee('View Website');
     }
 
@@ -73,6 +75,51 @@ class AdminInterfaceTest extends TestCase
             ->assertOk()
             ->assertSee('Picfare Counter Book')
             ->assertDontSee('Black School Shoes');
+    }
+
+    public function test_dashboard_kpi_counts_only_paid_issue_free_orders_waiting_for_driver_assignment(): void
+    {
+        config([
+            'services.webpush.public_key' => null,
+            'services.webpush.private_key' => null,
+            'services.webpush.subject' => null,
+        ]);
+
+        $role = Role::findOrCreate('super-admin', 'web');
+        $role->givePermissionTo(Permission::findOrCreate('invoices.view', 'web'));
+        $admin = User::factory()->create();
+        $admin->assignRole($role);
+
+        $createOrder = fn (array $attributes) => ShoppingList::create(array_merge([
+            'parent_name' => 'KPI Customer',
+            'phone' => '+256700000001',
+            'delivery_preference' => 'pickup',
+            'status' => ShoppingList::STATUS_QUOTED,
+            'payment_status' => ShoppingList::PAYMENT_PAID,
+        ], $attributes));
+
+        $ready = $createOrder([]);
+        $exception = $createOrder(['payment_exception' => 'Stock needs review.']);
+        $unpaid = $createOrder(['payment_status' => ShoppingList::PAYMENT_UNPAID]);
+
+        $queueUrl = route('admin.invoices.index', [
+            'payment_status' => ShoppingList::PAYMENT_PAID,
+            'delivery_status' => 'awaiting_driver_assignment',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('Paid orders awaiting driver')
+            ->assertSee('Setup needed')
+            ->assertSee(str_replace('&', '&amp;', $queueUrl), false)
+            ->assertSee('<p class="mt-2 text-3xl font-extrabold text-slate-950">1</p>', false);
+
+        $this->get($queueUrl)
+            ->assertOk()
+            ->assertSee($ready->reference)
+            ->assertDontSee($exception->reference)
+            ->assertDontSee($unpaid->reference);
     }
 
     private function superAdmin(): User

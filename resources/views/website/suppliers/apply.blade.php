@@ -64,6 +64,7 @@
                     <div>
                         <label class="text-sm font-bold text-slate-700" for="email">Email</label>
                         <input id="email" name="email" type="email" value="{{ old('email') }}" required class="mt-1 w-full rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
+                        <p class="mt-1 text-xs leading-5 text-slate-500">We will email you when the application is received and when it is reviewed.</p>
                         @error('email') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 

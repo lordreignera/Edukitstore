@@ -13,6 +13,7 @@ class DemoPaymentService
     public function __construct(
         private readonly InventoryService $inventory,
         private readonly SupplierSaleService $supplierSales,
+        private readonly OrderNotificationService $notifications,
     ) {}
 
     public function pay(ShoppingList $invoice): void
@@ -47,5 +48,7 @@ class DemoPaymentService
                 'paid_at' => now(),
             ]);
         });
+
+        $this->notifications->paymentConfirmed($invoice->fresh());
     }
 }

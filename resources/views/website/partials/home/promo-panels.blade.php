@@ -21,10 +21,10 @@
 
     <a href="{{ route('website.track-order') }}" class="group grid min-h-[150px] grid-cols-[1fr_118px] overflow-hidden rounded-md border border-[#dbe8f3] bg-white shadow-sm transition hover:border-amber-400">
         <div class="p-5">
-            <p class="text-[11px] font-black uppercase text-amber-700">Order lookup</p>
-            <p class="mt-1 text-[20px] font-black leading-7 text-[#07215f]">Pay when invoice is ready</p>
-            <p class="mt-2 text-sm font-semibold leading-6 text-slate-600">Track status using your invoice and contact.</p>
-            <span class="mt-4 inline-flex rounded-md bg-[#07215f] px-4 py-2 text-xs font-black text-white group-hover:bg-orange-700">Track order</span>
+            <p class="text-[11px] font-black uppercase text-amber-700">Order tracking</p>
+            <p class="mt-1 text-[20px] font-black leading-7 text-[#07215f]">Follow payment and delivery</p>
+            <p class="mt-2 text-sm font-semibold leading-6 text-slate-600">Keep the order page opened after checkout to follow its progress.</p>
+            <span class="mt-4 inline-flex rounded-md bg-[#07215f] px-4 py-2 text-xs font-black text-white group-hover:bg-orange-700">Tracking help</span>
         </div>
         <div class="h-full w-full bg-cover bg-center" style="background-image: url('/images/products/all.jpeg')"></div>
     </a>

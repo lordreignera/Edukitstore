@@ -20,7 +20,7 @@ class NoStoreAuthenticatedResponses
     {
         if ($wasAuthenticated || $request->user() || $request->routeIs(
             'login', 'logout', 'dashboard', 'password.*', 'two-factor.*', 'profile.*',
-            'admin.*', 'finance.*', 'supplier.*', 'driver.*', 'school.*', 'parent.*',
+            'admin.*', 'finance.*', 'supplier.*', 'driver.*', 'school.*', 'customer.*',
             'website.quote.show'
         )) {
             $response->headers->set('Cache-Control', 'private, no-store, no-cache, max-age=0, must-revalidate');

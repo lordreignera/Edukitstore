@@ -111,19 +111,31 @@
 
                     <form method="POST" action="{{ route('website.cart.submit') }}" class="mt-5 grid gap-4 sm:grid-cols-2">
                         @csrf
+                        <p class="sm:col-span-2 rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-xs leading-5 text-orange-950">
+                            @if (auth()->user()?->hasRole('customer'))
+                                Your order will be saved to your signed-in EduKit account. You can continue without creating another account.
+                            @else
+                                Checkout as a guest - no account is required to place or pay. Use an email you can access; verify it after creating an account or signing in to track your order.
+                                <a href="{{ route('customer.register') }}" class="ml-1 font-black underline">Create account</a>
+                                <span>or</span>
+                                <a href="{{ route('login') }}" class="font-black underline">Sign in</a>.
+                            @endif
+                        </p>
                         <div>
                             <label for="parent_name" class="text-sm font-bold text-slate-700">Your name</label>
-                            <input id="parent_name" name="parent_name" value="{{ old('parent_name') }}" required class="mt-1 w-full rounded-md border-[#d7e4ef] text-sm focus:border-orange-600 focus:ring-orange-600">
+                            <input id="parent_name" name="parent_name" value="{{ old('parent_name', auth()->user()?->name) }}" required class="mt-1 w-full rounded-md border-[#d7e4ef] text-sm focus:border-orange-600 focus:ring-orange-600">
                             @error('parent_name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
-                            <label for="phone" class="text-sm font-bold text-slate-700">Phone number</label>
-                            <input id="phone" name="phone" value="{{ old('phone') }}" required class="mt-1 w-full rounded-md border-[#d7e4ef] text-sm focus:border-orange-600 focus:ring-orange-600">
+                            <label for="phone" class="text-sm font-bold text-slate-700">Mobile Money phone number</label>
+                            <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" value="{{ old('phone') }}" placeholder="07xx xxx xxx or +256..." required class="mt-1 w-full rounded-md border-[#d7e4ef] text-sm focus:border-orange-600 focus:ring-orange-600">
+                            <p class="mt-1 text-xs leading-5 text-slate-500">Enter the active MTN MoMo or Airtel Money number you intend to pay with. It is saved on this order; the system does not verify wallet ownership until payment.</p>
                             @error('phone') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label for="email" class="text-sm font-bold text-slate-700">Email address</label>
-                            <input id="email" name="email" type="email" value="{{ old('email') }}" class="mt-1 w-full rounded-md border-[#d7e4ef] text-sm focus:border-orange-600 focus:ring-orange-600">
+                            <input id="email" name="email" type="email" value="{{ old('email', auth()->user()?->email) }}" autocomplete="email" required class="mt-1 w-full rounded-md border-[#d7e4ef] text-sm focus:border-orange-600 focus:ring-orange-600">
+                            <p class="mt-1 text-xs leading-5 text-slate-500">We send order confirmation and payment updates here. Verify this same email on an EduKit account to claim guest orders later.</p>
                             @error('email') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <x-website.school-delivery-fields :schools="$schools" />
@@ -132,8 +144,8 @@
                             <textarea id="notes" name="notes" rows="3" class="mt-1 w-full rounded-md border-[#d7e4ef] text-sm focus:border-orange-600 focus:ring-orange-600">{{ old('notes') }}</textarea>
                         </div>
                         <div class="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
-                            <p class="text-xs leading-5 text-slate-500">{{ $checkoutNow ? 'Submit once to pay. Your paid invoice will open as a receipt.' : 'Your itemized invoice opens automatically after this step. You can check it before paying.' }}</p>
-                            <button class="inline-flex min-h-12 justify-center rounded-md bg-[#07215f] px-5 py-3 text-sm font-bold text-white hover:bg-orange-700">{{ $checkoutNow ? 'Pay now' : 'Create and view invoice' }}</button>
+                            <p class="text-xs leading-5 text-slate-500">{{ $checkoutNow ? 'Place your order and continue to the payment options.' : 'Your itemized invoice opens automatically. Review it before paying.' }}</p>
+                            <button class="inline-flex min-h-12 justify-center rounded-md bg-[#07215f] px-5 py-3 text-sm font-bold text-white hover:bg-orange-700">{{ $checkoutNow ? 'Place order and continue' : 'Create and view invoice' }}</button>
                         </div>
                     </form>
                 </div>

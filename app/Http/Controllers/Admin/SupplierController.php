@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Supplier;
 use App\Services\AccountProvisioner;
+use App\Services\OrderNotificationService;
 use App\Support\AccountAccess;
 use App\Support\DocumentStorage;
 use Illuminate\Contracts\View\View;
@@ -76,12 +77,13 @@ class SupplierController extends Controller
         return back()->with('status', 'Supplier details updated.');
     }
 
-    public function approve(Supplier $supplier, AccountProvisioner $provisioner): RedirectResponse
+    public function approve(Supplier $supplier, AccountProvisioner $provisioner, OrderNotificationService $notifications): RedirectResponse
     {
         if (! $supplier->email) {
             return back()->withErrors(['supplier' => 'Add an email address before approving this supplier.']);
         }
 
+        $wasApproved = $supplier->is_approved;
         $supplierChosePassword = (bool) $supplier->user_id;
         $user = $provisioner->provision(
             $supplier->email,
@@ -98,6 +100,10 @@ class SupplierController extends Controller
             'approved_at' => now(),
             'approved_by' => auth()->id(),
         ]);
+
+        if (! $wasApproved) {
+            $notifications->partnerApproved($user, 'supplier');
+        }
 
         if ($supplierChosePassword) {
             $message = 'Supplier approved. Their existing login is now active.';

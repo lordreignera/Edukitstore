@@ -4,7 +4,7 @@
         <dd class="mt-1 text-gray-950">{{ $invoice->parent_name }}</dd>
     </div>
     <div>
-        <dt class="font-semibold text-gray-500">Phone</dt>
+        <dt class="font-semibold text-gray-500">Mobile Money phone</dt>
         <dd class="mt-1 text-gray-950">{{ $invoice->phone }}</dd>
     </div>
     <div>

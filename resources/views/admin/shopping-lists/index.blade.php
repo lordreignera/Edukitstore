@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex flex-col gap-1">
             <h2 class="text-xl font-semibold leading-tight text-gray-800">Shopping Lists</h2>
-            <p class="text-sm text-gray-500">Inspect uploaded school lists before continuing to invoice preparation.</p>
+            <p class="text-sm text-gray-500">Inspect uploaded school lists before continuing to order pricing and fulfilment.</p>
         </div>
     </x-slot>
 
@@ -13,7 +13,7 @@
                     @if (session('status'))
                         <p class="text-sm font-medium text-orange-700">{{ session('status') }}</p>
                     @else
-                        <p class="text-sm text-gray-500">Uploaded files stay here. Pricing, driver assignment and payment status live under Invoices.</p>
+                        <p class="text-sm text-gray-500">Uploaded files stay here. Pricing, driver assignment and payment status continue in Orders &amp; Fulfilment.</p>
                     @endif
                 </div>
 

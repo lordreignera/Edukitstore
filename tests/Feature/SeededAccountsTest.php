@@ -12,10 +12,13 @@ class SeededAccountsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_seeded_accounts_have_temporary_credentials_and_workspace_access(): void
+    public function test_seeded_staff_accounts_have_temporary_credentials_and_workspace_access(): void
     {
         config(['edukit.seed_demo_accounts' => true]);
         $this->seed(RolesAndSuperAdminSeeder::class);
+
+        $this->assertDatabaseMissing('users', ['email' => 'parent@edukit.test']);
+        $this->assertDatabaseMissing('roles', ['name' => 'parent']);
 
         foreach ($this->accounts() as $account) {
             $this->post('/logout');
@@ -35,7 +38,6 @@ class SeededAccountsTest extends TestCase
                 'supplier' => 'supplier.dashboard',
                 'delivery-person' => 'driver.dashboard',
                 'school-admin', 'school-receiver' => 'school.dashboard',
-                'parent' => 'parent.dashboard',
             };
 
             $this->post('/login', [
@@ -65,7 +67,7 @@ class SeededAccountsTest extends TestCase
         }
     }
 
-    public function test_finance_school_and_parent_workspaces_are_role_scoped(): void
+    public function test_finance_and_school_workspaces_are_role_scoped(): void
     {
         config(['edukit.seed_demo_accounts' => true]);
         $this->seed(RolesAndSuperAdminSeeder::class);
@@ -92,12 +94,6 @@ class SeededAccountsTest extends TestCase
         $this->actingAs($receiver)->get(route('school.dashboard'))->assertOk()->assertSee('School Receiver Dashboard');
         $this->get(route('admin.dashboard'))->assertForbidden();
 
-        $this->flushSession();
-        $this->app['auth']->forgetGuards();
-        $parent = User::where('email', 'parent@edukit.test')->firstOrFail();
-        $parent->update(['must_change_password' => false]);
-        $this->actingAs($parent)->get(route('parent.dashboard'))->assertOk()->assertSee('Parent Dashboard');
-        $this->get(route('school.dashboard'))->assertForbidden();
     }
 
     public function test_every_seeded_role_is_restricted_to_its_own_private_workspace(): void
@@ -111,7 +107,6 @@ class SeededAccountsTest extends TestCase
             'supplier.dashboard' => ['supplier'],
             'driver.dashboard' => ['delivery-person'],
             'school.dashboard' => ['school-admin', 'school-receiver'],
-            'parent.dashboard' => ['parent'],
         ];
 
         foreach ($this->accounts() as $account) {
@@ -169,7 +164,6 @@ class SeededAccountsTest extends TestCase
             ['email' => 'driver@edukit.test', 'password' => 'Edukit@Driver2026!Secure', 'role' => 'delivery-person'],
             ['email' => 'schooladmin@edukit.test', 'password' => 'Edukit@School2026!Secure', 'role' => 'school-admin'],
             ['email' => 'receiver@edukit.test', 'password' => 'Edukit@Receiver2026!Secure', 'role' => 'school-receiver'],
-            ['email' => 'parent@edukit.test', 'password' => 'Edukit@Parent2026!Secure', 'role' => 'parent'],
         ];
     }
 }

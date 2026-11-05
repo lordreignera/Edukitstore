@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Driver;
 use App\Models\District;
 use App\Services\AccountProvisioner;
+use App\Services\OrderNotificationService;
 use App\Support\DocumentStorage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -23,7 +24,7 @@ class DriverOnboardingController extends Controller
         ]);
     }
 
-    public function store(Request $request, AccountProvisioner $provisioner): RedirectResponse
+    public function store(Request $request, AccountProvisioner $provisioner, OrderNotificationService $notifications): RedirectResponse
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -60,9 +61,11 @@ class DriverOnboardingController extends Controller
             ]);
         });
 
+        $notifications->applicationReceived($data['email'], $data['name'], 'delivery partner');
+
         return redirect()->route('website.drivers')->with(
             'status',
-            'Your application and login details have been received. You can sign in after EduKit approves your delivery account.'
+            'Your application has been received. We sent a confirmation email, and we will email you again when EduKit approves your delivery account.'
         );
     }
 

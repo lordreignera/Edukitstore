@@ -14,7 +14,7 @@ class EnsureWebAccountIsAllowed
         $sessionUser = $request->user('web');
         $user = $sessionUser?->fresh();
 
-        if ($sessionUser && (! $user || ! $user->is_active || (
+        if ($sessionUser && (! $user || ! $user->is_active || $user->hasRole('parent') || (
             ! DemoAccountAccess::isAllowed($user->email)
         ))) {
             auth()->guard('web')->logout();

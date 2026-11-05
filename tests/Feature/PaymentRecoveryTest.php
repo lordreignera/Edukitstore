@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Product;
+use App\Models\Driver;
 use App\Models\ShoppingList;
 use App\Models\User;
 use App\Services\InventoryService;
@@ -55,14 +56,23 @@ class PaymentRecoveryTest extends TestCase
         $this->assertSame(ShoppingList::STATUS_REVIEWING, $invoice->fresh()->status);
         $this->assertNotNull($invoice->fresh()->payment_exception);
 
+        $driver = Driver::create(['name' => 'Available Driver', 'is_approved' => true, 'is_available' => true]);
+        Role::findOrCreate('super-admin');
+        $admin = User::factory()->create();
+        $admin->assignRole('super-admin');
+        $this->actingAs($admin)
+            ->patch(route('admin.invoices.update', $invoice), [
+                'status' => ShoppingList::STATUS_REVIEWING,
+                'assigned_driver_id' => $driver->id,
+            ])
+            ->assertSessionHasErrors('assigned_driver_id');
+        $this->assertNull($invoice->fresh()->assigned_driver_id);
+
         app(InventoryService::class)->recordOpeningStock($product, [
             'warehouse_quantity' => 0, 'display_quantity' => 1,
             'unit_cost' => 3000, 'unit_price' => 5000,
             'occurred_at' => now()->toDateString(),
         ]);
-        Role::findOrCreate('super-admin');
-        $admin = User::factory()->create();
-        $admin->assignRole('super-admin');
         $this->actingAs($admin)->patch(route('admin.invoices.resolve-paid-stock', $invoice))->assertRedirect();
         $this->assertSame(ShoppingList::STATUS_QUOTED, $invoice->fresh()->status);
         $this->assertNull($invoice->fresh()->payment_exception);

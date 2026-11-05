@@ -24,6 +24,8 @@
 
             @include('admin.partials.dashboard.stat-cards')
 
+            @include('admin.partials.dashboard.order-queues')
+
             @include('admin.partials.dashboard.insights')
 
             <div class="grid gap-5 xl:grid-cols-3">

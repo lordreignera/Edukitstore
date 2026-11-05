@@ -10,8 +10,12 @@
             <p class="text-sm font-black uppercase tracking-wide text-orange-700">Your invoice</p>
             <h1 class="mt-2 text-3xl font-black text-[#07215f]">{{ $shoppingList->reference }}</h1>
             <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-                @if ($shoppingList->payment_status === \App\Models\ShoppingList::PAYMENT_PAID)
-                    Payment received. Keep this order number for tracking and follow the delivery progress below.
+                @if ($shoppingList->customer_user_id && auth()->id() === $shoppingList->customer_user_id)
+                    This order is saved to your EduKit account. You can return to it any time from My Orders.
+                @elseif (! $shoppingList->customer_user_id)
+                    You can pay for this order without an account. To track it later, create or sign in to an account using this order email and verify that address.
+                @elseif ($shoppingList->payment_status === \App\Models\ShoppingList::PAYMENT_PAID)
+                    Payment received. Follow delivery progress below.
                 @elseif ($shoppingList->source === \App\Models\ShoppingList::SOURCE_CART)
                     Your order total includes the convenience fee shown at checkout. Review it below before paying.
                 @else
@@ -53,7 +57,8 @@
                 <h2 class="text-lg font-black text-[#07215f]">Delivery details</h2>
                 <dl class="mt-4 grid gap-4 text-sm sm:grid-cols-2">
                     <div><dt class="font-bold text-slate-500">Name</dt><dd class="mt-1 text-slate-950">{{ $shoppingList->parent_name }}</dd></div>
-                    <div><dt class="font-bold text-slate-500">Phone</dt><dd class="mt-1 text-slate-950">{{ $shoppingList->phone }}</dd></div>
+                    <div><dt class="font-bold text-slate-500">Mobile Money phone</dt><dd class="mt-1 text-slate-950">{{ $shoppingList->phone }}</dd></div>
+                    <div><dt class="font-bold text-slate-500">Order email</dt><dd class="mt-1 break-all text-slate-950">{{ $shoppingList->email }}</dd></div>
                     <div><dt class="font-bold text-slate-500">School</dt><dd class="mt-1 text-slate-950">{{ $shoppingList->school?->name ?? ($shoppingList->school_name ?: '-') }}</dd></div>
                     <div><dt class="font-bold text-slate-500">District</dt><dd class="mt-1 text-slate-950">{{ $shoppingList->school?->district?->name ?? $shoppingList->district?->name ?? '-' }}</dd></div>
                     <div><dt class="font-bold text-slate-500">Delivery</dt><dd class="mt-1 text-slate-950">{{ ucfirst($shoppingList->delivery_preference) }}</dd></div>
@@ -100,7 +105,7 @@
 
         <aside class="h-fit rounded-md border border-[#dbe8f3] bg-white p-5 shadow-sm">
             <h2 class="text-lg font-black text-[#07215f]">{{ $shoppingList->payment_status === \App\Models\ShoppingList::PAYMENT_PAID ? 'Order summary' : 'Review your payment' }}</h2>
-            <p class="mt-1 text-xs text-slate-500">{{ $shoppingList->payment_status === \App\Models\ShoppingList::PAYMENT_PAID ? 'Your payment is recorded. Keep this order number for tracking.' : 'Check the items and quantities before paying.' }}</p>
+            <p class="mt-1 text-xs text-slate-500">{{ $shoppingList->customer_user_id && auth()->id() === $shoppingList->customer_user_id ? 'This order is also available in your account.' : ($shoppingList->payment_status === \App\Models\ShoppingList::PAYMENT_PAID ? 'Keep this order page open on this device for now.' : 'Check the items and quantities before paying.') }}</p>
             <div class="mt-4 divide-y divide-slate-100 border-y border-slate-100 text-sm">
                 @foreach ($payableItems as $item)
                     <div class="flex justify-between gap-3 py-2">
@@ -120,6 +125,17 @@
                 <p class="mt-1 text-xs leading-5 text-slate-500">Payment: {{ $shoppingList->payment_provider === 'demo' ? 'Demo paid — no money collected' : ucfirst($shoppingList->payment_status) }}</p>
                 <p class="mt-1 text-xs leading-5 text-slate-500">Delivery: {{ \App\Models\ShoppingList::deliveryStatuses()[$journeyStatus] ?? ucfirst($journeyStatus) }}</p>
             </div>
+
+            @if (! $shoppingList->customer_user_id)
+                <div class="mt-5 rounded-md border border-orange-200 bg-orange-50 p-4">
+                    <h3 class="font-black text-[#07215f]">Want to track this order later?</h3>
+                    <p class="mt-1 text-xs leading-5 text-slate-700">You may pay as a guest. Create an account or sign in with <strong>{{ $shoppingList->email }}</strong> and verify that email to add this order to My Orders.</p>
+                    <div class="mt-3 grid gap-2">
+                        <a href="{{ route('customer.register') }}" class="inline-flex min-h-10 items-center justify-center rounded-md bg-orange-600 px-4 py-2 text-sm font-black text-white hover:bg-orange-700">Create an account</a>
+                        <a href="{{ route('login') }}" class="inline-flex min-h-10 items-center justify-center rounded-md border border-orange-300 bg-white px-4 py-2 text-sm font-bold text-[#07215f] hover:bg-orange-100">Sign in</a>
+                    </div>
+                </div>
+            @endif
 
             @if ($journeyStatus === 'awaiting_customer_confirmation')
                 <form method="POST" action="{{ route('website.quote.received', $shoppingList->reference) }}" class="mt-5 rounded-md border border-orange-200 bg-orange-50 p-4">

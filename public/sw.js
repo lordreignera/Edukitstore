@@ -1,4 +1,4 @@
-const CACHE_NAME = 'edukit-static-v1';
+const CACHE_NAME = 'edukit-static-v2';
 const OFFLINE_URL = '/offline.html';
 const PRECACHE_URLS = [
     OFFLINE_URL,
@@ -15,6 +15,7 @@ const PRIVATE_PATH_PREFIXES = [
     '/finance',
     '/school',
     '/parent',
+    '/customer',
     '/user',
     '/login',
     '/logout',
@@ -51,6 +52,42 @@ self.addEventListener('activate', (event) => {
             ))
             .then(() => self.clients.claim())
     );
+});
+
+self.addEventListener('push', (event) => {
+    let payload = {};
+    try {
+        payload = event.data ? event.data.json() : {};
+    } catch (error) {
+        payload = { body: event.data?.text() || 'Open EduKit to see the update.' };
+    }
+
+    event.waitUntil(self.registration.showNotification(payload.title || 'EduKit update', {
+        body: payload.body || 'There is a new update in your EduKit workspace.',
+        icon: '/images/website/EDUKIT_STORE_logo2.png',
+        badge: '/images/website/EDUKIT_STORE_logo2.png',
+        tag: payload.tag || 'edukit-update',
+        data: { url: payload.url || '/admin/notifications' },
+    }));
+});
+
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    event.waitUntil((async () => {
+        const requestedUrl = new URL(event.notification.data?.url || '/admin/notifications', self.location.origin);
+        const targetUrl = requestedUrl.origin === self.location.origin
+            ? requestedUrl
+            : new URL('/admin/notifications', self.location.origin);
+        const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+        const currentWindow = windows.find((client) => new URL(client.url).origin === self.location.origin);
+
+        if (currentWindow) {
+            await currentWindow.navigate(targetUrl.href);
+            return currentWindow.focus();
+        }
+
+        return self.clients.openWindow(targetUrl.href);
+    })());
 });
 
 const cacheFirst = async (request) => {

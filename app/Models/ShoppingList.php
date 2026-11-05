@@ -40,6 +40,7 @@ class ShoppingList extends Model
 
     protected $fillable = [
         'parent_name',
+        'customer_user_id',
         'phone',
         'email',
         'district_id',
@@ -101,6 +102,11 @@ class ShoppingList extends Model
     public function assignedDriver(): BelongsTo
     {
         return $this->belongsTo(Driver::class, 'assigned_driver_id');
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'customer_user_id');
     }
 
     public function district(): BelongsTo
@@ -183,6 +189,7 @@ class ShoppingList extends Model
     public static function deliveryStatuses(): array
     {
         return [
+            'awaiting_driver_assignment' => 'Awaiting Driver Assignment',
             'unassigned' => 'Unassigned',
             'awaiting_payment' => 'Awaiting Payment',
             'ready_for_delivery' => 'Assigned to Driver',

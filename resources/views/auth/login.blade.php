@@ -44,6 +44,7 @@
             <x-button class="w-full">Sign in</x-button>
         </form>
 
-        <p class="mt-6 text-center text-sm text-slate-600">Want to supply or deliver with EduKit? <a href="{{ route('website.join') }}" class="font-bold text-orange-700 hover:text-[#071d4f]">Apply to join</a></p>
+        <p class="mt-6 text-center text-sm text-slate-600">Shopping with EduKit? <a href="{{ route('customer.register') }}" class="font-bold text-orange-700 hover:text-[#071d4f]">Create a customer account</a></p>
+        <p class="mt-3 text-center text-xs text-slate-500">Want to supply or deliver with EduKit? <a href="{{ route('website.join') }}" class="font-bold text-orange-700 hover:text-[#071d4f]">Apply to join</a></p>
     </x-authentication-card>
 </x-guest-layout>

@@ -6,7 +6,7 @@
                 <p class="mt-1 text-sm text-gray-500">Uploaded by {{ $shoppingList->parent_name }} on {{ $shoppingList->created_at->format('M d, Y') }}.</p>
             </div>
             <div class="flex flex-wrap gap-2">
-                <a href="{{ route('admin.invoices.show', $shoppingList) }}" class="rounded bg-orange-700 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-800">Open invoice</a>
+                <a href="{{ route('admin.invoices.show', $shoppingList) }}" class="rounded bg-orange-700 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-800">Open order</a>
                 <a href="{{ route('admin.shopping-lists.index') }}" class="rounded border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Back to lists</a>
             </div>
         </div>
@@ -30,9 +30,9 @@
 
             <aside class="h-fit rounded border border-orange-100 bg-orange-50 p-5 shadow-sm">
                 <p class="text-xs font-bold uppercase text-orange-700">Next step</p>
-                <h3 class="mt-2 text-xl font-black text-[#071d4f]">Prepare invoice</h3>
-                <p class="mt-2 text-sm leading-6 text-orange-900">Use the invoice workflow to price the request, assign an approved driver, release the invoice, receive payment, then wait for driver delivery confirmation.</p>
-                <a href="{{ route('admin.invoices.show', $shoppingList) }}" class="mt-5 inline-flex rounded bg-orange-700 px-4 py-2 text-sm font-bold text-white hover:bg-orange-800">Continue to invoice</a>
+                <h3 class="mt-2 text-xl font-black text-[#071d4f]">Continue order fulfilment</h3>
+                <p class="mt-2 text-sm leading-6 text-orange-900">Use Orders &amp; Fulfilment to price the request, release its quote, monitor payment, assign an approved driver, then follow delivery to customer confirmation.</p>
+                <a href="{{ route('admin.invoices.show', $shoppingList) }}" class="mt-5 inline-flex rounded bg-orange-700 px-4 py-2 text-sm font-bold text-white hover:bg-orange-800">Continue to order</a>
             </aside>
         </div>
     </div>

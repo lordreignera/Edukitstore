@@ -39,7 +39,7 @@ class DemoAccountSeederSecurityTest extends TestCase
 
         app(RolesAndSuperAdminSeeder::class)->run();
 
-        $this->assertDatabaseCount('users', 8);
+        $this->assertDatabaseCount('users', 7);
         $this->assertDatabaseMissing('users', ['email' => 'owner@example.test']);
     }
 

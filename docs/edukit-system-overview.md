@@ -60,7 +60,7 @@ The application is a conventional Laravel monolith. Routes call controllers, con
 | `database/migrations` | Users, roles, schools, catalogue, suppliers, inventory, orders, payments, and delivery fields |
 | `resources/views/website` | Public storefront and customer pages |
 | `resources/views/admin` | Admin management pages |
-| `resources/views/supplier`, `driver`, `school`, `parent`, `finance` | Authenticated role workspaces |
+| `resources/views/supplier`, `driver`, `school`, `customer`, `finance` | Authenticated role workspaces |
 | `resources/views/components` | Shared layouts, navigation, security reminder, and form components |
 
 ## 4. Login and role routing
@@ -76,7 +76,7 @@ After a successful login, Fortify sends the user directly to the role workspace.
 | `delivery-person` | `/driver` | `Driver\DashboardController` | `driver.dashboard` | Own approved driver record and assigned deliveries |
 | `school-admin` | `/school` | `School\DashboardController` | `school.dashboard` | School workspace landing page |
 | `school-receiver` | `/school` | `School\DashboardController` | `school.dashboard` | School workspace landing page |
-| `parent` | `/parent` | `Parent\DashboardController` | `parent.dashboard` | Parent workspace landing page |
+| `customer` | `/customer` | `Customer\DashboardController` | `customer.dashboard` | Own account-linked orders only |
 
 The legacy `driver` role is retained for compatibility with older records, but the current driver routes require `delivery-person`. New driver accounts are seeded or provisioned with `delivery-person`.
 
@@ -104,30 +104,28 @@ Relevant routes include:
 - `website.cart.update`
 - `website.cart.destroy`
 
-### 5.2 Submit a cart
+### 5.2 Create an account and submit a cart
 
-1. The customer enters name, phone, optional email, district, school/delivery details, and notes.
-2. `SchoolDeliveryService` validates the delivery destination and calculates the EduKit delivery fee.
-3. Supplier-direct items must be delivered to a selected school.
-4. Supplier delivery fees are added for supplier-sourced items.
-5. A `ShoppingList` is created with `source=cart`, `status=quoted`, and `payment_status=unpaid`.
+1. The customer creates an account with name, email, and password, or signs in.
+2. The customer enters order name, Mobile Money phone, optional contact email, and delivery details.
+3. `SchoolDeliveryService` validates the delivery destination and calculates the EduKit delivery fee.
+4. Supplier-direct items must be delivered to a selected school; supplier delivery fees are added.
+5. A `ShoppingList` is created with `customer_user_id`, `source=cart`, `status=quoted`, and `payment_status=unpaid`.
 6. Immutable line-item snapshots are created in `ShoppingListItem` records.
-7. The cart session is cleared.
-8. Temporary invoice access is granted to the submitting browser session.
-9. The customer is sent to the invoice/quote page.
+7. The cart session is cleared and the customer is sent to the invoice/quote page.
 
 ### 5.3 Upload a shopping list
 
-1. Customer opens `/upload-list`.
+1. Customer signs in and opens `/upload-list`.
 2. Customer submits contact, delivery, and school details with a JPG, PNG, PDF, DOC, DOCX, XLS, or XLSX file.
 3. The document is stored through Laravel's configured document disk.
 4. A `ShoppingList` is created with `source=upload`, `status=pending`, and `payment_status=unpaid`.
-5. The customer receives a reference number and temporary invoice access.
+5. The order is linked to the signed-in customer account.
 6. Admin reviews the file, enters catalogue lines and prices, adds the delivery fee, and releases the quote.
 
 ### 5.4 View, track, and pay
 
-The invoice is shown by `website.quote.show`. A reference alone is not enough to reopen an invoice later. The customer can use `/track-order` with the reference and matching phone number or email. A successful lookup grants access in the current session.
+The invoice is shown by `website.quote.show`. Customers can return to `/customer` (My Orders) and open any order created while signed in. Quote, payment and receipt routes authorize the owning account; a reference alone does not grant access. `/track-order` links customers to sign in. Older orders without `customer_user_id` remain accessible only through their original browser session and are not automatically matched by email or phone.
 
 Payment states are separate from order states:
 
@@ -261,19 +259,13 @@ The driver route group is `/driver` and requires the `delivery-person` role.
 
 The delivery journey fields record who started and reached the destination, with timestamps. A driver cannot operate another driver's delivery by changing the URL.
 
-## 9. School and parent workspaces
+## 9. School and customer workspaces
 
-School staff (`school-admin`, `school-receiver`) land at `/school`. Parents (`parent`) land at `/parent`.
+School staff (`school-admin`, `school-receiver`) land at `/school`. Customers register with email and password and land at `/customer` after sign-in.
 
-These are currently role-specific entry pages linking to the existing catalogue, upload-list, and reference-based order-tracking flows. They are not yet full account-owned dashboards.
+The customer dashboard lists account-owned orders, quote/payment/delivery status, and links to each order page. Checkout submission and list upload require authentication. The customer account email/password is separate from the Mobile Money phone stored on each order.
 
-Important current data limitation: `ShoppingList` stores school, learner, contact, and delivery information, but does not currently have a direct `user_id` or parent-account ownership relationship. Therefore:
-
-- A school user cannot yet see all orders belonging to their school from a private school dashboard.
-- A parent user cannot yet see a private history of all their orders by account login alone.
-- Both roles use the public reference plus phone/email tracking flow for order access.
-
-This is the main area to extend if the product requires account-based school and parent order history.
+Only orders created while signed in are linked to a customer. Existing orders with no customer link are not automatically assigned based on email or phone, because those fields have not been verified as account ownership. School users still do not have a school-wide order-history dashboard.
 
 ## 10. Authentication and account security flow
 
@@ -357,7 +349,7 @@ Owned by role-specific controllers:
 - `/supplier/*` for supplier.
 - `/driver/*` for delivery-person.
 - `/school` for school-admin/school-receiver.
-- `/parent` for parent.
+- `/customer` for account-linked customer order history.
 
 ### API routes
 
@@ -371,7 +363,7 @@ Owned by role-specific controllers:
 - `EDUKIT_SEED_DEMO_ACCOUNTS=true`.
 - The application environment is `local` or `testing`.
 
-The local accounts cover super-admin, admin, finance-admin, supplier, delivery-person, school-admin, school-receiver, and parent workspaces. Their temporary credentials are documented in the project README and seeder for local testing only. Production does not receive these demo accounts.
+The local accounts cover super-admin, admin, finance-admin, supplier, delivery-person, school-admin, and school-receiver workspaces. Customers create their own accounts; there is no shared seeded customer login. Production does not receive these demo accounts.
 
 The seeder preserves a password after the user changes it. It also creates the linked approved supplier and driver demo profiles required by those workspaces.
 
@@ -405,16 +397,23 @@ The automated test suite currently verifies authentication, role routing, accoun
 
 ### 14.1 Installable app support
 
-EduKit is also packaged as a Progressive Web App. The shared Blade shells publish the orange brand theme, web-app manifest, Apple touch metadata, and a small install prompt. `public/sw.js` caches only public static assets and the offline page. Admin, finance, supplier, driver, school, parent, login, user, API, and Livewire paths are deliberately network-only; private HTML responses are not stored offline.
+EduKit is also packaged as a Progressive Web App. The shared Blade shells publish the orange brand theme, web-app manifest, Apple touch metadata, and a small install prompt. `public/sw.js` caches only public static assets and the offline page. Admin, finance, supplier, driver, school, customer, login, user, API, and Livewire paths are deliberately network-only; private HTML responses are not stored offline.
 
 Users can install the app from a supported HTTPS browser using its install option. Android and desktop Chrome/Edge expose the native install flow; Safari on iPhone/iPad uses **Share → Add to Home Screen**. Local development on `127.0.0.1` is supported because browsers treat localhost origins as secure contexts.
 
+### 14.2 Transactional email and administrator push alerts
+
+- Customers receive an order-received email at checkout/list submission and a payment thank-you after payment is verified. Demo-payment messages clearly say that no money was collected.
+- Supplier and driver applicants receive an application-received email and another email when approved. Existing password setup links remain in place for accounts provisioned by an administrator.
+- New orders create private database notifications for active administrators with order access. Subscribed devices also receive operating-system push notifications through the service worker.
+- Admins enable push per device from the top bar. It requires HTTPS, browser permission, and persistent `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, and `VAPID_SUBJECT` environment values. Generate a key pair with `php artisan edukit:generate-vapid-keys`; keep the private key out of source control and clear/rebuild the config cache after setting it. On WAMP, set `OPENSSL_CONF` to that PHP version's bundled `extras/ssl/openssl.cnf` before starting PHP/Apache; alternatively generate keys on the target Linux host.
+- Real email delivery requires a production mail provider. `MAIL_MAILER=log` and the localhost example relay are development-only and do not deliver to external inboxes. Configure the provider's SMTP host, port, credentials, encryption, and verified sender before testing delivery.
+
 ## 15. Current gaps and next logical extensions
 
-1. Give `school-admin` and `parent` accounts an explicit ownership relationship to schools, learners, or customer profiles.
-2. Add account-scoped order history for school and parent dashboards instead of reference-based access only.
+1. Add a school-scoped order history for `school-admin` accounts.
 3. Define separate Spatie permissions if `super-admin` must have powers that ordinary `admin` users do not have.
 4. Decide whether the legacy `driver` role should eventually be migrated and removed.
-5. Add production account provisioning and email delivery configuration before deployment.
+5. Configure production account provisioning and a verified email sender before sending customer or partner notifications.
 6. Add a scheduled cleanup policy for expired sessions, old payment attempts, and temporary uploaded documents where required by retention policy.
 7. Perform a final manual browser test of login, logout, timeout, Back/Forward navigation, PWA installation, payment callback, and webhook behavior in the target deployment environment.

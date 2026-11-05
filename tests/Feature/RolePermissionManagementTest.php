@@ -54,7 +54,7 @@ class RolePermissionManagementTest extends TestCase
             ->post(route('admin.users.store'), [
                 'name' => 'Warehouse Manager',
                 'email' => 'warehouse.manager@example.com',
-                'roles' => ['warehouse-manager', 'parent'],
+                'roles' => ['warehouse-manager', 'school-receiver'],
                 'password' => 'StarterPass123!',
                 'password_confirmation' => 'StarterPass123!',
                 'is_active' => '1',
@@ -62,7 +62,7 @@ class RolePermissionManagementTest extends TestCase
             ->assertRedirect(route('admin.users.index'));
 
         $user = User::where('email', 'warehouse.manager@example.com')->firstOrFail();
-        $this->assertTrue($user->hasAllRoles(['warehouse-manager', 'parent']));
+        $this->assertTrue($user->hasAllRoles(['warehouse-manager', 'school-receiver']));
     }
 
     public function test_admin_can_only_use_permissions_assigned_to_the_admin_role(): void

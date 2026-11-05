@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Driver;
 use App\Services\AccountProvisioner;
+use App\Services\OrderNotificationService;
 use App\Support\DocumentStorage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -75,12 +76,13 @@ class DriverController extends Controller
         return back()->with('status', 'Delivery partner details updated.');
     }
 
-    public function approve(Driver $driver, AccountProvisioner $provisioner): RedirectResponse
+    public function approve(Driver $driver, AccountProvisioner $provisioner, OrderNotificationService $notifications): RedirectResponse
     {
         if (! $driver->email) {
             return back()->withErrors(['driver' => 'Add an email address before approving this delivery partner.']);
         }
 
+        $wasApproved = $driver->is_approved;
         $driverChosePassword = (bool) $driver->user_id;
         $user = $provisioner->provision($driver->email, $driver->name, 'delivery-person', auth()->id(), $driver->user_id);
 
@@ -91,6 +93,10 @@ class DriverController extends Controller
             'approved_at' => now(),
             'approved_by' => auth()->id(),
         ]);
+
+        if (! $wasApproved) {
+            $notifications->partnerApproved($user, 'delivery partner');
+        }
 
         if ($driverChosePassword) {
             $message = 'Delivery partner approved. Their existing login is now active.';

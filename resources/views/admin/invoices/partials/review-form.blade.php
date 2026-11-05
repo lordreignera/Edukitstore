@@ -77,16 +77,26 @@
 
     <div>
         <label class="text-sm font-medium text-gray-700" for="assigned_driver_id">Assigned driver</label>
-        <select id="assigned_driver_id" name="assigned_driver_id" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-orange-600 focus:ring-orange-600">
-            <option value="">Select approved driver</option>
-            @foreach ($drivers as $driver)
-                <option value="{{ $driver->id }}" @selected((int) old('assigned_driver_id', $invoice->assigned_driver_id) === $driver->id)>
-                    {{ $driver->name }}{{ $driver->phone ? ' - '.$driver->phone : '' }}{{ $driver->district ? ' - '.$driver->district : '' }}
-                </option>
-            @endforeach
-        </select>
+        @if ($invoice->payment_status === \App\Models\ShoppingList::PAYMENT_PAID && ! $invoice->payment_exception)
+            <select id="assigned_driver_id" name="assigned_driver_id" class="mt-1 w-full rounded border-gray-300 text-sm focus:border-orange-600 focus:ring-orange-600">
+                <option value="">Select approved and available driver</option>
+                @foreach ($drivers as $driver)
+                    <option value="{{ $driver->id }}" @selected((int) old('assigned_driver_id', $invoice->assigned_driver_id) === $driver->id)>
+                        {{ $driver->name }}{{ $driver->phone ? ' - '.$driver->phone : '' }}{{ $driver->district ? ' - '.$driver->district : '' }}
+                    </option>
+                @endforeach
+            </select>
+            <p class="mt-1 text-xs text-gray-500">Choose an approved, available driver for this paid order.</p>
+        @elseif ($invoice->payment_status === \App\Models\ShoppingList::PAYMENT_PAID)
+            <p class="mt-1 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-900">Resolve the payment or stock issue before assigning or dispatching a driver.</p>
+        @else
+            <p class="mt-1 rounded border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">Driver assignment is locked until customer payment is verified.</p>
+            @if ($invoice->assigned_driver_id)
+                <input type="hidden" name="assigned_driver_id" value="">
+                <p class="mt-1 text-xs text-red-700">This unpaid order has an existing assignment. Saving will remove it.</p>
+            @endif
+        @endif
         @error('assigned_driver_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-        <p class="mt-1 text-xs text-gray-500">Assign the driver after payment is verified. The customer can then see the driver and delivery progress.</p>
     </div>
 
     @if ($invoice->assignedDriver)

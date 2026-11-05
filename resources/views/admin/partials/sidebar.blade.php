@@ -7,7 +7,7 @@
         ['label' => 'Categories', 'route' => 'admin.product-categories.index', 'pattern' => 'admin.product-categories.*', 'icon' => 'tag', 'permission' => 'categories.view'],
         ['label' => 'Schools', 'route' => 'admin.schools.index', 'pattern' => 'admin.schools.*', 'icon' => 'school', 'permission' => 'schools.view'],
         ['label' => 'Shopping Lists', 'route' => 'admin.shopping-lists.index', 'pattern' => 'admin.shopping-lists.*', 'icon' => 'list', 'permission' => 'shopping-lists.view'],
-        ['label' => 'Invoices', 'route' => 'admin.invoices.index', 'pattern' => 'admin.invoices.*', 'icon' => 'invoice', 'permission' => 'invoices.view'],
+        ['label' => 'Orders & Fulfilment', 'route' => 'admin.invoices.index', 'pattern' => 'admin.invoices.*', 'icon' => 'invoice', 'permission' => 'invoices.view'],
         ['label' => 'Suppliers', 'route' => 'admin.suppliers.index', 'pattern' => 'admin.suppliers.*', 'icon' => 'suppliers', 'permission' => 'suppliers.view'],
         ['label' => 'Supplier Products', 'route' => 'admin.supplier-offers.index', 'pattern' => 'admin.supplier-offers.*', 'icon' => 'products', 'permission' => 'supplier-products.view'],
         ['label' => 'Drivers', 'route' => 'admin.drivers.index', 'pattern' => 'admin.drivers.*', 'icon' => 'drivers', 'permission' => 'drivers.view'],
@@ -36,8 +36,8 @@
                         <span>{{ $item['label'] }}</span>
                         @if ($item['label'] === 'Shopping Lists' && $adminNavStats['shopping_lists'] > 0)
                             <span class="ml-auto rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold text-amber-950">{{ $adminNavStats['shopping_lists'] }}</span>
-                        @elseif ($item['label'] === 'Invoices' && $adminNavStats['invoices'] > 0)
-                            <span class="ml-auto rounded-full bg-orange-400 px-2 py-0.5 text-[10px] font-bold text-orange-950">{{ $adminNavStats['invoices'] }}</span>
+                        @elseif ($item['label'] === 'Orders & Fulfilment' && $adminNavStats['orders'] > 0)
+                            <span class="ml-auto rounded-full bg-orange-400 px-2 py-0.5 text-[10px] font-bold text-orange-950">{{ $adminNavStats['orders'] }}</span>
                         @elseif ($item['label'] === 'Inventory' && $adminNavStats['low_stock'] > 0)
                             <span class="ml-auto rounded-full bg-red-400 px-2 py-0.5 text-[10px] font-bold text-red-950">{{ $adminNavStats['low_stock'] }}</span>
                         @endif

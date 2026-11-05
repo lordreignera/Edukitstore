@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::create('shopping_lists', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('customer_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('parent_name');
             $table->string('phone');
             $table->string('email')->nullable();

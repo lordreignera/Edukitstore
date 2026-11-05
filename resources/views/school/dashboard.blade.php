@@ -2,7 +2,7 @@
     $portalName = $isSchoolAdmin ? 'School Administrator' : 'School Receiver';
     $navigation = [
         ['label' => 'Dashboard', 'route' => 'school.dashboard', 'pattern' => 'school.dashboard', 'icon' => 'home'],
-        ['label' => 'Track an order', 'route' => 'website.track-order', 'pattern' => 'website.track-order', 'icon' => 'drivers'],
+        ['label' => 'Order tracking help', 'route' => 'website.track-order', 'pattern' => 'website.track-order', 'icon' => 'drivers'],
     ];
     if ($isSchoolAdmin) {
         $navigation[] = ['label' => 'Browse products', 'route' => 'website.products.index', 'pattern' => 'website.products.*', 'icon' => 'products'];
@@ -25,7 +25,7 @@
                 <a href="{{ route('website.products.index') }}" class="rounded-md border border-slate-200 bg-white p-5 hover:border-orange-500"><x-ui.icon name="products" size="size-6" class="text-orange-700" /><h2 class="mt-3 font-bold text-[#071d4f]">Browse products</h2><p class="mt-1 text-sm text-slate-600">See the current EduKit catalogue.</p></a>
                 <a href="{{ route('website.upload-list') }}" class="rounded-md border border-slate-200 bg-white p-5 hover:border-orange-500"><x-ui.icon name="upload" size="size-6" class="text-orange-700" /><h2 class="mt-3 font-bold text-[#071d4f]">Upload a shopping list</h2><p class="mt-1 text-sm text-slate-600">Send a list for quotation.</p></a>
             @endif
-            <a href="{{ route('website.track-order') }}" class="rounded-md border border-slate-200 bg-white p-5 hover:border-orange-500"><x-ui.icon name="drivers" size="size-6" class="text-orange-700" /><h2 class="mt-3 font-bold text-[#071d4f]">Track an order</h2><p class="mt-1 text-sm text-slate-600">Use the reference and matching phone number or email to view delivery status.</p></a>
+            <a href="{{ route('website.track-order') }}" class="rounded-md border border-slate-200 bg-white p-5 hover:border-orange-500"><x-ui.icon name="drivers" size="size-6" class="text-orange-700" /><h2 class="mt-3 font-bold text-[#071d4f]">Order tracking help</h2><p class="mt-1 text-sm text-slate-600">Customers order as guests and use the order page opened after submission. Phone recovery will be added with OTP.</p></a>
         </div>
     </div></div>
 </x-portal-layout>

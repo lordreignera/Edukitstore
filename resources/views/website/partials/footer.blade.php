@@ -13,6 +13,7 @@
                 <a href="{{ route('website.upload-list') }}" class="hover:text-orange-700">Upload List</a>
                 <a href="{{ route('website.schools') }}" class="hover:text-orange-700">Schools</a>
                 <a href="{{ route('website.track-order') }}" class="hover:text-orange-700">Track Order</a>
+                <a href="{{ auth()->check() ? route('customer.dashboard') : route('login') }}" class="hover:text-orange-700">My Orders</a>
                 <a href="{{ route('website.help') }}" class="hover:text-orange-700">Help</a>
             </div>
         </div>

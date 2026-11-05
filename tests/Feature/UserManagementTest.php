@@ -5,11 +5,13 @@ namespace Tests\Feature;
 use App\Models\Driver;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Mail\PartnerApprovedMail;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Mail;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -67,9 +69,9 @@ class UserManagementTest extends TestCase
     {
         config(['session.driver' => 'database']);
         $admin = $this->admin();
-        Role::findOrCreate('parent');
+        Role::findOrCreate('school-receiver');
         $user = User::factory()->create(['remember_token' => 'old-remember-token']);
-        $user->assignRole('parent');
+        $user->assignRole('school-receiver');
         $user->createToken('mobile');
         DB::table('sessions')->insert([
             'id' => 'other-browser', 'user_id' => $user->id, 'ip_address' => '127.0.0.1',
@@ -117,6 +119,7 @@ class UserManagementTest extends TestCase
 
     public function test_approving_supplier_creates_and_links_a_supplier_account(): void
     {
+        Mail::fake();
         Notification::fake();
         $admin = $this->admin();
         Role::findOrCreate('supplier');
@@ -134,6 +137,7 @@ class UserManagementTest extends TestCase
         $this->assertNotNull($supplier->user_id);
         $this->assertTrue($supplier->user->hasRole('supplier'));
         Notification::assertSentTo($supplier->user, ResetPassword::class);
+        Mail::assertSent(PartnerApprovedMail::class, fn (PartnerApprovedMail $mail): bool => $mail->hasTo('supplier@example.com'));
 
         $this->actingAs($admin)->patch(route('admin.suppliers.suspend', $supplier))->assertRedirect();
         $this->assertFalse($supplier->fresh()->is_active);
@@ -164,6 +168,7 @@ class UserManagementTest extends TestCase
 
     public function test_approving_delivery_partner_creates_and_links_the_correct_account(): void
     {
+        Mail::fake();
         Notification::fake();
         $admin = $this->admin();
         Role::findOrCreate('delivery-person');
@@ -181,6 +186,7 @@ class UserManagementTest extends TestCase
         $this->assertTrue($driver->is_available);
         $this->assertTrue($driver->user->hasRole('delivery-person'));
         Notification::assertSentTo($driver->user, ResetPassword::class);
+        Mail::assertSent(PartnerApprovedMail::class, fn (PartnerApprovedMail $mail): bool => $mail->hasTo('driver@example.com'));
 
         $this->actingAs($admin)->patch(route('admin.drivers.unavailable', $driver))->assertRedirect();
         $this->assertFalse($driver->fresh()->is_available);

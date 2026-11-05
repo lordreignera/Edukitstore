@@ -40,9 +40,9 @@
                     @endif
                 </a>
 
-                <a href="{{ route('login') }}" class="inline-flex min-h-10 items-center gap-1 rounded-md px-2.5 text-xs hover:bg-slate-50 hover:text-orange-700 sm:text-sm">
+                <a href="{{ auth()->check() ? route('dashboard') : route('login') }}" class="inline-flex min-h-10 items-center gap-1 rounded-md px-2.5 text-xs hover:bg-slate-50 hover:text-orange-700 sm:text-sm">
                     <x-ui.icon name="user" size="size-4" />
-                    Sign In
+                    {{ auth()->check() && auth()->user()->hasRole('customer') ? 'My orders' : (auth()->check() ? 'Workspace' : 'Sign In') }}
                 </a>
 
                 <a href="{{ route('website.join') }}" class="hidden rounded-md bg-orange-600 px-4 py-2.5 text-white shadow-sm hover:bg-orange-700 min-[460px]:inline-flex">Join EduKit</a>

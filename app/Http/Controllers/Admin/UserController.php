@@ -225,6 +225,8 @@ class UserController extends Controller
             $roles = array_diff_key($roles, array_flip(['super-admin', 'admin', 'finance-admin']));
         }
 
+        unset($roles['parent']);
+
         return $roles;
     }
 

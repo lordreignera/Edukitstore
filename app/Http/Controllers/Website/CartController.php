@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Website;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ShoppingList;
+use App\Rules\UgandaMobileMoneyNumber;
 use App\Services\FlutterwavePaymentService;
 use App\Services\DemoPaymentService;
+use App\Services\OrderNotificationService;
 use App\Services\InventoryService;
 use App\Services\MarketplaceSourceService;
 use App\Services\SchoolDeliveryService;
@@ -120,7 +122,7 @@ class CartController extends Controller
         return back()->with('status', "{$product->name} quantity updated.");
     }
 
-    public function submit(Request $request, SchoolDeliveryService $delivery, DemoPaymentService $demoPayments): RedirectResponse
+    public function submit(Request $request, SchoolDeliveryService $delivery, DemoPaymentService $demoPayments, OrderNotificationService $notifications): RedirectResponse
     {
         $cart = session('cart', []);
         $checkoutNow = (bool) session('checkout_now', false);
@@ -131,13 +133,14 @@ class CartController extends Controller
 
         $data = $request->validate([
             'parent_name' => ['required', 'string', 'max:160'],
-            'phone' => ['required', 'string', 'max:40'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['required', 'string', 'min:7', 'max:40', 'regex:/^[0-9+\\s().-]+$/', new UgandaMobileMoneyNumber],
+            'email' => ['required', 'email', 'max:255'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ] + $delivery->validationRules());
+        $data['email'] = Str::lower(trim($data['email']));
 
         $data = $delivery->applyTo($data);
-
+        $data['phone'] = UgandaMobileMoneyNumber::normalize($data['phone']);
         $products = Product::query()
             ->active()
             ->with('approvedSupplierOffers.supplier')
@@ -204,6 +207,7 @@ class CartController extends Controller
 
         $shoppingList = DB::transaction(function () use ($data, $items, $itemsSubtotal): ShoppingList {
             $shoppingList = ShoppingList::create($data + [
+                'customer_user_id' => auth()->user()?->hasRole('customer') ? auth()->id() : null,
                 'source' => ShoppingList::SOURCE_CART,
                 'reference' => ShoppingList::nextReference(),
                 'cart_items' => $items->all(),
@@ -235,6 +239,7 @@ class CartController extends Controller
         session()->forget('cart_sources');
         session()->forget('checkout_now');
         InvoiceAccess::grant($shoppingList);
+        $notifications->orderReceived($shoppingList);
 
         if ($checkoutNow && PaymentMode::demoEnabled()) {
             $demoPayments->pay($shoppingList);

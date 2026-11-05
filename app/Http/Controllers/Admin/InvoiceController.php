@@ -43,6 +43,10 @@ class InvoiceController extends Controller
             ->when(in_array($source, [ShoppingList::SOURCE_CART, ShoppingList::SOURCE_UPLOAD], true), fn ($query) => $query->where('source', $source))
             ->when($issuesOnly, fn ($query) => $query->whereNotNull('payment_exception'))
             ->when($driverId !== '', fn ($query) => $query->where('assigned_driver_id', $driverId))
+            ->when($deliveryStatus === 'awaiting_driver_assignment', fn ($query) => $query
+                ->where('payment_status', ShoppingList::PAYMENT_PAID)
+                ->whereNull('assigned_driver_id')->whereNull('payment_exception')
+                ->whereNull('customer_received_at')->whereNull('delivery_confirmed_at'))
             ->when($deliveryStatus === 'unassigned', fn ($query) => $query->whereNull('assigned_driver_id')->whereNull('customer_received_at')->whereNull('delivery_confirmed_at'))
             ->when($deliveryStatus === 'awaiting_payment', fn ($query) => $query->whereNotNull('assigned_driver_id')->where('payment_status', '!=', ShoppingList::PAYMENT_PAID)->whereNull('customer_received_at')->whereNull('delivery_confirmed_at'))
             ->when($deliveryStatus === 'ready_for_delivery', fn ($query) => $query->whereNotNull('assigned_driver_id')->where('payment_status', ShoppingList::PAYMENT_PAID)->whereNull('payment_exception')->whereNull('driver_started_at')->whereNull('customer_received_at')->whereNull('delivery_confirmed_at'))
@@ -109,7 +113,7 @@ class InvoiceController extends Controller
 
         $workflow->updateFromAdmin($invoice, $data, auth()->id());
 
-        return back()->with('status', 'Invoice updated.');
+        return back()->with('status', 'Order updated.');
     }
 
     public function resolvePaidStock(ShoppingList $invoice, InvoiceWorkflow $workflow, InventoryService $inventory, SupplierSaleService $supplierSales): RedirectResponse

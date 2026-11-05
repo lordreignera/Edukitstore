@@ -38,6 +38,16 @@ class InvoiceWorkflow
             $driverId = array_key_exists('assigned_driver_id', $data)
                 ? $data['assigned_driver_id']
                 : $invoice->assigned_driver_id;
+            if ($driverId && $invoice->payment_status !== ShoppingList::PAYMENT_PAID) {
+                throw ValidationException::withMessages([
+                    'assigned_driver_id' => 'A driver can only be assigned after the customer payment is verified.',
+                ]);
+            }
+            if ($driverId && (int) $driverId !== (int) $invoice->assigned_driver_id && $invoice->payment_exception) {
+                throw ValidationException::withMessages([
+                    'assigned_driver_id' => 'Resolve the payment or stock issue before assigning a driver.',
+                ]);
+            }
             if (($invoice->customer_received_at || $invoice->delivery_confirmed_at) && (int) $driverId !== (int) $invoice->assigned_driver_id) {
                 throw ValidationException::withMessages(['assigned_driver_id' => 'A completed delivery cannot be reassigned.']);
             }

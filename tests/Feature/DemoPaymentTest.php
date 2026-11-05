@@ -4,9 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\Product;
 use App\Models\ShoppingList;
+use App\Mail\OrderPaidThankYouMail;
+use App\Mail\OrderReceivedMail;
 use App\Services\InventoryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class DemoPaymentTest extends TestCase
@@ -15,6 +18,7 @@ class DemoPaymentTest extends TestCase
 
     public function test_demo_payment_requires_item_confirmation_and_records_stock_once_without_provider_call(): void
     {
+        Mail::fake();
         config(['edukit.payment_mode' => 'demo', 'app.env' => 'testing']);
         Http::fake();
 
@@ -28,7 +32,7 @@ class DemoPaymentTest extends TestCase
             'occurred_at' => now()->toDateString(),
         ]);
         $invoice = ShoppingList::create([
-            'parent_name' => 'Demo Buyer', 'phone' => '+256700123456',
+            'parent_name' => 'Demo Buyer', 'phone' => '+256700123456', 'email' => 'demo-buyer@example.test',
             'source' => ShoppingList::SOURCE_CART,
             'delivery_preference' => 'school',
             'cart_items' => [[
@@ -55,6 +59,8 @@ class DemoPaymentTest extends TestCase
         $this->assertSame(1, $product->fresh()->stock_quantity);
         $this->assertSame(1, $invoice->paymentAttempts()->count());
         Http::assertNothingSent();
+        Mail::assertSent(OrderPaidThankYouMail::class, fn (OrderPaidThankYouMail $mail): bool => $mail->order->is($invoice)
+            && $mail->hasTo('demo-buyer@example.test'));
 
         $this->withSession($session)->post(route('website.quote.pay', $invoice->reference), ['confirm_items' => '1'])
             ->assertNotFound();
@@ -80,8 +86,9 @@ class DemoPaymentTest extends TestCase
         $this->assertTrue(\App\Support\PaymentMode::demoEnabled());
     }
 
-    public function test_direct_checkout_completes_demo_payment_and_records_profit(): void
+    public function test_guest_direct_checkout_completes_demo_payment_without_an_account(): void
     {
+        Mail::fake();
         config(['edukit.payment_mode' => 'demo', 'app.env' => 'testing']);
 
         $product = Product::create([
@@ -100,16 +107,23 @@ class DemoPaymentTest extends TestCase
 
         $this->post(route('website.cart.submit'), [
             'parent_name' => 'Direct Buyer', 'phone' => '+256700000001',
+            'email' => 'direct.buyer@example.test',
             'delivery_preference' => 'pickup',
         ])->assertRedirect();
 
         $invoice = ShoppingList::firstOrFail();
         $this->assertSame(ShoppingList::PAYMENT_PAID, $invoice->fresh()->payment_status);
+        $this->assertNull($invoice->fresh()->customer_user_id);
+        $this->assertSame('direct.buyer@example.test', $invoice->fresh()->email);
         $this->assertSame('demo', $invoice->fresh()->payment_provider);
         $this->assertSame(1, $product->fresh()->stock_quantity);
         $this->assertSame(1, $invoice->lineItems()->first()->fresh()->quantity);
         $this->assertSame(15000.0, (float) $invoice->lineItems()->first()->fresh()->profit_total);
         $this->assertSame(1, $invoice->paymentAttempts()->count());
+        Mail::assertSent(OrderPaidThankYouMail::class, fn (OrderPaidThankYouMail $mail): bool => $mail->order->is($invoice)
+            && $mail->hasTo('direct.buyer@example.test'));
+        Mail::assertSent(OrderReceivedMail::class, fn (OrderReceivedMail $mail): bool => $mail->order->is($invoice)
+            && $mail->hasTo('direct.buyer@example.test'));
         $this->assertFalse(session()->has('cart'));
         $this->assertFalse(session()->has('checkout_now'));
     }

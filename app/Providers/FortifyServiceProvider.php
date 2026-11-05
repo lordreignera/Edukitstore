@@ -7,8 +7,10 @@ use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Http\Responses\RoleAwareLoginResponse;
 use App\Http\Responses\RoleAwareTwoFactorLoginResponse;
+use App\Mail\VerifyAccountEmailMail;
 use App\Models\User;
 use App\Support\DemoAccountAccess;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -16,9 +18,9 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Laravel\Fortify\Contracts\TwoFactorLoginResponse as TwoFactorLoginResponseContract;
-use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
 use Laravel\Fortify\Fortify;
 
 class FortifyServiceProvider extends ServiceProvider
@@ -37,6 +39,11 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        VerifyEmail::toMailUsing(function (User $user, string $verificationUrl): VerifyAccountEmailMail {
+            return (new VerifyAccountEmailMail($user->name, $verificationUrl))
+                ->to($user->email);
+        });
+
         Fortify::updateUserProfileInformationUsing(UpdateUserProfileInformation::class);
         Fortify::updateUserPasswordsUsing(UpdateUserPassword::class);
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
@@ -58,7 +65,7 @@ class FortifyServiceProvider extends ServiceProvider
 
             $user = User::where('email', $email)->first();
 
-            if (! $user || ! $user->is_active || ! Hash::check((string) $request->input('password'), $user->password)) {
+            if (! $user || ! $user->is_active || $user->hasRole('parent') || ! Hash::check((string) $request->input('password'), $user->password)) {
                 return null;
             }
 

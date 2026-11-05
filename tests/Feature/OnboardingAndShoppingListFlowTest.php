@@ -11,10 +11,14 @@ use App\Models\School;
 use App\Models\ShoppingList;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Mail\PartnerApplicationReceivedMail;
+use App\Mail\PartnerApprovedMail;
+use App\Mail\OrderReceivedMail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
@@ -26,6 +30,7 @@ class OnboardingAndShoppingListFlowTest extends TestCase
 
     public function test_delivery_partner_can_submit_an_application_for_admin_review(): void
     {
+        Mail::fake();
         Storage::fake('local');
         District::create(['name' => 'Wakiso', 'slug' => 'wakiso', 'is_active' => true]);
 
@@ -48,6 +53,7 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         $this->assertFalse($driver->user->is_active);
         $this->assertTrue($driver->user->hasRole('delivery-person'));
         $this->assertTrue(Hash::check('DriverPass123!', $driver->user->password));
+        Mail::assertSent(PartnerApplicationReceivedMail::class, fn (PartnerApplicationReceivedMail $mail): bool => $mail->hasTo('moses.driver@example.com'));
         Storage::disk('local')->assertExists($driver->verification_document_path);
 
         $this->post('/login', ['email' => 'moses.driver@example.com', 'password' => 'DriverPass123!'])
@@ -57,14 +63,16 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         $admin = User::factory()->create();
         $admin->assignRole('super-admin');
         $this->actingAs($admin)->patch(route('admin.drivers.approve', $driver))->assertRedirect();
+        Mail::assertSent(PartnerApprovedMail::class, fn (PartnerApprovedMail $mail): bool => $mail->hasTo('moses.driver@example.com'));
         $this->post(route('logout'));
 
         $this->post('/login', ['email' => 'moses.driver@example.com', 'password' => 'DriverPass123!'])
             ->assertRedirect(route('driver.dashboard'));
     }
 
-    public function test_customer_can_upload_school_shopping_list(): void
+    public function test_guest_can_upload_school_shopping_list_without_an_account(): void
     {
+        Mail::fake();
         Storage::fake('local');
         $school = $this->createSchool();
 
@@ -91,8 +99,12 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         $this->assertSame($school->district_id, $shoppingList->district_id);
         $this->assertSame($school->delivery_fee, $shoppingList->delivery_fee);
         $this->assertSame(ShoppingList::SOURCE_UPLOAD, $shoppingList->source);
+        $this->assertNull($shoppingList->customer_user_id);
+        $this->assertSame('sarah@example.test', $shoppingList->email);
         $this->assertSame(ShoppingList::STATUS_PENDING, $shoppingList->status);
         $this->assertSame(ShoppingList::PAYMENT_UNPAID, $shoppingList->payment_status);
+        Mail::assertSent(OrderReceivedMail::class, fn (OrderReceivedMail $mail): bool => $mail->order->is($shoppingList)
+            && $mail->hasTo('sarah@example.test'));
         Storage::disk('local')->assertExists($shoppingList->file_path);
     }
 
@@ -118,6 +130,7 @@ class OnboardingAndShoppingListFlowTest extends TestCase
 
     public function test_supplier_can_submit_onboarding_application(): void
     {
+        Mail::fake();
         Storage::fake('local');
         District::create(['name' => 'Kampala', 'slug' => 'kampala', 'is_active' => true]);
 
@@ -151,6 +164,7 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         $response
             ->assertRedirect(route('website.suppliers'))
             ->assertSessionHas('status');
+        Mail::assertSent(PartnerApplicationReceivedMail::class, fn (PartnerApplicationReceivedMail $mail): bool => $mail->hasTo('supply@example.test'));
 
         $supplier = Supplier::firstOrFail();
 
@@ -170,6 +184,7 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         $admin = User::factory()->create();
         $admin->assignRole('super-admin');
         $this->actingAs($admin)->patch(route('admin.suppliers.approve', $supplier))->assertRedirect();
+        Mail::assertSent(PartnerApprovedMail::class, fn (PartnerApprovedMail $mail): bool => $mail->hasTo('supply@example.test'));
         $this->post(route('logout'));
 
         $this->post('/login', ['email' => 'supply@example.test', 'password' => 'SupplierPass123!'])
@@ -244,6 +259,29 @@ class OnboardingAndShoppingListFlowTest extends TestCase
                 'items_present' => 1,
                 'items' => [['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 145000]],
             ])
+            ->assertSessionHasErrors('assigned_driver_id');
+
+        $this->assertDatabaseHas('shopping_lists', [
+            'id' => $shoppingList->id,
+            'status' => ShoppingList::STATUS_PENDING,
+            'assigned_driver_id' => null,
+        ]);
+
+        $this->actingAs($admin)
+            ->patch(route('admin.invoices.update', $shoppingList), [
+                'status' => ShoppingList::STATUS_QUOTED,
+                'estimated_total' => 145000,
+                'items_present' => 1,
+                'items' => [['product_id' => $product->id, 'quantity' => 1, 'unit_price' => 145000]],
+            ])
+            ->assertRedirect();
+
+        $shoppingList->update(['payment_status' => ShoppingList::PAYMENT_PAID]);
+        $this->actingAs($admin)
+            ->patch(route('admin.invoices.update', $shoppingList), [
+                'status' => ShoppingList::STATUS_QUOTED,
+                'assigned_driver_id' => $driver->id,
+            ])
             ->assertRedirect();
 
         $this->assertDatabaseHas('shopping_lists', [
@@ -291,11 +329,12 @@ class OnboardingAndShoppingListFlowTest extends TestCase
             'stock_quantity' => 10,
             'is_active' => true,
         ]);
+        $customer = $this->createCustomer('norah.account@example.test');
 
         $this->post(route('website.cart.store', $product), ['quantity' => 2])
             ->assertSessionHas('cart.'.$product->id, 2);
 
-        $response = $this->post(route('website.cart.submit'), [
+        $response = $this->actingAs($customer)->post(route('website.cart.submit'), [
             'parent_name' => 'Norah A.',
             'phone' => '+256700123456',
             'email' => 'norah@example.test',
@@ -310,6 +349,8 @@ class OnboardingAndShoppingListFlowTest extends TestCase
 
         $response->assertRedirect(route('website.quote.show', $shoppingList->reference));
         $this->assertSame(ShoppingList::SOURCE_CART, $shoppingList->source);
+        $this->assertSame($customer->id, $shoppingList->customer_user_id);
+        $this->assertSame('norah@example.test', $shoppingList->email);
         $this->assertSame(120000, $shoppingList->items_subtotal);
         $this->assertSame($school->id, $shoppingList->school_id);
         $this->assertSame(15000, $shoppingList->delivery_fee);
@@ -322,20 +363,18 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         $this->actingAs($admin)
             ->patch(route('admin.invoices.update', $shoppingList), [
                 'status' => ShoppingList::STATUS_QUOTED,
-                'assigned_driver_id' => $driver->id,
             ])->assertRedirect();
 
         $shoppingList->refresh();
 
         $this->assertSame(15000, $shoppingList->delivery_fee);
         $this->assertSame(135000, $shoppingList->estimated_total);
-        $this->assertSame($driver->id, $shoppingList->assigned_driver_id);
+        $this->assertNull($shoppingList->assigned_driver_id);
 
-        $this->get(route('website.quote.show', $shoppingList->reference))
+        $this->actingAs($customer)->get(route('website.quote.show', $shoppingList->reference))
             ->assertOk()
             ->assertSee('UGX 135,000')
-            ->assertSee('John Driver')
-            ->assertSee('+256701111222')
+            ->assertDontSee('John Driver')
             ->assertSee('Pay now');
     }
 
@@ -688,5 +727,15 @@ class OnboardingAndShoppingListFlowTest extends TestCase
             'delivery_fee' => 10000,
             'is_active' => true,
         ]);
+    }
+
+    private function createCustomer(string $email): User
+    {
+        Role::findOrCreate('customer', 'web');
+
+        $customer = User::factory()->create(['email' => $email]);
+        $customer->assignRole('customer');
+
+        return $customer;
     }
 }

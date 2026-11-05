@@ -4,6 +4,8 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DriverController as AdminDriverController;
 use App\Http\Controllers\Admin\InventoryController as AdminInventoryController;
 use App\Http\Controllers\Admin\InvoiceController as AdminInvoiceController;
+use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
+use App\Http\Controllers\Admin\PushSubscriptionController as AdminPushSubscriptionController;
 use App\Http\Controllers\Admin\ProductCategoryController as AdminProductCategoryController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ProfitReportController as AdminProfitReportController;
@@ -16,7 +18,8 @@ use App\Http\Controllers\Admin\SupplierOfferController as AdminSupplierOfferCont
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Driver\DashboardController as DriverDashboardController;
 use App\Http\Controllers\Driver\DeliveryController as DriverDeliveryController;
-use App\Http\Controllers\Parent\DashboardController as ParentDashboardController;
+use App\Http\Controllers\Customer\DashboardController as CustomerDashboardController;
+use App\Http\Controllers\Customer\RegistrationController as CustomerRegistrationController;
 use App\Http\Controllers\School\DashboardController as SchoolDashboardController;
 use App\Http\Controllers\Supplier\DashboardController as SupplierDashboardController;
 use App\Http\Controllers\Supplier\EarningsController as SupplierEarningsController;
@@ -50,8 +53,8 @@ Route::get('/payments/flutterwave/callback', [WebsiteCartController::class, 'flu
 Route::get('/upload-list', [WebsiteShoppingListController::class, 'create'])->name('website.upload-list');
 Route::post('/upload-list', [WebsiteShoppingListController::class, 'store'])->middleware('throttle:5,1')->name('website.upload-list.store');
 Route::get('/track-order', [WebsiteTrackOrderController::class, 'index'])->name('website.track-order');
-Route::post('/track-order', [WebsiteTrackOrderController::class, 'lookup'])->middleware('throttle:10,1')->name('website.track-order.lookup');
-Route::post('/track-order/recover', [WebsiteTrackOrderController::class, 'recover'])->middleware('throttle:10,1')->name('website.track-order.recover');
+Route::get('/customer/register', [CustomerRegistrationController::class, 'create'])->middleware('guest')->name('customer.register');
+Route::post('/customer/register', [CustomerRegistrationController::class, 'store'])->middleware(['guest', 'throttle:5,1'])->name('customer.register.store');
 Route::get('/for-suppliers', [WebsiteSupplierOnboardingController::class, 'create'])->name('website.suppliers');
 Route::post('/for-suppliers', [WebsiteSupplierOnboardingController::class, 'store'])->middleware('throttle:5,1')->name('website.suppliers.store');
 Route::get('/for-drivers', [WebsiteDriverOnboardingController::class, 'create'])->name('website.drivers');
@@ -64,7 +67,6 @@ Route::get('/help', [WebsitePageController::class, 'show'])->defaults('page', 'h
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
-    'verified',
 ])->group(function () {
     Route::get('/change-password', function () {
         if (! auth()->user()->must_change_password) {
@@ -83,6 +85,10 @@ Route::middleware([
 
         return view('dashboard');
     })->name('dashboard');
+
+    Route::get('/customer', CustomerDashboardController::class)
+        ->middleware(['role:customer', 'verified'])
+        ->name('customer.dashboard');
 
     Route::get('/user-guide', [WorkspaceGuideController::class, 'index'])->name('user-guide');
     Route::get('/user-guide/download', [WorkspaceGuideController::class, 'download'])->name('user-guide.download');
@@ -113,12 +119,13 @@ Route::middleware([
         Route::get('/', SchoolDashboardController::class)->name('dashboard');
     });
 
-    Route::middleware('role:parent')->prefix('parent')->name('parent.')->group(function () {
-        Route::get('/', ParentDashboardController::class)->name('dashboard');
-    });
-
     Route::middleware('role_or_permission:super-admin|admin|admin.access')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/', AdminDashboardController::class)->middleware('permission:admin.dashboard.view')->name('dashboard');
+
+        Route::get('notifications', [AdminNotificationController::class, 'index'])->middleware('permission:invoices.view')->name('notifications.index');
+        Route::post('notifications/{notification}/open', [AdminNotificationController::class, 'open'])->middleware('permission:invoices.view')->name('notifications.open');
+        Route::post('push-subscriptions', [AdminPushSubscriptionController::class, 'store'])->middleware('permission:invoices.view')->name('push-subscriptions.store');
+        Route::delete('push-subscriptions', [AdminPushSubscriptionController::class, 'destroy'])->middleware('permission:invoices.view')->name('push-subscriptions.destroy');
 
         Route::get('invoices', [AdminInvoiceController::class, 'index'])->middleware('permission:invoices.view')->name('invoices.index');
         Route::get('invoices/{invoice}', [AdminInvoiceController::class, 'show'])->middleware('permission:invoices.view')->name('invoices.show');

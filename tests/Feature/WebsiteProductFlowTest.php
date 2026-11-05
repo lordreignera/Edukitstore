@@ -9,8 +9,18 @@ use App\Models\School;
 use App\Models\ShoppingList;
 use App\Models\Supplier;
 use App\Models\SupplierOffer;
+use App\Models\User;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request as HttpRequest;
+use Illuminate\Mail\Events\MessageSent;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class WebsiteProductFlowTest extends TestCase
@@ -192,7 +202,8 @@ class WebsiteProductFlowTest extends TestCase
             ->assertOk()
             ->assertSee('Blue School Bag')
             ->assertSee('UGX 60,000')
-            ->assertSee('Create and view invoice');
+            ->assertSee('Checkout as a guest')
+            ->assertSee('name="email"', false);
     }
 
     public function test_checkout_button_adds_product_and_opens_cart_details(): void
@@ -215,7 +226,7 @@ class WebsiteProductFlowTest extends TestCase
             ->assertOk()
             ->assertSee('Canvas School Shoes')
             ->assertSee('Convenience fee')
-            ->assertSee('Pay now');
+            ->assertSee('Checkout as a guest');
     }
 
     public function test_switching_fulfilment_source_replaces_the_old_cart_quantity(): void
@@ -280,15 +291,40 @@ class WebsiteProductFlowTest extends TestCase
             'stock_quantity' => 2, 'is_active' => true,
         ]);
         $this->post(route('website.cart.store', $product), ['quantity' => 1]);
-
         $this->post(route('website.cart.submit'), [
             'parent_name' => 'Pickup Parent', 'phone' => '0700000001',
+            'email' => 'pickup.parent@example.test',
             'delivery_preference' => 'pickup',
         ])->assertRedirect();
 
         $invoice = ShoppingList::firstOrFail();
+        $this->assertNull($invoice->customer_user_id);
         $this->assertSame('EduKit warehouse pickup', $invoice->delivery_location);
         $this->assertSame(0, $invoice->delivery_fee);
+    }
+
+    public function test_guest_checkout_requires_a_uganda_mobile_money_number(): void
+    {
+        $product = Product::create([
+            'name' => 'Mobile Money Book', 'slug' => 'mobile-money-book',
+            'sku' => 'BOOK-MOMO', 'price' => 5000,
+            'stock_quantity' => 2, 'is_active' => true,
+        ]);
+        $this->post(route('website.cart.store', $product), ['quantity' => 1]);
+        $this->post(route('website.cart.submit'), [
+            'parent_name' => 'Guest Buyer',
+            'phone' => '+256700000001',
+            'delivery_preference' => 'pickup',
+        ])->assertSessionHasErrors('email');
+
+        $this->post(route('website.cart.submit'), [
+            'parent_name' => 'Guest Buyer',
+            'phone' => '1234567',
+            'email' => 'guest.buyer@example.test',
+            'delivery_preference' => 'pickup',
+        ])->assertSessionHasErrors('phone');
+
+        $this->assertDatabaseCount('shopping_lists', 0);
     }
 
     public function test_cart_checkout_uses_selected_school_fee_and_is_ready_for_payment(): void
@@ -319,6 +355,8 @@ class WebsiteProductFlowTest extends TestCase
         ]);
 
         $this->post(route('website.cart.store', $product), ['quantity' => 1]);
+        $customer = $this->customer();
+        $this->actingAs($customer);
 
         $this->post(route('website.cart.submit'), [
             'parent_name' => 'Norah A.',
@@ -333,12 +371,14 @@ class WebsiteProductFlowTest extends TestCase
         $invoice = ShoppingList::firstOrFail();
 
         $this->assertSame(ShoppingList::STATUS_QUOTED, $invoice->status);
+        $this->assertSame('+256700123456', $invoice->phone);
         $this->assertSame(ShoppingList::PAYMENT_UNPAID, $invoice->payment_status);
         $this->assertSame($school->id, $invoice->school_id);
         $this->assertSame($district->id, $invoice->district_id);
         $this->assertSame(60000, $invoice->items_subtotal);
         $this->assertSame(12000, $invoice->delivery_fee);
         $this->assertSame(72000, $invoice->estimated_total);
+        $this->assertSame($customer->id, $invoice->customer_user_id);
 
         $this->get(route('website.quote.show', $invoice->reference))
             ->assertOk()
@@ -394,6 +434,10 @@ class WebsiteProductFlowTest extends TestCase
     {
         $this->get(route('website.upload-list'))
             ->assertOk()
+            ->assertSee('You can submit this list and pay later without an account.');
+
+        $this->actingAs($this->customer())->get(route('website.upload-list'))
+            ->assertOk()
             ->assertSee('Send the list. We prepare the basket.');
 
         $this->get(route('website.suppliers'))
@@ -402,10 +446,11 @@ class WebsiteProductFlowTest extends TestCase
 
         $this->get(route('website.track-order'))
             ->assertOk()
-            ->assertSee('Check if your EduKit invoice is ready.');
+            ->assertSee('All your orders, in one place.')
+            ->assertSee('Open my orders');
     }
 
-    public function test_customer_can_lookup_invoice_by_reference_and_contact(): void
+    public function test_phone_number_alone_cannot_open_an_order_before_otp_is_available(): void
     {
         $invoice = ShoppingList::create([
             'parent_name' => 'Norah A.',
@@ -417,63 +462,213 @@ class WebsiteProductFlowTest extends TestCase
 
         $this->get(route('website.quote.show', $invoice->reference))->assertNotFound();
 
-        $this->post(route('website.track-order.lookup'), [
+        $this->post('/track-order', [
             'reference' => strtolower($invoice->reference),
             'contact' => '0700123456',
-        ])->assertRedirect(route('website.quote.show', $invoice->reference));
+        ])->assertMethodNotAllowed();
 
-        $this->get(route('website.quote.show', $invoice->reference))->assertOk();
-
-        $this->post(route('website.track-order.lookup'), [
-            'reference' => $invoice->reference,
-            'contact' => 'wrong@example.test',
-        ])->assertSessionHasErrors('reference');
+        $this->withSession(['invoice_access.'.$invoice->id => true])
+            ->get(route('website.quote.show', $invoice->reference))
+            ->assertOk();
     }
 
-    public function test_customer_can_recover_multiple_orders_without_order_number(): void
+    public function test_customer_registration_creates_a_customer_workspace_account(): void
     {
-        $first = ShoppingList::create([
-            'parent_name' => 'Norah A.',
-            'phone' => '+256700123456',
-            'email' => 'norah@example.test',
-            'delivery_preference' => 'school',
-            'source' => ShoppingList::SOURCE_CART,
-            'items_subtotal' => 45000,
-            'delivery_fee' => 5000,
-            'estimated_total' => 50000,
-            'status' => ShoppingList::STATUS_QUOTED,
-            'payment_status' => ShoppingList::PAYMENT_PAID,
-        ]);
-        $second = ShoppingList::create([
-            'parent_name' => 'Norah A.',
-            'phone' => '+256700123456',
-            'email' => 'norah@example.test',
-            'delivery_preference' => 'school',
-            'source' => ShoppingList::SOURCE_CART,
-            'items_subtotal' => 80000,
-            'delivery_fee' => 10000,
-            'estimated_total' => 90000,
-            'status' => ShoppingList::STATUS_QUOTED,
-            'payment_status' => ShoppingList::PAYMENT_UNPAID,
-        ]);
+        Notification::fake();
 
-        $this->post(route('website.track-order.recover'), ['contact' => '0700 123 456'])
+        $this->get(route('customer.register'))
             ->assertOk()
-            ->assertSee($first->reference)
-            ->assertSee($second->reference)
-            ->assertSee('Choose an order to track')
-            ->assertSee('UGX 50,000')
-            ->assertSee('UGX 90,000');
+            ->assertSee('data-password-target="password"', false)
+            ->assertSee('data-password-target="password_confirmation"', false)
+            ->assertSee('At least 8 characters');
 
-        $this->assertTrue((bool) session('invoice_access.'.$first->id));
-        $this->assertTrue((bool) session('invoice_access.'.$second->id));
+        $this->post(route('customer.register.store'), [
+            'name' => 'Amina Buyer',
+            'email' => 'AMINA@example.test',
+            'password' => 'Abc123!',
+            'password_confirmation' => 'Abc123!',
+        ])->assertSessionHasErrors('password');
+
+        $this->post(route('customer.register.store'), [
+            'name' => 'Amina Buyer',
+            'email' => 'AMINA@example.test',
+            'password' => 'Abcd123!',
+            'password_confirmation' => 'Abcd123!',
+        ])->assertRedirect(route('verification.notice'));
+
+        $customer = User::where('email', 'amina@example.test')->firstOrFail();
+        $this->assertTrue($customer->hasRole('customer'));
+        $this->assertFalse($customer->hasVerifiedEmail());
+        $this->assertSame([], $customer->getAllPermissions()->pluck('name')->all());
+
+        Notification::assertSentTo($customer, VerifyEmail::class);
+        $this->get(route('customer.dashboard'))->assertRedirect(route('verification.notice'));
+
+        $customer->markEmailAsVerified();
+        $this->actingAs($customer->fresh())
+            ->get(route('customer.dashboard'))
+            ->assertOk()
+            ->assertSee('My orders');
     }
 
-    public function test_customer_is_told_when_order_recovery_has_no_matches(): void
+    public function test_customer_registration_sends_a_signed_verification_email_to_the_registered_address(): void
     {
-        $this->from(route('website.track-order'))
-            ->post(route('website.track-order.recover'), ['contact' => 'no-order@example.test'])
-            ->assertRedirect(route('website.track-order'))
-            ->assertSessionHasErrors('contact');
+        $sentMessages = [];
+        Event::listen(MessageSent::class, function (MessageSent $event) use (&$sentMessages): void {
+            $sentMessages[] = $event->message;
+        });
+
+        $this->post(route('customer.register.store'), [
+            'name' => 'Amina Buyer',
+            'email' => 'AMINA@example.test',
+            'password' => 'Abcd123!',
+            'password_confirmation' => 'Abcd123!',
+        ])->assertRedirect(route('verification.notice'))
+            ->assertSessionHas('status', fn (string $status): bool => str_contains($status, 'We sent a verification link'));
+
+        $customer = User::where('email', 'amina@example.test')->firstOrFail();
+
+        $this->assertCount(1, $sentMessages, 'Expected registration to send a verification email.');
+        $sentMessage = $sentMessages[0];
+        $this->assertSame('Verify your EduKit email address', $sentMessage->getSubject());
+        $this->assertSame([$customer->email], array_map(
+            fn ($address): string => $address->getAddress(),
+            $sentMessage->getTo(),
+        ));
+
+        $this->assertSame(1, preg_match(
+            '#href="([^"]*/email/verify/'.$customer->id.'/[a-f0-9]{40}\\?expires=\\d+&(?:amp;)?signature=[a-f0-9]+)"#',
+            $sentMessage->getHtmlBody(),
+            $matches,
+        ));
+
+        $verificationUrl = html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5);
+        $this->assertTrue(URL::hasValidSignature(HttpRequest::create($verificationUrl)));
+
+        $this->get(route('verification.notice'))->assertOk();
+        $this->post(route('verification.send'))
+            ->assertRedirect(route('verification.notice'))
+            ->assertSessionHas('status', 'verification-link-sent');
+        $this->assertCount(2, $sentMessages, 'Expected the resend action to send a new verification email.');
+    }
+
+    public function test_customer_dashboard_and_order_access_are_scoped_to_the_signed_in_account(): void
+    {
+        $customer = $this->customer();
+        $otherCustomer = $this->customer();
+        $ownOrder = ShoppingList::create([
+            'customer_user_id' => $customer->id,
+            'parent_name' => 'Buyer One', 'phone' => '+256700123456',
+            'delivery_preference' => 'pickup', 'status' => ShoppingList::STATUS_QUOTED,
+        ]);
+        $otherOrder = ShoppingList::create([
+            'customer_user_id' => $otherCustomer->id,
+            'parent_name' => 'Buyer Two', 'phone' => '+256700654321',
+            'delivery_preference' => 'pickup', 'status' => ShoppingList::STATUS_QUOTED,
+        ]);
+
+        $this->actingAs($customer)
+            ->get(route('customer.dashboard'))
+            ->assertOk()
+            ->assertSee($ownOrder->reference)
+            ->assertDontSee($otherOrder->reference);
+
+        $this->get(route('website.quote.show', $ownOrder->reference))->assertOk();
+        $this->get(route('website.quote.show', $otherOrder->reference))->assertNotFound();
+    }
+
+    public function test_guest_can_place_order_and_claim_it_after_verifying_the_order_email(): void
+    {
+        Mail::fake();
+        Notification::fake();
+
+        $product = Product::create([
+            'name' => 'Account Checkout Book', 'slug' => 'account-checkout-book',
+            'sku' => 'ACCOUNT-BOOK', 'price' => 5000, 'stock_quantity' => 2,
+            'is_active' => true,
+        ]);
+
+        $this->post(route('website.cart.store', $product), ['quantity' => 1]);
+        $this->get(route('website.cart.index'))
+            ->assertOk()
+            ->assertSee('Checkout as a guest')
+            ->assertSee('name="email"', false);
+
+        $this->post(route('website.cart.submit'), [
+            'parent_name' => 'Guest Buyer',
+            'phone' => '+256700000001',
+            'email' => 'CLAIM.BUYER@example.test',
+            'delivery_preference' => 'pickup',
+        ])->assertRedirect();
+
+        $order = ShoppingList::firstOrFail();
+        $this->assertNull($order->customer_user_id);
+        $this->assertSame('claim.buyer@example.test', $order->email);
+        $this->get(route('website.quote.show', $order->reference))
+            ->assertOk()
+            ->assertSee('Pay now')
+            ->assertSee('Want to track this order later?');
+
+        $this->post(route('customer.register.store'), [
+            'name' => 'Guest Buyer',
+            'email' => 'claim.buyer@example.test',
+            'password' => 'CustomerPass123!',
+            'password_confirmation' => 'CustomerPass123!',
+        ])->assertRedirect(route('verification.notice'));
+
+        $customer = User::where('email', 'claim.buyer@example.test')->firstOrFail();
+        Notification::assertSentTo($customer, VerifyEmail::class);
+        $this->assertNull($order->fresh()->customer_user_id);
+
+        $verificationUrl = URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addMinutes(60),
+            ['id' => $customer->id, 'hash' => sha1($customer->email)]
+        );
+
+        $this->get($verificationUrl)->assertRedirect(route('dashboard', absolute: false).'?verified=1');
+        $this->get(route('customer.dashboard'))->assertOk()->assertSee($order->reference);
+        $this->assertSame($customer->id, $order->fresh()->customer_user_id);
+        $this->get(route('website.quote.show', $order->reference))->assertOk();
+    }
+
+    public function test_existing_verified_customer_can_sign_in_and_claim_matching_guest_orders(): void
+    {
+        Role::findOrCreate('customer', 'web');
+        $customer = User::factory()->create([
+            'name' => 'Returning Buyer',
+            'email' => 'returning.buyer@example.test',
+            'password' => Hash::make('CustomerPass123!'),
+        ]);
+        $customer->assignRole('customer');
+
+        $guestOrder = ShoppingList::create([
+            'parent_name' => 'Returning Buyer',
+            'phone' => '+256700123456',
+            'email' => ' RETURNING.BUYER@EXAMPLE.TEST ',
+            'delivery_preference' => 'pickup',
+            'status' => ShoppingList::STATUS_QUOTED,
+        ]);
+
+        $this->post('/login', [
+            'email' => $customer->email,
+            'password' => 'CustomerPass123!',
+        ])->assertRedirect();
+
+        $this->get(route('customer.dashboard'))
+            ->assertOk()
+            ->assertSee($guestOrder->reference);
+
+        $this->assertSame($customer->id, $guestOrder->fresh()->customer_user_id);
+    }
+
+    private function customer(): User
+    {
+        Role::findOrCreate('customer', 'web');
+
+        $customer = User::factory()->create();
+        $customer->assignRole('customer');
+
+        return $customer;
     }
 }

@@ -38,21 +38,24 @@
                 @endif
 
                 <div class="grid gap-5 sm:grid-cols-2">
+                    <p class="sm:col-span-2 rounded border border-orange-200 bg-orange-50 px-4 py-3 text-xs leading-5 text-orange-950">You can submit this list and pay later without an account. Use an email you can access; verify the same email on your account to track this order. <a href="{{ route('customer.register') }}" class="font-black underline">Create account</a> or <a href="{{ route('login') }}" class="font-black underline">sign in</a>.</p>
                     <div>
-                        <label class="text-sm font-bold text-slate-700" for="parent_name">Parent or guardian name</label>
-                        <input id="parent_name" name="parent_name" value="{{ old('parent_name') }}" required class="mt-1 w-full rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
+                        <label class="text-sm font-bold text-slate-700" for="parent_name">Your name</label>
+                        <input id="parent_name" name="parent_name" value="{{ old('parent_name', auth()->user()?->name) }}" required class="mt-1 w-full rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
                         @error('parent_name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 
                     <div>
-                        <label class="text-sm font-bold text-slate-700" for="phone">Phone number</label>
-                        <input id="phone" name="phone" value="{{ old('phone') }}" required class="mt-1 w-full rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
+                        <label class="text-sm font-bold text-slate-700" for="phone">Mobile Money phone number</label>
+                        <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" value="{{ old('phone') }}" placeholder="07xx xxx xxx or +256..." required class="mt-1 w-full rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
+                        <p class="mt-1 text-xs leading-5 text-slate-500">Use the active MTN MoMo or Airtel Money number you intend to pay with. It is saved on this order; the system does not verify wallet ownership until payment.</p>
                         @error('phone') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 
                     <div>
                         <label class="text-sm font-bold text-slate-700" for="email">Email</label>
-                        <input id="email" name="email" type="email" value="{{ old('email') }}" class="mt-1 w-full rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
+                        <input id="email" name="email" type="email" value="{{ old('email', auth()->user()?->email) }}" autocomplete="email" required class="mt-1 w-full rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
+                        <p class="mt-1 text-xs leading-5 text-slate-500">We will send your request confirmation and quote/payment updates to this address.</p>
                         @error('email') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 

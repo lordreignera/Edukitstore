@@ -1,7 +1,3 @@
-@php
-    $pendingTotal = array_sum($adminNavStats);
-@endphp
-
 <header class="sticky top-0 z-30 flex min-h-[72px] flex-wrap items-center gap-3 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur print:hidden sm:px-6 lg:px-7">
     <button type="button" class="grid size-10 shrink-0 place-items-center rounded-md border border-orange-200 text-[#071d4f] transition hover:border-orange-400 hover:bg-orange-50 lg:hidden" aria-label="Open navigation" @click="adminMenuOpen = true">
         <x-ui.icon name="menu" />
@@ -14,12 +10,27 @@
     </form>
 
     <div class="ml-auto flex items-center gap-2 sm:gap-3">
-        <a href="{{ route('admin.shopping-lists.index') }}" class="relative grid size-10 place-items-center rounded-md text-slate-600 transition hover:bg-orange-50 hover:text-orange-700" aria-label="Open operational alerts">
-            <x-ui.icon name="bell" />
-            @if ($pendingTotal > 0)
-                <span class="absolute right-1.5 top-1.5 size-2 rounded-full bg-red-500 ring-2 ring-white"></span>
-            @endif
-        </a>
+        @can('invoices.view')
+            <a href="{{ route('admin.notifications.index') }}" class="relative grid size-10 place-items-center rounded-md text-slate-600 transition hover:bg-orange-50 hover:text-orange-700" aria-label="Open notifications">
+                <x-ui.icon name="bell" />
+                @if ($unreadNotificationCount > 0)
+                    <span class="absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-red-600 px-1 text-center text-[10px] font-black leading-4 text-white">{{ min($unreadNotificationCount, 99) }}</span>
+                @endif
+            </a>
+            <button type="button"
+                data-admin-push
+                data-vapid-public-key="{{ config('services.webpush.public_key') }}"
+                data-subscribed="{{ $phoneAlertsEnabled ? 'true' : 'false' }}"
+                data-subscribe-url="{{ route('admin.push-subscriptions.store') }}"
+                data-unsubscribe-url="{{ route('admin.push-subscriptions.destroy') }}"
+                @disabled(! $phoneAlertsConfigured)
+                title="{{ $phoneAlertsConfigured ? ($phoneAlertsEnabled ? 'Disable order alerts on this device' : 'Enable order alerts on this device') : 'Phone alerts need VAPID keys configured' }}"
+                class="inline-flex min-h-10 items-center gap-2 rounded-md border border-orange-200 px-3 text-xs font-bold text-[#071d4f] hover:bg-orange-50 disabled:cursor-not-allowed disabled:opacity-50">
+                <x-ui.icon name="bell" size="size-4" />
+                <span class="text-[10px] sm:text-xs" data-admin-push-label>{{ ! $phoneAlertsConfigured ? 'Setup needed' : ($phoneAlertsEnabled ? 'Alerts on' : 'Enable alerts') }}</span>
+            </button>
+            <span data-admin-push-status class="max-w-28 text-[10px] leading-3 text-slate-600 sm:max-w-56 sm:text-xs sm:leading-4" aria-live="polite"></span>
+        @endcan
 
         <div class="relative" x-data="{ userMenuOpen: false }">
             <button type="button" class="flex h-11 items-center gap-2 rounded-md px-2 text-left transition hover:bg-slate-100" @click="userMenuOpen = !userMenuOpen" :aria-expanded="userMenuOpen">

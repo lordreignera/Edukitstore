@@ -8,6 +8,80 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
     });
 }
 
+const adminPushButton = document.querySelector('[data-admin-push]');
+const adminPushLabel = adminPushButton?.querySelector('[data-admin-push-label]');
+const adminPushStatus = document.querySelector('[data-admin-push-status]');
+
+const decodeVapidKey = (encodedKey) => {
+    const padding = '='.repeat((4 - encodedKey.length % 4) % 4);
+    const base64 = (encodedKey + padding).replace(/-/g, '+').replace(/_/g, '/');
+    return Uint8Array.from(window.atob(base64), (character) => character.charCodeAt(0));
+};
+
+const sendPushSubscription = async (url, method, subscription) => {
+    const response = await fetch(url, {
+        method,
+        credentials: 'same-origin',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+        },
+        body: JSON.stringify(subscription),
+    });
+
+    if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.message || 'Could not update phone alert settings.');
+    }
+};
+
+adminPushButton?.addEventListener('click', async () => {
+    const vapidPublicKey = adminPushButton.dataset.vapidPublicKey;
+    if (!window.isSecureContext) {
+        if (adminPushStatus) adminPushStatus.textContent = 'Phone alerts require a secure HTTPS connection.';
+        return;
+    }
+    if (!vapidPublicKey || !('PushManager' in window) || !('Notification' in window) || !('serviceWorker' in navigator)) {
+        if (adminPushStatus) adminPushStatus.textContent = 'Phone alerts need VAPID setup and a browser that supports push notifications.';
+        return;
+    }
+
+    adminPushButton.disabled = true;
+    try {
+        const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+        let subscription = await registration.pushManager.getSubscription();
+
+        if (adminPushButton.dataset.subscribed === 'true' && subscription) {
+            await sendPushSubscription(adminPushButton.dataset.unsubscribeUrl, 'DELETE', { endpoint: subscription.endpoint });
+            await subscription.unsubscribe();
+            adminPushButton.dataset.subscribed = 'false';
+            if (adminPushLabel) adminPushLabel.textContent = 'Enable phone alerts';
+            if (adminPushStatus) adminPushStatus.textContent = 'Phone alerts disabled on this device.';
+            return;
+        }
+
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+            throw new Error('Allow notifications in your browser settings to receive order alerts.');
+        }
+
+        subscription ??= await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: decodeVapidKey(vapidPublicKey),
+        });
+
+        await sendPushSubscription(adminPushButton.dataset.subscribeUrl, 'POST', subscription.toJSON());
+        adminPushButton.dataset.subscribed = 'true';
+        if (adminPushLabel) adminPushLabel.textContent = 'Phone alerts on';
+        if (adminPushStatus) adminPushStatus.textContent = 'Phone alerts enabled on this device.';
+    } catch (error) {
+        if (adminPushStatus) adminPushStatus.textContent = error.message || 'Could not enable phone alerts.';
+    } finally {
+        adminPushButton.disabled = false;
+    }
+});
+
 const installPanel = document.querySelector('[data-pwa-install]');
 const installAction = installPanel?.querySelector('[data-pwa-install-action]');
 const installMessage = installPanel?.querySelector('[data-pwa-install-message]');

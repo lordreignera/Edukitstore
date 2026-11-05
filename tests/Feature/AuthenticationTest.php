@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Laravel\Fortify\Fortify;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
@@ -30,6 +31,23 @@ class AuthenticationTest extends TestCase
 
         $this->assertAuthenticated();
         $response->assertRedirect(route('dashboard', absolute: false));
+    }
+
+    public function test_legacy_parent_customer_accounts_cannot_sign_in(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole(Role::findOrCreate('parent', 'web'));
+
+        $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ])->assertSessionHasErrors('email');
+
+        $this->assertGuest();
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertRedirect(route('login'));
     }
 
     public function test_role_login_goes_directly_to_the_workspace_instead_of_profile(): void
@@ -159,7 +177,7 @@ class AuthenticationTest extends TestCase
         $this->assertDatabaseMissing('sessions', ['user_id' => $user->id]);
         $this->app['auth']->forgetGuards();
 
-        foreach (['dashboard', 'admin.dashboard', 'finance.dashboard', 'supplier.dashboard', 'driver.dashboard', 'school.dashboard', 'parent.dashboard', 'password.change'] as $route) {
+        foreach (['dashboard', 'admin.dashboard', 'finance.dashboard', 'supplier.dashboard', 'driver.dashboard', 'school.dashboard', 'password.change'] as $route) {
             $response = $this->get(route($route))
                 ->assertRedirect(route('login'))
                 ->assertHeader('Expires', 'Thu, 01 Jan 1970 00:00:00 GMT')

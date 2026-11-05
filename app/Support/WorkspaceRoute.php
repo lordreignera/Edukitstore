@@ -32,8 +32,8 @@ class WorkspaceRoute
             return 'school.dashboard';
         }
 
-        if ($user->hasRole('parent')) {
-            return 'parent.dashboard';
+        if ($user->hasRole('customer')) {
+            return 'customer.dashboard';
         }
 
         return 'dashboard';

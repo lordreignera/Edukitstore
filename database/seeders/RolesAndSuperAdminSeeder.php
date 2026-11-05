@@ -36,7 +36,7 @@ class RolesAndSuperAdminSeeder extends Seeder
             'delivery-person',
             'school-admin',
             'school-receiver',
-            'parent',
+            'customer',
         ];
 
         foreach ($roles as $role) {
@@ -92,12 +92,6 @@ class RolesAndSuperAdminSeeder extends Seeder
                 'email' => 'receiver@edukit.test',
                 'password' => 'Edukit@Receiver2026!Secure',
                 'role' => 'school-receiver',
-            ],
-            [
-                'name' => 'EduKit Parent',
-                'email' => 'parent@edukit.test',
-                'password' => 'Edukit@Parent2026!Secure',
-                'role' => 'parent',
             ],
         ] : [];
         DB::transaction(function () use ($accounts): void {

@@ -13,6 +13,12 @@ class InvoiceAccess
 
     public static function check(ShoppingList $invoice): void
     {
+        if ($invoice->customer_user_id !== null) {
+            abort_unless((int) auth()->id() === (int) $invoice->customer_user_id, 404);
+
+            return;
+        }
+
         abort_unless((bool) session('invoice_access.'.$invoice->id), 404);
     }
 }

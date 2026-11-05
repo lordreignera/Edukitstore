@@ -63,8 +63,8 @@ class PermissionCatalog
                 'shopping-lists.view' => 'View shopping lists',
                 'shopping-lists.review' => 'Review shopping lists',
                 'shopping-lists.download' => 'Download shopping list files',
-                'invoices.view' => 'View invoices',
-                'invoices.update' => 'Update invoices and payment status',
+                'invoices.view' => 'View orders and fulfilment records',
+                'invoices.update' => 'Update order details and assign drivers',
                 'invoices.resolve-stock' => 'Resolve paid-stock exceptions',
             ],
             'Partners' => [
@@ -94,7 +94,6 @@ class PermissionCatalog
                 'driver.deliveries.view' => 'View assigned deliveries',
                 'driver.deliveries.update' => 'Update delivery progress',
                 'school.dashboard.view' => 'Open the school workspace',
-                'parent.dashboard.view' => 'Open the parent workspace',
             ],
         ];
     }
@@ -162,7 +161,7 @@ class PermissionCatalog
             ],
             'school-admin' => ['school.dashboard.view'],
             'school-receiver' => ['school.dashboard.view'],
-            'parent' => ['parent.dashboard.view'],
+            'customer' => [],
         ];
     }
 }
