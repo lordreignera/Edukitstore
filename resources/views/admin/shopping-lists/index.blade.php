@@ -10,7 +10,9 @@
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <section class="rounded border border-gray-200 bg-white shadow-sm">
                 <div class="border-b border-gray-100 px-5 py-4">
-                    @if (session('status'))
+                    @if ($reviewQueue)
+                        <p class="text-sm font-semibold text-orange-800">Review queue: uploaded lists pending review or currently being reviewed.</p>
+                    @elseif (session('status'))
                         <p class="text-sm font-medium text-orange-700">{{ session('status') }}</p>
                     @else
                         <p class="text-sm text-gray-500">Uploaded files stay here. Pricing, driver assignment and payment status continue in Orders &amp; Fulfilment.</p>

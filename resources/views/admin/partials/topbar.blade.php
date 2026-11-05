@@ -3,10 +3,14 @@
         <x-ui.icon name="menu" />
     </button>
 
-    <form method="GET" action="{{ route('admin.products.index') }}" class="relative order-3 w-full sm:order-none sm:min-w-0 sm:max-w-md sm:flex-1">
-        <label for="admin-search" class="sr-only">Search products</label>
+    <form method="GET" action="{{ route('admin.search') }}" x-data="{ searching: false }" @submit="searching = true" class="relative order-3 w-full sm:order-none sm:min-w-0 sm:max-w-xl sm:flex-1">
+        <label for="admin-search" class="sr-only">Search orders, products, schools, suppliers and drivers</label>
         <x-ui.icon name="search" size="size-[18px]" class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input id="admin-search" name="q" value="{{ request('q') }}" placeholder="Search products by name or code..." class="h-10 w-full rounded-md border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:border-orange-600 focus:bg-white focus:ring-orange-600">
+        <input id="admin-search" name="q" value="{{ request()->routeIs('admin.search') ? request('q') : '' }}" minlength="2" maxlength="100" required placeholder="Search orders, products, schools, suppliers, drivers…" class="h-10 w-full rounded-md border-slate-200 bg-slate-50 pl-10 pr-12 text-sm text-slate-800 placeholder:text-slate-400 focus:border-orange-600 focus:bg-white focus:ring-orange-600">
+        <button type="submit" :disabled="searching" class="absolute right-1 top-1 grid size-8 place-items-center rounded text-orange-700 transition hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-60" aria-label="Search the platform" title="Search">
+            <span x-show="!searching"><x-ui.icon name="search" size="size-4" /></span>
+            <span x-cloak x-show="searching" class="text-[10px] font-bold">…</span>
+        </button>
     </form>
 
     <div class="ml-auto flex items-center gap-2 sm:gap-3">

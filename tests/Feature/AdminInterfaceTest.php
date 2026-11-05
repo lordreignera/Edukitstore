@@ -40,11 +40,15 @@ class AdminInterfaceTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertSee('Action Centre')
-            ->assertSee('Catalogue by Category')
-            ->assertSee('Shopping List Workflow')
-            ->assertSee('Latest Products')
-            ->assertSee('Uganda Primary Atlas')
+            ->assertSee('Performance overview')
+            ->assertSee('Orders received')
+            ->assertSee('Paid item revenue')
+            ->assertSee('Action center')
+            ->assertSee('Orders & Fulfilment')
+            ->assertSee('Orders received')
+            ->assertSee('Platform overview')
+            ->assertSee('Recent orders')
+            ->assertSee('Search orders, products, schools, suppliers')
             ->assertSee('Orders & Fulfilment')
             ->assertSee('View Website');
     }
@@ -110,16 +114,71 @@ class AdminInterfaceTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertSee('Paid orders awaiting driver')
-            ->assertSee('Setup needed')
+            ->assertSee('Awaiting driver assignment')
             ->assertSee(str_replace('&', '&amp;', $queueUrl), false)
-            ->assertSee('<p class="mt-2 text-3xl font-extrabold text-slate-950">1</p>', false);
+            ->assertViewHas('stats', fn ($stats) => $stats['orders_awaiting_driver_assignment'] === 1);
 
         $this->get($queueUrl)
             ->assertOk()
             ->assertSee($ready->reference)
             ->assertDontSee($exception->reference)
             ->assertDontSee($unpaid->reference);
+    }
+
+    public function test_new_list_action_queue_drills_into_pending_and_reviewing_uploads_only(): void
+    {
+        $admin = $this->superAdmin();
+        $createUpload = fn (string $name, string $status) => ShoppingList::create([
+            'parent_name' => $name,
+            'phone' => '0700000011',
+            'source' => ShoppingList::SOURCE_UPLOAD,
+            'status' => $status,
+            'payment_status' => ShoppingList::PAYMENT_UNPAID,
+        ]);
+        $pending = $createUpload('Pending Upload Customer', ShoppingList::STATUS_PENDING);
+        $reviewing = $createUpload('Reviewing Upload Customer', ShoppingList::STATUS_REVIEWING);
+        $quoted = $createUpload('Priced Upload Customer', ShoppingList::STATUS_QUOTED);
+
+        $this->actingAs($admin)
+            ->get(route('admin.shopping-lists.index', ['review_queue' => 1]))
+            ->assertOk()
+            ->assertSee('Review queue: uploaded lists pending review or currently being reviewed.')
+            ->assertSee($pending->parent_name)
+            ->assertSee($reviewing->parent_name)
+            ->assertDontSee($quoted->parent_name);
+    }
+
+    public function test_global_admin_search_only_returns_modules_the_user_can_access(): void
+    {
+        $role = Role::findOrCreate('limited-search', 'web');
+        $role->givePermissionTo([
+            Permission::findOrCreate('admin.access', 'web'),
+            Permission::findOrCreate('products.view', 'web'),
+        ]);
+        $user = User::factory()->create();
+        $user->assignRole($role);
+
+        Product::create([
+            'name' => 'Shared Search Term Workbook',
+            'slug' => 'shared-search-term-workbook',
+            'sku' => 'SEARCH-BOOK-1',
+            'price' => 6000,
+            'is_active' => true,
+        ]);
+        $order = ShoppingList::create([
+            'parent_name' => 'Shared Search Term Customer',
+            'phone' => '0700000099',
+            'school_name' => 'Shared Search Term School',
+            'status' => ShoppingList::STATUS_PENDING,
+            'payment_status' => ShoppingList::PAYMENT_UNPAID,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('admin.search', ['q' => 'Shared Search Term']))
+            ->assertOk()
+            ->assertSee('Shared Search Term Workbook')
+            ->assertDontSee($order->reference)
+            ->assertDontSee('Orders search results');
     }
 
     private function superAdmin(): User

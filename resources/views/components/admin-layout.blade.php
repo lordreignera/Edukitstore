@@ -4,6 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <meta name="session-heartbeat-url" content="{{ route('session.heartbeat', absolute: false) }}">
         <title>{{ isset($title) ? $title.' | ' : '' }}{{ config('app.name', 'EduKit') }}</title>
         <link rel="icon" type="image/png" href="{{ asset('images/website/EDUKIT_STORE_logo2.png') }}">
         <x-pwa-meta />
@@ -15,12 +16,12 @@
     </head>
     <body data-private-page class="bg-slate-50 font-sans text-slate-900 antialiased">
         <x-banner />
-        <div x-data="{ adminMenuOpen: false }" class="min-h-screen">
+        <div x-data="{ adminMenuOpen: false, adminSidebarCollapsed: false }" :class="adminSidebarCollapsed ? 'admin-sidebar-is-collapsed' : ''" class="min-h-screen">
             <div x-cloak x-show="adminMenuOpen" x-transition.opacity class="fixed inset-0 z-40 bg-slate-950/55 lg:hidden" @click="adminMenuOpen = false"></div>
 
             @include('admin.partials.sidebar')
 
-            <div class="min-h-screen lg:pl-[248px] print:pl-0">
+            <div class="admin-main min-h-screen lg:pl-[248px] print:pl-0">
                 @include('admin.partials.topbar')
                 @include('components.temporary-password-notice')
 
@@ -38,6 +39,7 @@
 
         @stack('modals')
         @livewireScripts
+        <x-session-expiry-notice />
         <x-pwa-install-prompt />
     </body>
 </html>

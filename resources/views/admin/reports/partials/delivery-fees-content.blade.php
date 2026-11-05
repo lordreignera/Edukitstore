@@ -16,6 +16,16 @@
     <button type="submit" class="h-10 self-end rounded-md bg-orange-600 px-4 text-sm font-bold text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2">Apply filters</button>
 </form>
 
+<div class="flex justify-end">
+    <a href="{{ route($financeView ? 'finance.delivery-fees.export' : 'admin.reports.delivery-fees.export', array_filter([
+        'from' => $from?->format('Y-m-d'),
+        'to' => $to?->format('Y-m-d'),
+        'include_demo' => ! $financeView && $includeDemo ? 1 : null,
+    ], fn ($value) => $value !== null && $value !== '')) }}" class="inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-orange-300 bg-orange-50 px-4 py-2 text-sm font-bold text-orange-800 transition hover:border-orange-500 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500">
+        <x-ui.icon name="download" size="size-4" /> Export filtered CSV
+    </a>
+</div>
+
 @if ($errors->any())
     <div class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800" role="alert">{{ $errors->first() }}</div>
 @endif

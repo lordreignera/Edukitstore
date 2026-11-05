@@ -182,11 +182,18 @@ class ReportingIntegrityTest extends TestCase
                 'period' => 'custom', 'from' => '2026-11-01', 'to' => '2026-11-05',
             ]))
             ->assertOk()
-            ->assertSee('Performance for period')
+            ->assertSee('Performance overview')
             ->assertViewHas('performance', fn ($performance) => $performance['orders_received'] === 3
                 && $performance['paid_orders'] === 1
                 && (int) $performance['item_revenue'] === 10000
-                && (int) $performance['gross_profit'] === 4000);
+                && (int) $performance['gross_profit'] === 4000)
+            ->assertViewHas('trend', function ($trend): bool {
+                $paidDay = collect($trend['points'])->firstWhere('key', '2026-11-03');
+
+                return $trend['granularity'] === 'day'
+                    && $paidDay['orders'] === 0
+                    && (int) $paidDay['revenue'] === 10000;
+            });
 
         $this->get(route('admin.dashboard', [
             'period' => 'custom', 'from' => '2026-11-01', 'to' => '2026-11-05', 'include_demo' => 1,
@@ -194,7 +201,50 @@ class ReportingIntegrityTest extends TestCase
             ->assertSee('Demo/test payments included')
             ->assertViewHas('performance', fn ($performance) => $performance['paid_orders'] === 2
                 && (int) $performance['item_revenue'] === 12000
-                && (int) $performance['gross_profit'] === 5000);
+                && (int) $performance['gross_profit'] === 5000)
+            ->assertViewHas('trend', function ($trend): bool {
+                $demoDay = collect($trend['points'])->firstWhere('key', '2026-11-04');
+
+                return $demoDay !== null && (int) $demoDay['revenue'] === 2000;
+            });
+    }
+
+    public function test_dashboard_kpi_date_drilldowns_preserve_date_basis_and_demo_choice(): void
+    {
+        $admin = $this->admin();
+        $realOrder = $this->invoice([
+            'payment_status' => ShoppingList::PAYMENT_PAID,
+            'payment_provider' => 'manual',
+            'paid_at' => '2026-11-03 09:30:00',
+        ]);
+        $demoOrder = $this->invoice([
+            'payment_status' => ShoppingList::PAYMENT_PAID,
+            'payment_provider' => 'demo',
+            'paid_at' => '2026-11-04 15:00:00',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.invoices.index', [
+                'payment_status' => ShoppingList::PAYMENT_PAID,
+                'date_field' => 'paid',
+                'from' => '2026-11-01',
+                'to' => '2026-11-05',
+                'exclude_demo' => 1,
+            ]))
+            ->assertOk()
+            ->assertSee($realOrder->reference)
+            ->assertDontSee($demoOrder->reference)
+            ->assertSee('Payment date')
+            ->assertSee('Exclude demo payments');
+
+        $this->get(route('admin.invoices.index', [
+            'date_field' => 'created',
+            'from' => '2026-11-01',
+            'to' => '2026-11-05',
+        ]))
+            ->assertOk()
+            ->assertSee($realOrder->reference)
+            ->assertSee($demoOrder->reference);
     }
 
     private function admin(): User

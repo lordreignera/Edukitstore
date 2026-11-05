@@ -32,7 +32,9 @@ class ProfileAndInventoryAlertTest extends TestCase
         $this->actingAs($admin)
             ->get(route('profile.show'))
             ->assertOk()
-            ->assertSee('Platform management')
+            ->assertSee('Commerce')
+            ->assertSee('Partners & Schools')
+            ->assertSee('Monitoring & Analytics')
             ->assertSee('Profile settings')
             ->assertSee(route('admin.dashboard'));
     }

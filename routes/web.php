@@ -39,6 +39,9 @@ use App\Support\WorkspaceRoute;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('website.home');
+Route::post('/session/heartbeat', fn () => response()->noContent())
+    ->middleware('throttle:30,1')
+    ->name('session.heartbeat');
 Route::get('/products', [WebsiteProductController::class, 'index'])->name('website.products.index');
 Route::get('/products/suggest', [WebsiteProductController::class, 'suggest'])->middleware('throttle:120,1')->name('website.products.suggest');
 Route::get('/products/{product:slug}', [WebsiteProductController::class, 'show'])->name('website.products.show');
@@ -121,6 +124,7 @@ Route::middleware([
         Route::get('/', AdminProfitReportController::class)->name('dashboard');
         Route::get('profit/export', [AdminProfitReportController::class, 'export'])->middleware('permission:reports.profit.view')->name('profit.export');
         Route::get('delivery-fees', AdminDeliveryFeeReportController::class)->middleware('permission:reports.profit.view')->name('delivery-fees');
+        Route::get('delivery-fees/export', [AdminDeliveryFeeReportController::class, 'export'])->middleware('permission:reports.profit.view')->name('delivery-fees.export');
     });
 
     Route::middleware('role:school-admin|school-receiver')->prefix('school')->name('school.')->group(function () {
@@ -129,10 +133,12 @@ Route::middleware([
 
     Route::middleware('role_or_permission:super-admin|admin|admin.access')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/', AdminDashboardController::class)->middleware('permission:admin.dashboard.view')->name('dashboard');
+        Route::get('search', [App\Http\Controllers\Admin\SearchController::class, '__invoke'])->name('search');
 
         Route::get('notifications', [AdminNotificationController::class, 'index'])->middleware('permission:invoices.view')->name('notifications.index');
         Route::post('notifications/{notification}/open', [AdminNotificationController::class, 'open'])->middleware('permission:invoices.view')->name('notifications.open');
         Route::get('invoices', [AdminInvoiceController::class, 'index'])->middleware('permission:invoices.view')->name('invoices.index');
+        Route::get('invoices/export', [AdminInvoiceController::class, 'export'])->middleware('permission:invoices.view')->name('invoices.export');
         Route::get('invoices/{invoice}', [AdminInvoiceController::class, 'show'])->middleware('permission:invoices.view')->name('invoices.show');
         Route::patch('invoices/{invoice}', [AdminInvoiceController::class, 'update'])->middleware('permission:invoices.update')->name('invoices.update');
         Route::patch('invoices/{invoice}/resolve-paid-stock', [AdminInvoiceController::class, 'resolvePaidStock'])->middleware('permission:invoices.resolve-stock')->name('invoices.resolve-paid-stock');
@@ -141,6 +147,7 @@ Route::middleware([
         Route::get('reports/profit', AdminProfitReportController::class)->middleware('permission:reports.profit.view')->name('reports.profit');
         Route::get('reports/profit/export', [AdminProfitReportController::class, 'export'])->middleware('permission:reports.profit.view')->name('reports.profit.export');
         Route::get('reports/delivery-fees', AdminDeliveryFeeReportController::class)->middleware('permission:reports.profit.view')->name('reports.delivery-fees');
+        Route::get('reports/delivery-fees/export', [AdminDeliveryFeeReportController::class, 'export'])->middleware('permission:reports.profit.view')->name('reports.delivery-fees.export');
         Route::get('inventory/export', [AdminInventoryController::class, 'export'])->middleware('permission:inventory.export')->name('inventory.export');
         Route::get('inventory/import-template', [AdminInventoryController::class, 'template'])->middleware('permission:inventory.export')->name('inventory.template');
         Route::post('inventory/import', [AdminInventoryController::class, 'import'])->middleware('permission:inventory.import')->name('inventory.import');

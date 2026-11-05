@@ -9,21 +9,21 @@
             <h1 class="mt-2 text-[28px] font-extrabold leading-tight text-[#07215f] sm:text-[34px]">Shop school supplies</h1>
 
             <form id="product-filter-form" method="GET" action="{{ route('website.products.index') }}" class="mt-5 grid grid-cols-2 gap-2 rounded-md border border-[#dbe8f3] bg-[#f7fbff] p-3 shadow-sm sm:gap-3 md:grid-cols-[minmax(0,1fr)_220px_170px_auto_auto]">
-                <input name="search" value="{{ $search }}" maxlength="100" autocomplete="off" placeholder="Search products, brand or colour" class="col-span-2 min-w-0 rounded-md border-[#d7e4ef] text-sm font-medium focus:border-orange-600 focus:ring-orange-600 md:col-span-1">
-                <select name="category" class="min-w-0 rounded-md border-[#d7e4ef] text-sm font-medium focus:border-orange-600 focus:ring-orange-600">
+                <input name="search" value="{{ $search }}" maxlength="100" autocomplete="off" placeholder="Search products, brand or colour" class="col-span-2 min-h-11 min-w-0 rounded-md border-[#d7e4ef] text-sm font-medium focus:border-orange-600 focus:ring-orange-600 md:col-span-1">
+                <select name="category" class="min-h-11 min-w-0 rounded-md border-[#d7e4ef] text-sm font-medium focus:border-orange-600 focus:ring-orange-600">
                     <option value="">All categories</option>
                     @foreach ($categories as $category)
                         <option value="{{ $category->slug }}" @selected($selectedCategory === $category->slug)>{{ $category->name }}</option>
                     @endforeach
                 </select>
-                <select name="sort" class="min-w-0 rounded-md border-[#d7e4ef] text-sm font-medium focus:border-orange-600 focus:ring-orange-600">
+                <select name="sort" class="min-h-11 min-w-0 rounded-md border-[#d7e4ef] text-sm font-medium focus:border-orange-600 focus:ring-orange-600">
                     <option value="latest" @selected($sort === 'latest')>Newest</option>
                     <option value="price_low" @selected($sort === 'price_low')>Price: low to high</option>
                     <option value="price_high" @selected($sort === 'price_high')>Price: high to low</option>
                     <option value="name" @selected($sort === 'name')>Name</option>
                 </select>
-                <button class="min-w-0 rounded-md bg-[#07215f] px-3 py-2 text-sm font-extrabold text-white hover:bg-orange-700 sm:px-5">Filter</button>
-                <a href="{{ route('website.products.index') }}" class="grid min-w-0 place-items-center rounded-md border border-[#d7e4ef] bg-white px-3 py-2 text-sm font-extrabold text-[#07215f] hover:border-orange-500 sm:px-5">Clear</a>
+                <button class="min-h-11 min-w-0 rounded-md bg-[#07215f] px-3 py-2 text-sm font-extrabold text-white hover:bg-orange-700 sm:px-5">Filter</button>
+                <a href="{{ route('website.products.index') }}" class="grid min-h-11 min-w-0 place-items-center rounded-md border border-[#d7e4ef] bg-white px-3 py-2 text-sm font-extrabold text-[#07215f] hover:border-orange-500 sm:px-5">Clear</a>
             </form>
         </div>
     </section>
@@ -45,7 +45,7 @@
             </nav>
         </aside>
 
-        <div id="product-results" aria-live="polite" aria-busy="false">
+        <div id="product-results" class="min-w-0" aria-live="polite" aria-busy="false">
             <div class="mb-4 flex flex-col gap-3 rounded-md border border-[#dbe8f3] bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
                 <p class="text-sm font-bold text-slate-600">
                     Browse our school supplies
@@ -60,9 +60,9 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-2 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
+            <div class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
                 @forelse ($products as $product)
-                    <article class="group overflow-hidden rounded-md border border-[#dbe8f3] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                    <article class="group min-w-0 overflow-hidden rounded-md border border-[#dbe8f3] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
                         <a href="{{ route('website.products.show', $product) }}" class="relative block aspect-[4/3] bg-slate-100">
                             <span class="absolute left-2 top-2 z-10 rounded bg-white/95 px-2 py-1 text-[10px] font-black uppercase text-orange-700 shadow-sm">{{ $product->category?->name ?? 'Supply' }}</span>
                             <x-ui.responsive-image
@@ -80,12 +80,12 @@
                             <p class="mt-2 text-[14px] font-black text-slate-950 sm:mt-3 sm:text-[16px]">UGX {{ number_format($product->marketplace_price) }}</p>
                             <div class="mt-4">
                                 @if ($product->marketplace_stock_quantity > 0)
-                                    <form method="POST" action="{{ route('website.cart.store', $product) }}" class="grid grid-cols-[3.5rem_minmax(0,1fr)_minmax(0,1fr)] gap-1.5 min-[420px]:grid-cols-2 min-[420px]:gap-2">
+                                    <form method="POST" action="{{ route('website.cart.store', $product) }}" class="grid grid-cols-2 gap-2">
                                         @csrf
                                         <label class="sr-only" for="product-quantity-{{ $product->id }}">Quantity</label>
-                                        <input id="product-quantity-{{ $product->id }}" name="quantity" type="number" min="1" max="{{ $product->marketplace_stock_quantity }}" value="1" class="h-9 w-full rounded-md border-[#d7e4ef] text-center text-xs font-bold text-[#07215f] focus:border-orange-600 focus:ring-orange-600 min-[420px]:col-span-2">
-                                        <button class="min-w-0 rounded-md bg-orange-600 px-1 py-2 text-[10px] font-extrabold text-white hover:bg-orange-700 sm:px-2 sm:text-xs" aria-label="Add {{ $product->name }} to cart"><span class="sm:hidden">Add</span><span class="hidden sm:inline">Add to cart</span></button>
-                                        <button name="checkout" value="1" class="min-w-0 rounded-md bg-[#07215f] px-1 py-2 text-[10px] font-extrabold text-white hover:bg-orange-700 sm:px-2 sm:text-xs" aria-label="Buy {{ $product->name }} now"><span class="sm:hidden">Buy now</span><span class="hidden sm:inline">Checkout</span></button>
+                                        <input id="product-quantity-{{ $product->id }}" name="quantity" type="number" min="1" max="{{ $product->marketplace_stock_quantity }}" value="1" class="col-span-2 h-11 w-full rounded-md border-[#d7e4ef] text-center text-sm font-bold text-[#07215f] focus:border-orange-600 focus:ring-orange-600">
+                                        <button class="min-h-11 min-w-0 rounded-md bg-orange-600 px-2 py-2 text-[11px] font-extrabold text-white hover:bg-orange-700 sm:text-xs" aria-label="Add {{ $product->name }} to cart"><span class="sm:hidden">Add</span><span class="hidden sm:inline">Add to cart</span></button>
+                                        <button name="checkout" value="1" class="min-h-11 min-w-0 rounded-md bg-[#07215f] px-2 py-2 text-[11px] font-extrabold text-white hover:bg-orange-700 sm:text-xs" aria-label="Buy {{ $product->name }} now"><span class="sm:hidden">Buy now</span><span class="hidden sm:inline">Checkout</span></button>
                                     </form>
                                 @else
                                     <span class="grid min-h-10 place-items-center rounded-md bg-slate-100 px-3 py-2 text-xs font-extrabold text-slate-500">Out of stock</span>

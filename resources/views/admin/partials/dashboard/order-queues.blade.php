@@ -1,28 +1,42 @@
-@canany(['invoices.view', 'shopping-lists.view'])
-    <section class="overflow-hidden rounded-md border border-orange-200 bg-white shadow-sm">
-        <div class="flex flex-col justify-between gap-3 border-b border-orange-100 bg-orange-50/70 px-5 py-4 sm:flex-row sm:items-center">
+@php
+    $visibleActionQueues = collect($actionQueues)
+        ->filter(fn ($queue) => auth()->user()->can($queue['permission']) && $queue['count'] > 0)
+        ->values();
+@endphp
+
+@canany(['invoices.view', 'shopping-lists.view', 'suppliers.view', 'drivers.view', 'inventory.view'])
+    <section class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm" aria-labelledby="action-center-title">
+        <div class="flex flex-col justify-between gap-3 border-b border-slate-100 px-4 py-3 sm:flex-row sm:items-center">
             <div>
-                <p class="text-[11px] font-extrabold uppercase tracking-wide text-orange-800">Order operations</p>
-                <h2 class="mt-1 text-lg font-extrabold text-[#071d4f]">Orders &amp; fulfilment</h2>
-                <p class="mt-1 text-sm text-slate-600">Follow each order from request and payment through driver assignment and confirmed delivery.</p>
+                <h2 id="action-center-title" class="text-base font-extrabold text-[#071d4f]">Action center</h2>
+                <p class="mt-0.5 text-xs text-slate-500">Live queues that need review or a next step.</p>
             </div>
             @can('invoices.view')
-                <a href="{{ route('admin.invoices.index') }}" class="inline-flex min-h-10 items-center justify-center rounded-md bg-[#07215f] px-4 py-2 text-sm font-bold text-white hover:bg-orange-700">View all orders</a>
+                <a href="{{ route('admin.invoices.index') }}" class="text-sm font-bold text-orange-700 hover:text-orange-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600">All orders <span aria-hidden="true">→</span></a>
             @endcan
         </div>
 
-        <div class="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-3">
-            @foreach ($orderQueues as $queue)
-                @can($queue['permission'])
-                    <a href="{{ $queue['route'] }}" class="group flex min-h-28 items-start justify-between gap-3 rounded-md border border-slate-200 border-l-4 border-l-orange-500 bg-white p-4 transition hover:border-orange-300 hover:bg-orange-50/50">
-                        <span class="min-w-0">
-                            <span class="block text-sm font-extrabold text-[#071d4f] group-hover:text-orange-800">{{ $queue['label'] }}</span>
-                            <span class="mt-1 block text-xs leading-5 text-slate-500">{{ $queue['description'] }}</span>
+        @if ($visibleActionQueues->isNotEmpty())
+            <div class="grid gap-x-6 px-4 sm:grid-cols-2">
+                @foreach ($visibleActionQueues as $queue)
+                    <a href="{{ $queue['route'] }}" class="group flex min-h-[68px] items-center gap-3 border-b border-slate-100 py-3 last:border-b-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-orange-500">
+                        <span class="grid size-9 shrink-0 place-items-center rounded-md bg-orange-50 text-orange-700"><x-ui.icon name="chevron-right" size="size-4" /></span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-bold text-slate-800 group-hover:text-orange-800">{{ $queue['label'] }}</span>
+                            <span class="mt-0.5 block text-xs text-slate-500">{{ $queue['description'] }}</span>
                         </span>
-                        <span class="grid size-10 shrink-0 place-items-center rounded-md bg-orange-50 text-lg font-black text-orange-800">{{ number_format($queue['count']) }}</span>
+                        <span class="min-w-9 rounded-full bg-orange-50 px-2.5 py-1 text-center text-sm font-extrabold tabular-nums text-orange-800">{{ number_format($queue['count']) }}</span>
                     </a>
-                @endcan
-            @endforeach
-        </div>
+                @endforeach
+            </div>
+        @else
+            <div class="flex items-start gap-3 px-4 py-5">
+                <span class="grid size-9 shrink-0 place-items-center rounded-full bg-emerald-50 text-emerald-700"><x-ui.icon name="check" size="size-4" /></span>
+                <div>
+                    <p class="text-sm font-bold text-slate-800">Nothing needs attention right now</p>
+                    <p class="mt-0.5 text-xs text-slate-500">New requests, approvals, payment reviews and fulfilment tasks will appear here when they need action.</p>
+                </div>
+            </div>
+        @endif
     </section>
 @endcanany

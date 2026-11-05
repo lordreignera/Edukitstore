@@ -3,7 +3,7 @@
     <x-slot name="header">
         <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-                <h1 class="text-2xl font-extrabold text-[#071d4f]">Dashboard</h1>
+                <h1 class="text-2xl font-extrabold text-[#071d4f]">Dashboard Overview</h1>
                 <p class="mt-1 text-sm text-slate-500">Welcome back, {{ str(auth()->user()->name)->before(' ') }}. Here is what needs attention today.</p>
             </div>
             <div class="inline-flex w-fit items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600">
@@ -14,7 +14,7 @@
     </x-slot>
 
     <div class="px-4 py-6 sm:px-6 lg:px-8">
-        <div class="mx-auto max-w-[1500px] space-y-5">
+        <div class="mx-auto max-w-[1500px] space-y-4">
             @if (session('status'))
                 <div class="flex items-center gap-3 rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-semibold text-orange-800">
                     <x-ui.icon name="check" size="size-5" />
@@ -24,18 +24,13 @@
 
             @include('admin.partials.dashboard.period-summary')
 
-            @include('admin.partials.dashboard.stat-cards')
-
             @include('admin.partials.dashboard.order-queues')
 
-            @include('admin.partials.dashboard.insights')
+            @include('admin.partials.dashboard.trend-charts')
 
-            <div class="grid gap-5 xl:grid-cols-3">
-                @include('admin.partials.dashboard.catalogue-table')
-                @include('admin.partials.dashboard.review-queue')
-            </div>
+            @include('admin.partials.dashboard.platform-overview')
 
-            @include('admin.partials.dashboard.recent-activity')
+            @include('admin.partials.dashboard.recent-orders')
         </div>
     </div>
 </x-admin-layout>

@@ -44,6 +44,25 @@ class WebsiteProductFlowTest extends TestCase
             ->assertOk()->assertSeeInOrder([$owned->name, $supplied->name]);
     }
 
+    public function test_product_catalogue_uses_mobile_sized_filters_and_purchase_controls(): void
+    {
+        Product::create([
+            'name' => 'Mobile test exercise book',
+            'slug' => 'mobile-test-exercise-book',
+            'sku' => 'MOBILE-BOOK-1',
+            'price' => 2500,
+            'stock_quantity' => 10,
+            'is_active' => true,
+        ]);
+
+        $this->get(route('website.products.index'))
+            ->assertOk()
+            ->assertSee('min-h-11 min-w-0', false)
+            ->assertSee('grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4', false)
+            ->assertSee('col-span-2 h-11 w-full', false)
+            ->assertSee('Buy now');
+    }
+
     public function test_homepage_displays_featured_admin_products(): void
     {
         $category = ProductCategory::create([
@@ -66,11 +85,15 @@ class WebsiteProductFlowTest extends TestCase
 
         $this->get('/')
             ->assertOk()
+            ->assertSee('name="session-heartbeat-url" content="/session/heartbeat"', false)
             ->assertSeeInOrder(['School essentials, ready to order', 'Ugandan Exercise Book 96 Pages', 'Everything for their education'])
             ->assertSee('Everything for their education')
             ->assertSee('Ugandan Exercise Book 96 Pages')
             ->assertSee('UGX 2,500')
             ->assertDontSee('40 available')
+            ->assertSee('View all products')
+            ->assertSee('Browse the full catalogue')
+            ->assertSee(route('website.products.index'), false)
             ->assertSee('Sign In')
             ->assertSee(route('login'))
             ->assertSee('Mobile apps are being prepared');

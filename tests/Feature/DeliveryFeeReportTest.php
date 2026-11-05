@@ -83,6 +83,50 @@ class DeliveryFeeReportTest extends TestCase
                 && (int) $totals['fees_collected'] === 19000);
     }
 
+    public function test_admin_can_export_completed_order_fees_with_the_report_date_and_demo_filters(): void
+    {
+        Role::findOrCreate('super-admin', 'web');
+        $admin = User::factory()->create();
+        $admin->assignRole('super-admin');
+
+        $this->completedOrder([
+            'parent_name' => 'Included Fee Customer',
+            'email' => 'fees@example.test',
+            'delivery_fee' => 12000,
+            'customer_received_at' => '2026-11-02 12:00:00',
+            'payment_provider' => 'flutterwave',
+        ]);
+        $this->completedOrder([
+            'parent_name' => 'Demo Fee Customer',
+            'delivery_fee' => 7000,
+            'customer_received_at' => '2026-11-02 13:00:00',
+            'payment_provider' => 'demo',
+        ]);
+        $this->completedOrder([
+            'parent_name' => 'Outside Date Fee Customer',
+            'delivery_fee' => 5000,
+            'customer_received_at' => '2026-10-31 12:00:00',
+            'payment_provider' => 'flutterwave',
+        ]);
+
+        $filters = ['from' => '2026-11-01', 'to' => '2026-11-03', 'include_demo' => 1];
+
+        $this->actingAs($admin)
+            ->get(route('admin.reports.delivery-fees', $filters))
+            ->assertOk()
+            ->assertSee('Export filtered CSV')
+            ->assertSee(route('admin.reports.delivery-fees.export', $filters));
+
+        $response = $this->get(route('admin.reports.delivery-fees.export', $filters));
+
+        $response->assertOk()->assertDownload();
+        $csv = $response->streamedContent();
+        $this->assertStringContainsString('Customer fee collected (UGX)', $csv);
+        $this->assertStringContainsString('Included Fee Customer', $csv);
+        $this->assertStringContainsString('Demo Fee Customer', $csv);
+        $this->assertStringNotContainsString('Outside Date Fee Customer', $csv);
+    }
+
     public function test_finance_workspace_can_view_fee_report_but_never_demo_payments(): void
     {
         $role = Role::findOrCreate('finance-admin', 'web');
@@ -90,7 +134,7 @@ class DeliveryFeeReportTest extends TestCase
         $financeUser = User::factory()->create();
         $financeUser->assignRole($role);
 
-        $this->completedOrder([
+        $demoOrder = $this->completedOrder([
             'delivery_fee' => 12000,
             'customer_received_at' => '2026-11-02 12:00:00',
             'payment_provider' => 'demo',
@@ -100,10 +144,15 @@ class DeliveryFeeReportTest extends TestCase
             ->get(route('finance.delivery-fees', ['include_demo' => 1]))
             ->assertOk()
             ->assertSee('Completed-order fees')
+            ->assertSee('Export filtered CSV')
             ->assertSee('Delivery fees')
             ->assertDontSee('Include demo/test payments')
             ->assertViewHas('totals', fn (array $totals) => $totals['completed_orders'] === 0
                 && (int) $totals['fees_collected'] === 0);
+
+        $export = $this->get(route('finance.delivery-fees.export', ['include_demo' => 1]));
+        $export->assertOk()->assertDownload();
+        $this->assertStringNotContainsString($demoOrder->reference, $export->streamedContent());
     }
 
     private function completedOrder(array $attributes): ShoppingList

@@ -17,6 +17,7 @@ class ShoppingListController extends Controller
         $search = trim((string) $request->query('q'));
         $status = (string) $request->query('status');
         $delivery = (string) $request->query('delivery');
+        $reviewQueue = $request->boolean('review_queue');
 
         $shoppingLists = ShoppingList::query()
             ->with('school.district')
@@ -30,6 +31,7 @@ class ShoppingListController extends Controller
                 });
             })
             ->when(array_key_exists($status, ShoppingList::statuses()), fn ($query) => $query->where('status', $status))
+            ->when($reviewQueue, fn ($query) => $query->whereIn('status', [ShoppingList::STATUS_PENDING, ShoppingList::STATUS_REVIEWING]))
             ->when(in_array($delivery, ['school', 'pickup'], true), fn ($query) => $query->where('delivery_preference', $delivery))
             ->latest()
             ->paginate(15)
@@ -41,6 +43,7 @@ class ShoppingListController extends Controller
             'search' => $search,
             'selectedStatus' => $status,
             'delivery' => $delivery,
+            'reviewQueue' => $reviewQueue,
         ]);
     }
 

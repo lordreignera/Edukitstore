@@ -17,7 +17,14 @@ class AuthenticationTest extends TestCase
     {
         $response = $this->get('/login');
 
-        $response->assertStatus(200);
+        $response->assertStatus(200)
+            ->assertSee('name="session-heartbeat-url" content="/session/heartbeat"', false)
+            ->assertSee('data-session-expired-notice', false);
+    }
+
+    public function test_guest_session_heartbeat_returns_no_content(): void
+    {
+        $this->post(route('session.heartbeat'))->assertNoContent();
     }
 
     public function test_users_can_authenticate_using_the_login_screen(): void

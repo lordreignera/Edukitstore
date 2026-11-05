@@ -8,6 +8,74 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
     });
 }
 
+const sessionHeartbeatUrl = document.querySelector('meta[name="session-heartbeat-url"]')?.content;
+const sessionExpiryNotice = document.querySelector('[data-session-expired-notice]');
+
+if (sessionHeartbeatUrl && sessionExpiryNotice) {
+    const heartbeatEveryMs = 4 * 60 * 1000;
+    const activeWindowMs = 10 * 60 * 1000;
+    let lastUserActivityAt = Date.now();
+    let lastHeartbeatAttemptAt = Date.now();
+    let heartbeatInFlight = false;
+    let heartbeatFailed = false;
+
+    sessionExpiryNotice.querySelector('[data-session-expired-reload]')?.addEventListener('click', () => {
+        window.location.reload();
+    });
+
+    const refreshSessionWhileActive = async () => {
+        if (heartbeatFailed || heartbeatInFlight || document.hidden
+            || Date.now() - lastUserActivityAt > activeWindowMs
+            || Date.now() - lastHeartbeatAttemptAt < heartbeatEveryMs) {
+            return;
+        }
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+        if (!csrfToken) return;
+
+        heartbeatInFlight = true;
+        lastHeartbeatAttemptAt = Date.now();
+
+        try {
+            const response = await fetch(sessionHeartbeatUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+
+            if (response.status === 401 || response.status === 419) {
+                heartbeatFailed = true;
+                sessionExpiryNotice.hidden = false;
+                sessionExpiryNotice.style.display = 'flex';
+            }
+        } catch (error) {
+            // A brief network interruption should not disrupt the page; the next
+            // active interval will retry while the existing session is still valid.
+        } finally {
+            heartbeatInFlight = false;
+        }
+    };
+
+    const noteUserActivity = () => {
+        lastUserActivityAt = Date.now();
+        refreshSessionWhileActive();
+    };
+
+    ['pointerdown', 'keydown', 'input', 'scroll', 'touchstart'].forEach((eventName) => {
+        document.addEventListener(eventName, noteUserActivity, { passive: true, capture: true });
+    });
+
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) noteUserActivity();
+    });
+
+    window.setInterval(refreshSessionWhileActive, heartbeatEveryMs);
+}
+
 const pushButton = document.querySelector('[data-push-notifications]');
 const pushLabel = pushButton?.querySelector('[data-push-notifications-label]');
 const pushStatus = document.querySelector('[data-push-notifications-status]');

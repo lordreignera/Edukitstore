@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Driver;
 use App\Models\Product;
-use App\Models\ProductCategory;
 use App\Models\School;
 use App\Models\ShoppingList;
 use App\Models\ShoppingListItem;
@@ -63,6 +62,27 @@ class DashboardController extends Controller
             'gross_profit' => (clone $paidItems)->sum('profit_total'),
         ];
 
+        $dailyOrders = ShoppingList::query()
+            ->whereBetween('created_at', [$periodStart, $periodEnd])
+            ->selectRaw('DATE(created_at) as trend_date, COUNT(*) as amount')
+            ->groupByRaw('DATE(created_at)')
+            ->pluck('amount', 'trend_date')
+            ->all();
+
+        $dailyRevenue = ShoppingListItem::query()
+            ->join('shopping_lists', 'shopping_lists.id', '=', 'shopping_list_items.shopping_list_id')
+            ->where('shopping_lists.payment_status', ShoppingList::PAYMENT_PAID)
+            ->whereBetween('shopping_lists.paid_at', [$periodStart, $periodEnd])
+            ->when(! $includeDemo, fn ($query) => $query->where(fn ($provider) => $provider
+                ->whereNull('shopping_lists.payment_provider')
+                ->orWhere('shopping_lists.payment_provider', '!=', 'demo')))
+            ->selectRaw('DATE(shopping_lists.paid_at) as trend_date, SUM(shopping_list_items.line_total) as amount')
+            ->groupByRaw('DATE(shopping_lists.paid_at)')
+            ->pluck('amount', 'trend_date')
+            ->all();
+
+        $trend = $this->buildTrend($dailyOrders, $dailyRevenue, $periodStart, $periodEnd);
+
         $periodLabel = match ($period) {
             'week' => 'This week',
             'year' => 'This year',
@@ -90,38 +110,43 @@ class DashboardController extends Controller
             'low_display_stock' => Product::whereColumn('stock_quantity', '<=', 'reorder_level')->count(),
         ];
 
-        $latestProducts = Product::with('category')->latest()->take(5)->get();
-        $latestSuppliers = Supplier::latest()->take(5)->get();
-        $latestShoppingLists = ShoppingList::latest()->take(5)->get();
-        $latestDrivers = Driver::latest()->take(5)->get();
-
-        $productCategorySummary = ProductCategory::withCount('products')
-            ->orderByDesc('products_count')
-            ->orderBy('name')
-            ->take(6)
+        $latestOrders = ShoppingList::query()
+            ->with(['assignedDriver', 'school'])
+            ->withCount('lineItems')
+            ->latest()
+            ->take(8)
             ->get();
 
-        $shoppingListStatusCounts = ShoppingList::query()
-            ->selectRaw('status, COUNT(*) as aggregate')
-            ->groupBy('status')
-            ->pluck('aggregate', 'status');
-
-        $shoppingListStatusSummary = collect(ShoppingList::statuses())->map(function ($label, $status) use ($shoppingListStatusCounts) {
-            return [
-                'status' => $status,
-                'label' => $label,
-                'count' => (int) ($shoppingListStatusCounts[$status] ?? 0),
-            ];
-        });
-
-        $orderQueues = [
+        $actionQueues = [
             [
                 'label' => 'New list requests',
                 'description' => 'Uploaded school lists to review and price.',
                 'count' => ShoppingList::where('source', ShoppingList::SOURCE_UPLOAD)
                     ->whereIn('status', [ShoppingList::STATUS_PENDING, ShoppingList::STATUS_REVIEWING])->count(),
-                'route' => route('admin.shopping-lists.index'),
+                'route' => route('admin.shopping-lists.index', ['review_queue' => 1]),
                 'permission' => 'shopping-lists.view',
+            ],
+            [
+                'label' => 'Payment / stock review',
+                'description' => 'Resolve payment exceptions before fulfilment continues.',
+                'count' => ShoppingList::whereNotNull('payment_exception')
+                    ->whereNull('customer_received_at')->whereNull('delivery_confirmed_at')->count(),
+                'route' => route('admin.invoices.index', ['issues' => 1, 'delivery_status' => 'under_review']),
+                'permission' => 'invoices.view',
+            ],
+            [
+                'label' => 'Supplier approvals',
+                'description' => 'Review supplier applications and verification details.',
+                'count' => $stats['pending_suppliers'],
+                'route' => route('admin.suppliers.index', ['status' => 'pending']),
+                'permission' => 'suppliers.view',
+            ],
+            [
+                'label' => 'Driver approvals',
+                'description' => 'Approve delivery partners before assigning orders.',
+                'count' => $stats['pending_drivers'],
+                'route' => route('admin.drivers.index', ['status' => 'pending']),
+                'permission' => 'drivers.view',
             ],
             [
                 'label' => 'Awaiting payment',
@@ -130,6 +155,13 @@ class DashboardController extends Controller
                     ->where('payment_status', ShoppingList::PAYMENT_UNPAID)->count(),
                 'route' => route('admin.invoices.index', ['status' => ShoppingList::STATUS_QUOTED, 'payment_status' => ShoppingList::PAYMENT_UNPAID]),
                 'permission' => 'invoices.view',
+            ],
+            [
+                'label' => 'Low display stock',
+                'description' => 'Review products at or below their reorder threshold.',
+                'count' => $stats['low_display_stock'],
+                'route' => route('admin.inventory.index', ['stock_status' => 'low_display']),
+                'permission' => 'inventory.view',
             ],
             [
                 'label' => 'Payment processing',
@@ -170,38 +202,75 @@ class DashboardController extends Controller
                 'route' => route('admin.invoices.index', ['delivery_status' => 'awaiting_customer_confirmation']),
                 'permission' => 'invoices.view',
             ],
-            [
-                'label' => 'Payment / stock review',
-                'description' => 'Exceptions an administrator needs to resolve.',
-                'count' => ShoppingList::whereNotNull('payment_exception')
-                    ->whereNull('customer_received_at')->whereNull('delivery_confirmed_at')->count(),
-                'route' => route('admin.invoices.index', ['issues' => 1]),
-                'permission' => 'invoices.view',
-            ],
-            [
-                'label' => 'Delivered',
-                'description' => 'Orders confirmed as received by the customer.',
-                'count' => ShoppingList::where(fn ($query) => $query->whereNotNull('customer_received_at')->orWhereNotNull('delivery_confirmed_at'))->count(),
-                'route' => route('admin.invoices.index', ['delivery_status' => 'delivered']),
-                'permission' => 'invoices.view',
-            ],
         ];
 
         return view('admin.dashboard', compact(
             'stats',
-            'latestProducts',
-            'latestSuppliers',
-            'latestShoppingLists',
-            'latestDrivers',
-            'productCategorySummary',
-            'shoppingListStatusSummary',
-            'orderQueues',
+            'latestOrders',
+            'actionQueues',
             'performance',
+            'trend',
             'period',
             'periodFrom',
             'periodTo',
             'periodLabel',
             'includeDemo',
         ));
+    }
+
+    private function buildTrend(array $dailyOrders, array $dailyRevenue, Carbon $from, Carbon $to): array
+    {
+        $days = (int) $from->copy()->startOfDay()->diffInDays($to->copy()->startOfDay()) + 1;
+        $granularity = $days <= 31 ? 'day' : ($days <= 366 ? 'week' : 'month');
+        $keyFor = static function (string $date) use ($granularity): string {
+            $day = Carbon::parse($date);
+
+            return match ($granularity) {
+                'week' => $day->startOfWeek()->toDateString(),
+                'month' => $day->startOfMonth()->toDateString(),
+                default => $day->toDateString(),
+            };
+        };
+
+        $sumByBucket = static function (array $daily) use ($keyFor): array {
+            $buckets = [];
+            foreach ($daily as $date => $amount) {
+                $key = $keyFor((string) $date);
+                $buckets[$key] = ($buckets[$key] ?? 0) + (float) $amount;
+            }
+
+            return $buckets;
+        };
+
+        $orders = $sumByBucket($dailyOrders);
+        $revenue = $sumByBucket($dailyRevenue);
+        $cursor = match ($granularity) {
+            'week' => $from->copy()->startOfWeek(),
+            'month' => $from->copy()->startOfMonth(),
+            default => $from->copy()->startOfDay(),
+        };
+        $lastDay = $to->copy()->startOfDay();
+        $points = [];
+
+        while ($cursor->lte($lastDay)) {
+            $key = $cursor->toDateString();
+            $points[] = [
+                'key' => $key,
+                'label' => match ($granularity) {
+                    'week' => $cursor->format('M j'),
+                    'month' => $cursor->format('M Y'),
+                    default => $cursor->format('M j'),
+                },
+                'orders' => (int) ($orders[$key] ?? 0),
+                'revenue' => (float) ($revenue[$key] ?? 0),
+            ];
+            $cursor = match ($granularity) {
+                'week' => $cursor->addWeek(),
+                'month' => $cursor->addMonth(),
+                default => $cursor->addDay(),
+            };
+        }
+
+        return ['granularity' => $granularity, 'points' => $points];
     }
 }
