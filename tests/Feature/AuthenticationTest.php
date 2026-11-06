@@ -212,6 +212,54 @@ class AuthenticationTest extends TestCase
         $this->assertSame('', $this->app['session']->driver('database')->getHandler()->read($sessionId));
     }
 
+    public function test_authenticated_session_is_invalidated_after_the_application_idle_timeout(): void
+    {
+        config(['session.idle_timeout_minutes' => 5]);
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->get(route('dashboard'))->assertOk();
+
+        $this->withSession([
+            'security.last_user_activity_at' => now()->subMinutes(6)->timestamp,
+        ])->get(route('dashboard'))
+            ->assertRedirect(route('login'))
+            ->assertSessionHas('status', 'You were signed out after 5 minutes of inactivity. Please sign in again.');
+
+        $this->assertGuest('web');
+    }
+
+    public function test_heartbeat_keeps_the_real_activity_time_instead_of_extending_idle_time(): void
+    {
+        config(['session.idle_timeout_minutes' => 5]);
+        $user = User::factory()->create();
+        $lastActivity = now()->subMinutes(4)->timestamp;
+
+        $this->actingAs($user)->withSession([
+            'security.last_user_activity_at' => $lastActivity,
+        ])->post(route('session.heartbeat'), [
+            'activity_age_ms' => 240000,
+        ])->assertNoContent();
+
+        $this->assertSame(
+            $lastActivity,
+            $this->app['session.store']->get('security.last_user_activity_at')
+        );
+    }
+
+    public function test_stale_heartbeat_cannot_revive_an_expired_idle_session(): void
+    {
+        config(['session.idle_timeout_minutes' => 5]);
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->withSession([
+            'security.last_user_activity_at' => now()->subMinutes(6)->timestamp,
+        ])->post(route('session.heartbeat'), [
+            'activity_age_ms' => 0,
+        ])->assertUnauthorized();
+
+        $this->assertGuest('web');
+    }
+
     public function test_inactive_account_with_a_stale_web_session_is_signed_out(): void
     {
         $user = User::factory()->create(['is_active' => false]);
@@ -229,7 +277,10 @@ class AuthenticationTest extends TestCase
     {
         $user = User::factory()->create();
         $response = $this->actingAs($user)->get(route('dashboard'))->assertOk()
-            ->assertSee('data-private-page', false);
+            ->assertSee('data-private-page', false)
+            ->assertSee('data-session-timeout-ms="300000"', false)
+            ->assertSee('data-session-warning-ms="60000"', false)
+            ->assertSee('data-session-stay-active', false);
         $this->assertStringContainsString('no-store', $response->headers->get('Cache-Control'));
     }
 

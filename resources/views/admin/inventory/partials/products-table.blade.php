@@ -49,6 +49,9 @@
                             <p class="font-extrabold {{ $product->stock_quantity <= $product->reorder_level ? 'text-red-700' : 'text-emerald-700' }}">{{ number_format($product->stock_quantity) }} display</p>
                             <p class="mt-1 text-xs font-semibold text-slate-500">{{ number_format($product->warehouse_stock_quantity) }} warehouse</p>
                             <p class="mt-1 text-xs font-semibold text-slate-500">{{ number_format($product->costed_stock_remaining ?? 0) }} costed remaining</p>
+                            @if ($product->warehouse_batch_quantity !== (int) $product->warehouse_stock_quantity)
+                                <p class="mt-1 text-xs font-bold text-amber-800">Warehouse count differs from costed batch ledger</p>
+                            @endif
                             <p class="mt-1 text-xs font-semibold text-slate-500">{{ number_format($product->reorder_level) }} reorder level</p>
                         </td>
                         <td class="px-5 py-4">
@@ -69,7 +72,7 @@
                                     <button type="button" @click="$dispatch('open-admin-modal', 'opening-product-{{ $product->id }}')" class="rounded border border-orange-300 bg-orange-50 px-3 py-2 text-xs font-bold text-orange-800 hover:bg-orange-100">Opening stock</button>
                                 @endif
                                 <button type="button" @click="$dispatch('open-admin-modal', 'intake-product-{{ $product->id }}')" class="rounded bg-orange-700 px-3 py-2 text-xs font-bold text-white hover:bg-orange-800">Stock intake</button>
-                                <button type="button" @click="$dispatch('open-admin-modal', 'transfer-product-{{ $product->id }}')" @disabled($product->warehouse_stock_quantity < 1) class="rounded border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">Move to display</button>
+                                <button type="button" @click="$dispatch('open-admin-modal', 'transfer-product-{{ $product->id }}')" @disabled($product->transferable_warehouse_quantity < 1) class="rounded border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">Move to display</button>
                                 <a href="{{ route('admin.products.show', $product) }}" class="rounded border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">View</a>
                                 <a href="{{ route('admin.products.edit', $product) }}" class="rounded border border-orange-200 px-3 py-2 text-xs font-bold text-orange-800 hover:bg-orange-50">Edit</a>
                                 <form method="POST" action="{{ route('admin.products.destroy', $product) }}" onsubmit="return confirm('Archive this product from the public catalogue?')">

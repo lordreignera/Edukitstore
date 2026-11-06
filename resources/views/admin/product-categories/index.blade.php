@@ -13,7 +13,7 @@
 
     <div class="py-8">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <form method="GET" class="mb-5 grid gap-3 border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-[minmax(180px,1fr)_180px_auto_auto]">
+            <form method="GET" class="filter-bar mb-5">
                 <input name="q" value="{{ $search }}" placeholder="Search category name or description" class="h-10 rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
                 <select name="status" class="h-10 rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
                     <option value="">Any status</option>

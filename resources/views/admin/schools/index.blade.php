@@ -14,7 +14,7 @@
 
     <div class="py-8">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <form method="GET" class="mb-5 grid gap-3 border border-slate-200 bg-white p-4 shadow-sm lg:grid-cols-[minmax(180px,1fr)_220px_160px_auto_auto]">
+            <form method="GET" class="filter-bar mb-5">
                 <input name="q" value="{{ $search }}" placeholder="Search school, contact, code or location" class="h-10 rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
                 <select name="district_id" class="h-10 rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
                     <option value="">All districts</option>

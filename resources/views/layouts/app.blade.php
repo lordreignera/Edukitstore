@@ -12,7 +12,7 @@
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -20,16 +20,16 @@
         <!-- Styles -->
         @livewireStyles
     </head>
-    <body data-private-page class="font-sans antialiased">
+    <body @if (auth()->check()) data-session-timeout-ms="{{ max(60, (int) config('session.idle_timeout_minutes', 5) * 60 * 1000) }}" data-session-warning-ms="{{ max(0, (int) config('session.idle_warning_seconds', 60) * 1000) }}" data-session-logout-url="{{ route('logout', absolute: false) }}" data-session-login-url="{{ route('login', absolute: false) }}" @endif data-private-page class="bg-slate-50 font-sans text-slate-900 antialiased">
         <x-banner />
 
-        <div class="min-h-screen bg-gray-100">
+        <div class="min-h-screen bg-slate-50">
             @livewire('navigation-menu')
             @include('components.temporary-password-notice')
 
             <!-- Page Heading -->
             @if (isset($header))
-                <header class="bg-white shadow">
+                <header class="border-b border-slate-200 bg-white">
                     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>

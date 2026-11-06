@@ -22,7 +22,7 @@
                 <div class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{{ $errors->first() }}</div>
             @endif
 
-            <form method="GET" class="grid gap-3 rounded-md border border-slate-200 bg-white p-4 sm:grid-cols-[1fr_220px_auto]">
+            <form method="GET" class="filter-bar">
                 <input name="q" value="{{ $search }}" placeholder="Reference, customer or phone" class="rounded-md border-slate-300 text-sm">
                 <select name="status" class="rounded-md border-slate-300 text-sm">
                     <option value="">All statuses</option>

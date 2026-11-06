@@ -24,7 +24,7 @@
 
     <div class="py-8">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <form method="GET" class="mb-5 grid gap-3 border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-2 xl:grid-cols-[minmax(180px,1fr)_170px_140px_140px_auto_auto]">
+            <form method="GET" class="filter-bar mb-5">
                 <input name="q" value="{{ $search }}" placeholder="Search name, product code or brand" class="h-10 rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
                 <select name="category" class="h-10 rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600"><option value="">All categories</option>@foreach ($categories as $category)<option value="{{ $category->id }}" @selected($categoryId === (string) $category->id)>{{ $category->name }}</option>@endforeach</select>
                 <select name="status" class="h-10 rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600"><option value="">Any status</option><option value="active" @selected($status === 'active')>Active</option><option value="hidden" @selected($status === 'hidden')>Hidden</option></select>

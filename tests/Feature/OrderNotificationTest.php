@@ -56,8 +56,10 @@ class OrderNotificationTest extends TestCase
         $anotherAdmin = $this->adminWithOrderPermission();
         $customer = User::factory()->create();
         $order = $this->orderFor($customer);
+        $nextOrder = $this->orderFor($customer);
         $admin->notify(new NewOrderReceivedNotification($order));
-        $notificationId = $admin->notifications()->firstOrFail()->id;
+        $admin->notify(new NewOrderReceivedNotification($nextOrder));
+        $notificationId = $admin->notifications()->where('data->reference', $order->reference)->firstOrFail()->id;
 
         $this->actingAs($anotherAdmin)
             ->post(route('admin.notifications.open', $notificationId))
@@ -67,12 +69,19 @@ class OrderNotificationTest extends TestCase
             ->get(route('admin.notifications.index'))
             ->assertOk()
             ->assertSee($order->reference)
+            ->assertSee($nextOrder->reference)
             ->assertSee('data-push-notifications', false);
 
         $this->post(route('admin.notifications.open', $notificationId))
             ->assertRedirect(route('admin.invoices.show', $order));
 
-        $this->assertNotNull($admin->notifications()->firstOrFail()->fresh()->read_at);
+        $this->get(route('admin.notifications.index'))
+            ->assertOk()
+            ->assertDontSee($order->reference)
+            ->assertSee($nextOrder->reference);
+
+        $this->assertNotNull($admin->notifications()->findOrFail($notificationId)->read_at);
+        $this->assertNull($admin->notifications()->where('data->reference', $nextOrder->reference)->firstOrFail()->read_at);
     }
 
     public function test_push_subscription_accepts_known_https_provider_and_rejects_private_endpoint(): void

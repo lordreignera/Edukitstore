@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureWebAccountIsAllowed;
+use App\Http\Middleware\ExpireIdleWebSessions;
 use App\Http\Middleware\NoStoreAuthenticatedResponses;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
@@ -23,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(SecurityHeaders::class);
         $middleware->appendToGroup('web', NoStoreAuthenticatedResponses::class);
         $middleware->appendToGroup('web', EnsureWebAccountIsAllowed::class);
+        $middleware->appendToGroup('web', ExpireIdleWebSessions::class);
         $middleware->alias([
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,

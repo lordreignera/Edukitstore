@@ -8,7 +8,7 @@
             <p class="text-[11px] font-extrabold uppercase text-orange-700">EduKit marketplace</p>
             <h1 class="mt-2 text-[28px] font-extrabold leading-tight text-[#07215f] sm:text-[34px]">Shop school supplies</h1>
 
-            <form id="product-filter-form" method="GET" action="{{ route('website.products.index') }}" class="mt-5 grid grid-cols-2 gap-2 rounded-md border border-[#dbe8f3] bg-[#f7fbff] p-3 shadow-sm sm:gap-3 md:grid-cols-[minmax(0,1fr)_220px_170px_auto_auto]">
+            <form id="product-filter-form" method="GET" action="{{ route('website.products.index') }}" class="filter-bar mt-5">
                 <input name="search" value="{{ $search }}" maxlength="100" autocomplete="off" placeholder="Search products, brand or colour" class="col-span-2 min-h-11 min-w-0 rounded-md border-[#d7e4ef] text-sm font-medium focus:border-orange-600 focus:ring-orange-600 md:col-span-1">
                 <select name="category" class="min-h-11 min-w-0 rounded-md border-[#d7e4ef] text-sm font-medium focus:border-orange-600 focus:ring-orange-600">
                     <option value="">All categories</option>

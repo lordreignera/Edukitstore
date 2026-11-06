@@ -10,6 +10,7 @@ use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\Admin\ProductCategoryController as AdminProductCategoryController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ProfitReportController as AdminProfitReportController;
+use App\Http\Controllers\Admin\PartnerPerformanceReportController;
 use App\Http\Controllers\Admin\PermissionController as AdminPermissionController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\SchoolController as AdminSchoolController;
@@ -144,8 +145,18 @@ Route::middleware([
         Route::patch('invoices/{invoice}/resolve-paid-stock', [AdminInvoiceController::class, 'resolvePaidStock'])->middleware('permission:invoices.resolve-stock')->name('invoices.resolve-paid-stock');
 
         Route::get('inventory', [AdminInventoryController::class, 'index'])->middleware('permission:inventory.view')->name('inventory.index');
+        Route::get('inventory/warehouse', [AdminInventoryController::class, 'warehouse'])->middleware('permission:inventory.view')->name('inventory.warehouse');
+        Route::get('inventory/display', [AdminInventoryController::class, 'display'])->middleware('permission:inventory.view')->name('inventory.display');
+        Route::get('inventory/sales', [AdminInventoryController::class, 'sales'])->middleware('permission:inventory.view')->name('inventory.sales');
         Route::get('reports/profit', AdminProfitReportController::class)->middleware('permission:reports.profit.view')->name('reports.profit');
         Route::get('reports/profit/export', [AdminProfitReportController::class, 'export'])->middleware('permission:reports.profit.view')->name('reports.profit.export');
+        Route::get('reports/driver-performance', [PartnerPerformanceReportController::class, 'drivers'])->middleware('permission:reports.performance.view')->name('reports.driver-performance');
+        Route::get('reports/driver-performance/export', [PartnerPerformanceReportController::class, 'exportDrivers'])->middleware('permission:reports.performance.view')->name('reports.driver-performance.export');
+        Route::get('reports/supplier-performance', [PartnerPerformanceReportController::class, 'suppliers'])->middleware('permission:reports.performance.view')->name('reports.supplier-performance');
+        Route::get('reports/supplier-performance/export', [PartnerPerformanceReportController::class, 'exportSuppliers'])->middleware('permission:reports.performance.view')->name('reports.supplier-performance.export');
+        Route::get('reports/driver-payouts', [PartnerPerformanceReportController::class, 'payouts'])->middleware('permission:reports.driver-payouts.view')->name('reports.driver-payouts');
+        Route::get('reports/driver-payouts/export', [PartnerPerformanceReportController::class, 'exportPayouts'])->middleware('permission:reports.driver-payouts.view')->name('reports.driver-payouts.export');
+        Route::post('reports/driver-payouts', [PartnerPerformanceReportController::class, 'recordPayout'])->middleware('permission:reports.driver-payouts.record')->name('reports.driver-payouts.store');
         Route::get('reports/delivery-fees', AdminDeliveryFeeReportController::class)->middleware('permission:reports.profit.view')->name('reports.delivery-fees');
         Route::get('reports/delivery-fees/export', [AdminDeliveryFeeReportController::class, 'export'])->middleware('permission:reports.profit.view')->name('reports.delivery-fees.export');
         Route::get('inventory/export', [AdminInventoryController::class, 'export'])->middleware('permission:inventory.export')->name('inventory.export');

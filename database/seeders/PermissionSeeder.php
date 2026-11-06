@@ -33,6 +33,16 @@ class PermissionSeeder extends Seeder
             }
         }
 
+        // Add newly introduced report permissions to existing built-in admin
+        // roles without replacing any deliberately customized permissions.
+        foreach (['super-admin', 'admin'] as $roleName) {
+            Role::findOrCreate($roleName, 'web')->givePermissionTo([
+                'reports.performance.view',
+                'reports.driver-payouts.view',
+                'reports.driver-payouts.record',
+            ]);
+        }
+
         app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 }

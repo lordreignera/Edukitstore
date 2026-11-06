@@ -15,8 +15,8 @@
                 <div class="mb-5 border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{{ $errors->first() }}</div>
             @endif
 
-            <form method="GET" class="mb-5 grid gap-3 border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-[minmax(220px,1fr)_240px_auto]">
-                <label class="relative"><span class="sr-only">Search users</span><x-ui.icon name="search" size="size-4" class="absolute left-3 top-3 text-slate-400" /><input name="q" value="{{ $search }}" placeholder="Search name or email" class="h-10 w-full rounded border-slate-300 pl-9 text-sm focus:border-orange-600 focus:ring-orange-600"></label>
+            <form method="GET" class="filter-bar mb-5">
+                <label class="filter-search relative"><span class="sr-only">Search users</span><x-ui.icon name="search" size="size-4" class="absolute left-3 top-3 text-slate-400" /><input name="q" value="{{ $search }}" placeholder="Search name or email" class="h-10 w-full rounded border-slate-300 pl-9 text-sm focus:border-orange-600 focus:ring-orange-600"></label>
                 <select name="role" class="h-10 rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
                     <option value="">All roles</option>
                     @foreach ($roles as $value => $label)<option value="{{ $value }}" @selected($selectedRole === $value)>{{ $label }}</option>@endforeach

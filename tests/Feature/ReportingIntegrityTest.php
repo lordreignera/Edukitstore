@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Product;
 use App\Models\ShoppingList;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -143,6 +144,7 @@ class ReportingIntegrityTest extends TestCase
 
     public function test_admin_dashboard_filters_order_and_payment_performance_by_date_and_demo_choice(): void
     {
+        $this->travelTo(Carbon::parse('2026-11-05 12:00:00'));
         $admin = $this->admin();
         $paidOrder = $this->invoice([
             'payment_status' => ShoppingList::PAYMENT_PAID,
@@ -211,6 +213,7 @@ class ReportingIntegrityTest extends TestCase
 
     public function test_dashboard_kpi_date_drilldowns_preserve_date_basis_and_demo_choice(): void
     {
+        $this->travelTo(Carbon::parse('2026-11-05 12:00:00'));
         $admin = $this->admin();
         $realOrder = $this->invoice([
             'payment_status' => ShoppingList::PAYMENT_PAID,

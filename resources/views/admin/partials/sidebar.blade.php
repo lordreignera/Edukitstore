@@ -14,12 +14,11 @@
             ['label' => 'Drivers', 'route' => 'admin.drivers.index', 'pattern' => 'admin.drivers.*', 'icon' => 'drivers', 'permission' => 'drivers.view'],
         ],
         'Monitoring & Analytics' => [
-            ['label' => 'Profit Report', 'route' => 'admin.reports.profit', 'pattern' => 'admin.reports.profit', 'icon' => 'chart', 'permission' => 'reports.profit.view'],
-            ['label' => 'Delivery Fees', 'route' => 'admin.reports.delivery-fees', 'pattern' => 'admin.reports.delivery-fees', 'icon' => 'invoice', 'permission' => 'reports.profit.view'],
+            ['label' => 'Reports', 'route' => 'admin.reports.profit', 'pattern' => 'admin.reports.*', 'icon' => 'chart', 'permissions' => ['reports.profit.view', 'reports.performance.view', 'reports.driver-payouts.view']],
             ['label' => 'Notifications', 'route' => 'admin.notifications.index', 'pattern' => 'admin.notifications.*', 'icon' => 'bell', 'permission' => 'invoices.view'],
         ],
     ];
-    $visibleNavigationSections = collect($navigationSections)->map(fn ($items) => collect($items)->filter(fn ($item) => auth()->user()->can($item['permission'])))->filter(fn ($items) => $items->isNotEmpty());
+    $visibleNavigationSections = collect($navigationSections)->map(fn ($items) => collect($items)->filter(fn ($item) => collect($item['permissions'] ?? [$item['permission']])->contains(fn ($permission) => auth()->user()->can($permission))))->filter(fn ($items) => $items->isNotEmpty());
 @endphp
 
 <aside class="admin-sidebar fixed inset-y-0 left-0 z-50 flex w-[248px] -translate-x-full flex-col border-r border-orange-500/30 bg-[#071d4f] text-white shadow-2xl transition-[width,transform] duration-200 print:hidden lg:translate-x-0"
@@ -46,6 +45,57 @@
                 <p x-show="!adminSidebarCollapsed" class="{{ $loop->first ? 'mt-6' : 'mt-7' }} px-3 text-[10px] font-extrabold uppercase tracking-wider text-orange-200/80">{{ $section }}</p>
                 <div class="mt-2 space-y-1">
                     @foreach ($items as $item)
+                    @if ($item['route'] === 'admin.inventory.index')
+                    <details x-show="!adminSidebarCollapsed" class="group">
+                        <summary class="flex min-h-11 cursor-pointer list-none items-center gap-3 rounded-md border px-3 py-2.5 text-sm font-semibold outline-none transition {{ request()->routeIs('admin.inventory.*') ? 'border-orange-300 bg-white text-[#071d4f] shadow-sm' : 'border-transparent text-slate-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-white' }} [&::-webkit-details-marker]:hidden">
+                            <x-ui.icon name="warehouse" size="size-[18px]" />
+                            <span>Inventory</span>
+                            @if (($adminNavStats['low_stock'] ?? 0) > 0)
+                                <span class="rounded-full bg-red-400 px-2 py-0.5 text-[10px] font-bold text-red-950">{{ $adminNavStats['low_stock'] }}</span>
+                            @endif
+                            <x-ui.icon name="chevron-down" size="size-4" class="ml-auto transition-transform duration-200 group-open:rotate-180" />
+                        </summary>
+                        <nav class="mt-2 space-y-1 border-l border-orange-500/30 pl-3" aria-label="Inventory navigation">
+                            <a href="{{ route('admin.inventory.index') }}" class="flex min-h-10 items-center gap-3 rounded-md border px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.inventory.index') ? 'border-orange-300 bg-white text-[#071d4f] shadow-sm' : 'border-transparent text-slate-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-white' }}">
+                                <x-ui.icon name="chart" size="size-[17px]" /><span>Stock Overview</span>
+                            </a>
+                            <a href="{{ route('admin.inventory.warehouse') }}" class="flex min-h-10 items-center gap-3 rounded-md border px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.inventory.warehouse') ? 'border-orange-300 bg-white text-[#071d4f] shadow-sm' : 'border-transparent text-slate-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-white' }}">
+                                <x-ui.icon name="warehouse" size="size-[17px]" /><span>Warehouse Stock</span>
+                            </a>
+                            <a href="{{ route('admin.inventory.display') }}" class="flex min-h-10 items-center gap-3 rounded-md border px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.inventory.display') ? 'border-orange-300 bg-white text-[#071d4f] shadow-sm' : 'border-transparent text-slate-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-white' }}">
+                                <x-ui.icon name="products" size="size-[17px]" /><span>Display Stock</span>
+                            </a>
+                            <a href="{{ route('admin.inventory.sales') }}" class="flex min-h-10 items-center gap-3 rounded-md border px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.inventory.sales') ? 'border-orange-300 bg-white text-[#071d4f] shadow-sm' : 'border-transparent text-slate-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-white' }}">
+                                <x-ui.icon name="chart" size="size-[17px]" /><span>Sales History</span>
+                            </a>
+                        </nav>
+                    </details>
+                    <a x-show="adminSidebarCollapsed" href="{{ route('admin.inventory.index') }}" title="Inventory" class="group flex min-h-11 items-center justify-center rounded-md border px-2 py-2.5 text-sm font-semibold transition {{ request()->routeIs('admin.inventory.*') ? 'border-orange-300 bg-white text-[#071d4f] shadow-sm' : 'border-transparent text-slate-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-white' }}">
+                        <x-ui.icon name="warehouse" size="size-[18px]" />
+                    </a>
+                    @elseif ($item['route'] === 'admin.reports.profit')
+                    <details x-show="!adminSidebarCollapsed" class="group">
+                        <summary class="flex min-h-11 cursor-pointer list-none items-center gap-3 rounded-md border px-3 py-2.5 text-sm font-semibold outline-none transition {{ request()->routeIs('admin.reports.*') ? 'border-orange-300 bg-white text-[#071d4f] shadow-sm' : 'border-transparent text-slate-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-white' }} [&::-webkit-details-marker]:hidden">
+                            <x-ui.icon name="chart" size="size-[18px]" />
+                            <span>Reports</span>
+                            <x-ui.icon name="chevron-down" size="size-4" class="ml-auto transition-transform duration-200 group-open:rotate-180" />
+                        </summary>
+                        <nav class="mt-2 space-y-1 border-l border-orange-500/30 pl-3" aria-label="Reports navigation">
+                            @can('reports.profit.view')
+                                <a href="{{ route('admin.reports.profit') }}" class="flex min-h-10 items-center gap-3 rounded-md border px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.reports.profit') ? 'border-orange-300 bg-white text-[#071d4f] shadow-sm' : 'border-transparent text-slate-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-white' }}"><x-ui.icon name="chart" size="size-[17px]" /><span>Profit Report</span></a>
+                                <a href="{{ route('admin.reports.delivery-fees') }}" class="flex min-h-10 items-center gap-3 rounded-md border px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.reports.delivery-fees') ? 'border-orange-300 bg-white text-[#071d4f] shadow-sm' : 'border-transparent text-slate-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-white' }}"><x-ui.icon name="invoice" size="size-[17px]" /><span>Delivery Fees</span></a>
+                            @endcan
+                            @can('reports.performance.view')
+                                <a href="{{ route('admin.reports.driver-performance') }}" class="flex min-h-10 items-center gap-3 rounded-md border px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.reports.driver-performance*') ? 'border-orange-300 bg-white text-[#071d4f] shadow-sm' : 'border-transparent text-slate-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-white' }}"><x-ui.icon name="drivers" size="size-[17px]" /><span>Driver Performance</span></a>
+                                <a href="{{ route('admin.reports.supplier-performance') }}" class="flex min-h-10 items-center gap-3 rounded-md border px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.reports.supplier-performance*') ? 'border-orange-300 bg-white text-[#071d4f] shadow-sm' : 'border-transparent text-slate-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-white' }}"><x-ui.icon name="suppliers" size="size-[17px]" /><span>Supplier Performance</span></a>
+                            @endcan
+                            @can('reports.driver-payouts.view')
+                                <a href="{{ route('admin.reports.driver-payouts') }}" class="flex min-h-10 items-center gap-3 rounded-md border px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.reports.driver-payouts*') ? 'border-orange-300 bg-white text-[#071d4f] shadow-sm' : 'border-transparent text-slate-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-white' }}"><x-ui.icon name="invoice" size="size-[17px]" /><span>Driver Payouts</span></a>
+                            @endcan
+                        </nav>
+                    </details>
+                    <a x-show="adminSidebarCollapsed" href="{{ auth()->user()->can('reports.profit.view') ? route('admin.reports.profit') : (auth()->user()->can('reports.performance.view') ? route('admin.reports.driver-performance') : route('admin.reports.driver-payouts')) }}" title="Reports" class="group flex min-h-11 items-center justify-center rounded-md border px-2 py-2.5 text-sm font-semibold transition {{ request()->routeIs('admin.reports.*') ? 'border-orange-300 bg-white text-[#071d4f] shadow-sm' : 'border-transparent text-slate-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-white' }}"><x-ui.icon name="chart" size="size-[18px]" /></a>
+                    @else
                     <a href="{{ route($item['route']) }}" :class="adminSidebarCollapsed ? 'justify-center px-2' : ''" title="{{ $item['label'] }}"
                         class="group flex min-h-11 items-center gap-3 rounded-md border px-3 py-2.5 text-sm font-semibold transition {{ request()->routeIs($item['pattern']) ? 'border-orange-300 bg-white text-[#071d4f] shadow-sm' : 'border-transparent text-slate-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-white' }}">
                         <x-ui.icon :name="$item['icon']" size="size-[18px]" />
@@ -54,6 +104,7 @@
                             <span x-show="!adminSidebarCollapsed" class="ml-auto rounded-full {{ $item['badge'] === 'low_stock' ? 'bg-red-400 text-red-950' : 'bg-orange-300 text-orange-950' }} px-2 py-0.5 text-[10px] font-bold">{{ $adminNavStats[$item['badge']] }}</span>
                         @endif
                     </a>
+                    @endif
                     @endforeach
                 </div>
             @endforeach

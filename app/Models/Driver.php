@@ -53,4 +53,9 @@ class Driver extends Model
     {
         return $this->hasMany(ShoppingList::class, 'assigned_driver_id');
     }
+
+    public function payouts(): HasMany
+    {
+        return $this->hasMany(DriverPayout::class);
+    }
 }

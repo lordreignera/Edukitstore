@@ -4,9 +4,9 @@
             <x-authentication-card-logo />
         </x-slot>
 
-        <div class="mb-4 text-sm text-gray-600">
+        <div class="mb-4 text-sm leading-6 text-slate-600">
             {{ __('We send a verification link when you register. If you still need one, use the button below while signed in. Check your inbox and spam folder.') }}
-            <div class="mt-2 font-medium text-gray-800">{{ auth()->user()->email }}</div>
+            <div class="mt-2 break-all font-semibold text-slate-800">{{ auth()->user()->email }}</div>
         </div>
 
         @if (session('status') && session('status') !== 'verification-link-sent')
@@ -36,7 +36,7 @@
                 <form method="POST" action="{{ route('logout') }}" class="inline">
                     @csrf
 
-                    <button type="submit" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ms-2">
+                    <button type="submit" class="ms-2 inline-flex min-h-10 items-center rounded-md px-3 text-sm font-semibold text-slate-600 underline hover:text-orange-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2">
                         {{ __('Log Out') }}
                     </button>
                 </form>

@@ -9,7 +9,7 @@
 
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-5xl space-y-4">
-            <form method="GET" action="{{ route('admin.search') }}" class="flex flex-col gap-2 rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:flex-row">
+            <form method="GET" action="{{ route('admin.search') }}" class="filter-bar">
                 <label for="global-search-query" class="sr-only">Search orders, products, schools, suppliers and drivers</label>
                 <input id="global-search-query" name="q" value="{{ $term }}" minlength="2" maxlength="100" required autofocus placeholder="Search orders, products, schools, suppliers, drivers…" class="h-11 min-w-0 flex-1 rounded-md border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
                 <button class="h-11 rounded-md bg-orange-600 px-5 text-sm font-bold text-white transition hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2">Search</button>

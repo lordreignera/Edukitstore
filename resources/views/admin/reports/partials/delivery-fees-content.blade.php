@@ -1,4 +1,4 @@
-<form method="GET" action="{{ $financeView ? route('finance.delivery-fees') : route('admin.reports.delivery-fees') }}" class="grid gap-3 rounded-md border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-4">
+<form method="GET" action="{{ $financeView ? route('finance.delivery-fees') : route('admin.reports.delivery-fees') }}" class="filter-bar">
     <div>
         <label for="delivery-fees-from" class="mb-1 block text-xs font-bold text-slate-700">Completed from</label>
         <input id="delivery-fees-from" type="date" name="from" value="{{ $from?->format('Y-m-d') }}" class="h-10 w-full rounded-md border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
@@ -53,7 +53,7 @@
 </section>
 
 <div class="rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-950">
-    This report shows the customer delivery/convenience fee recorded on each completed order, grouped by assigned driver for reconciliation. Some orders may include supplier delivery charges in that amount; it is not a driver wage or payout calculation. Driver pay rates and payouts are not yet recorded in EduKit.
+    This report shows the customer delivery/convenience fee recorded on each completed order. Some orders may include supplier delivery charges, so this fee is not a driver wage. @if (! $financeView) Use <a class="font-bold underline" href="{{ route('admin.reports.driver-payouts') }}">Driver Payouts</a> to record the amount actually transferred externally for each eligible delivery. @else Driver payout amounts are maintained separately by an administrator. @endif
 </div>
 
 <section class="overflow-hidden rounded-md border border-slate-200 bg-white" aria-labelledby="driver-fees-title">

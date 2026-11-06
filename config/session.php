@@ -34,6 +34,10 @@ return [
 
     'lifetime' => (int) env('SESSION_LIFETIME', 120),
 
+    // Enforce a shorter application-level inactivity limit for signed-in users.
+    'idle_timeout_minutes' => (int) env('SESSION_IDLE_TIMEOUT', 5),
+    'idle_warning_seconds' => (int) env('SESSION_IDLE_WARNING_SECONDS', 60),
+
     'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),
 
     /*

@@ -52,7 +52,7 @@
             <p class="mt-0.5 text-xs text-slate-500">Orders use creation date; paid and profit figures use payment date. Platform cards below are current snapshots.</p>
         </div>
 
-        <form method="GET" action="{{ route('admin.dashboard') }}" x-data="{ applying: false }" @submit="applying = true" class="flex flex-wrap items-end gap-2">
+        <form method="GET" action="{{ route('admin.dashboard') }}" x-data="{ applying: false }" @submit="applying = true" class="filter-bar filter-bar--inline">
             <div>
                 <label for="dashboard-period" class="sr-only">Performance period</label>
                 <select id="dashboard-period" name="period" class="h-9 w-36 rounded-md border-slate-300 py-1 text-sm focus:border-orange-600 focus:ring-orange-600">

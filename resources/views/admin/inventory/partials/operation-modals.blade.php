@@ -79,10 +79,11 @@
             </div>
             <div>
                 <label class="text-sm font-bold text-slate-700" for="transfer-quantity-{{ $product->id }}">Quantity to move</label>
-                <input id="transfer-quantity-{{ $product->id }}" name="quantity" type="number" min="1" max="{{ $product->warehouse_stock_quantity }}" value="{{ old('_modal') === 'transfer-product-'.$product->id ? old('quantity') : min(1, $product->warehouse_stock_quantity) }}" required class="mt-1 w-full rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
+                <input id="transfer-quantity-{{ $product->id }}" name="quantity" type="number" min="1" max="{{ $product->transferable_warehouse_quantity }}" value="{{ old('_modal') === 'transfer-product-'.$product->id ? old('quantity') : min(1, $product->transferable_warehouse_quantity) }}" required class="mt-1 w-full rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
             </div>
             <div class="grid gap-2 text-sm">
                 <p class="rounded border border-slate-200 bg-slate-50 px-3 py-2 font-bold text-slate-700">Warehouse: <span class="text-slate-950">{{ number_format($product->warehouse_stock_quantity) }}</span></p>
+                <p class="rounded border border-slate-200 bg-slate-50 px-3 py-2 font-bold text-slate-700">Costed and transferable: <span class="text-slate-950">{{ number_format($product->transferable_warehouse_quantity) }}</span></p>
                 <p class="rounded border border-slate-200 bg-slate-50 px-3 py-2 font-bold text-slate-700">Display: <span class="text-slate-950">{{ number_format($product->stock_quantity) }}</span></p>
             </div>
             <div class="sm:col-span-2">

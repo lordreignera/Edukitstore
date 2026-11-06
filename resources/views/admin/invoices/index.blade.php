@@ -26,7 +26,7 @@
                     <x-ui.icon name="download" size="size-4" /> Export filtered orders CSV
                 </a>
             </div>
-            <form method="GET" action="{{ route('admin.invoices.index') }}" class="mb-6 grid gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-2 xl:grid-cols-4">
+            <form method="GET" action="{{ route('admin.invoices.index') }}" class="filter-bar mb-6">
                 <input name="q" value="{{ $search }}" placeholder="Search order, phone, name or school" class="rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
                 <select name="status" class="rounded border-slate-300 text-sm focus:border-orange-600 focus:ring-orange-600">
                     <option value="">Any order status</option>

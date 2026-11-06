@@ -25,18 +25,29 @@ class InventoryController extends Controller
         $stockStatus = (string) $request->query('stock_status');
         $from = (string) $request->query('from', now()->startOfMonth()->toDateString());
         $to = (string) $request->query('to', now()->toDateString());
+        $includeDemo = $request->boolean('include_demo');
         $fromDate = $from !== '' ? Carbon::parse($from)->startOfDay() : null;
         $toDate = $to !== '' ? Carbon::parse($to)->endOfDay() : null;
         $dateRange = fn ($query) => $query
             ->when($fromDate, fn ($dateQuery) => $dateQuery->where('occurred_at', '>=', $fromDate))
             ->when($toDate, fn ($dateQuery) => $dateQuery->where('occurred_at', '<=', $toDate));
+        $paidSalesInPeriod = function ($query) use ($dateRange, $includeDemo) {
+            $dateRange($query->where('type', InventoryMovement::TYPE_SALE_PAID));
+
+            if (! $includeDemo) {
+                $query->whereDoesntHave('shoppingList', fn ($orderQuery) => $orderQuery->where('payment_provider', 'demo'));
+            }
+
+            return $query;
+        };
 
         $products = Product::query()
             ->with('category')
             ->withExists(['inventoryBatches as has_opening_stock' => fn ($query) => $query->where('source', InventoryBatch::SOURCE_OPENING_STOCK)])
             ->withSum('inventoryBatches as costed_stock_remaining', 'remaining_quantity')
-            ->withSum(['inventoryMovements as sold_units' => fn ($query) => $dateRange($query->where('type', InventoryMovement::TYPE_SALE_PAID))], 'quantity')
-            ->withSum(['inventoryMovements as gross_profit' => fn ($query) => $dateRange($query->where('type', InventoryMovement::TYPE_SALE_PAID))], 'profit')
+            ->withSum('inventoryBatches as warehouse_batch_quantity', 'warehouse_remaining_quantity')
+            ->withSum(['inventoryMovements as sold_units' => fn ($query) => $paidSalesInPeriod($query)], 'quantity')
+            ->withSum(['inventoryMovements as gross_profit' => fn ($query) => $paidSalesInPeriod($query)], 'profit')
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($productQuery) use ($search) {
                     $productQuery->where('name', 'like', "%{$search}%")
@@ -59,6 +70,11 @@ class InventoryController extends Controller
         $products->getCollection()->transform(function (Product $product) use ($invoiceMetrics): Product {
             $metrics = $invoiceMetrics[$product->id] ?? ['ordered' => 0, 'paid_pending' => 0, 'in_transit' => 0];
 
+            $product->warehouse_batch_quantity = (int) ($product->warehouse_batch_quantity ?? 0);
+            $product->transferable_warehouse_quantity = min(
+                (int) $product->warehouse_stock_quantity,
+                $product->warehouse_batch_quantity,
+            );
             $product->ordered_units = $metrics['ordered'];
             $product->paid_pending_units = $metrics['paid_pending'];
             $product->in_transit_units = $metrics['in_transit'];
@@ -67,8 +83,7 @@ class InventoryController extends Controller
         });
 
         $allProducts = Product::all(['stock_quantity', 'warehouse_stock_quantity', 'reorder_level']);
-        $periodSales = InventoryMovement::query()->where('type', InventoryMovement::TYPE_SALE_PAID);
-        $dateRange($periodSales);
+        $periodSales = $paidSalesInPeriod(InventoryMovement::query());
         $currentUnits = $allProducts->sum('stock_quantity') + $allProducts->sum('warehouse_stock_quantity');
 
         $stats = [
@@ -83,9 +98,10 @@ class InventoryController extends Controller
         ];
 
         $movements = InventoryMovement::query()
-            ->with('product', 'performer', 'inventoryBatch')
+            ->with('product', 'performer', 'inventoryBatch', 'shoppingList')
             ->when($fromDate, fn ($query) => $query->where('occurred_at', '>=', $fromDate))
             ->when($toDate, fn ($query) => $query->where('occurred_at', '<=', $toDate))
+            ->when(! $includeDemo, fn ($query) => $query->whereDoesntHave('shoppingList', fn ($orderQuery) => $orderQuery->where('payment_provider', 'demo')))
             ->latest('occurred_at')
             ->latest()
             ->paginate(10, ['*'], 'movement_page')
@@ -102,7 +118,125 @@ class InventoryController extends Controller
             'stockStatus' => $stockStatus,
             'from' => $from,
             'to' => $to,
+            'includeDemo' => $includeDemo,
         ]);
+    }
+
+    public function warehouse(Request $request): View
+    {
+        $data = $this->stockPageData($request);
+        $data['stats'] = [
+            'units' => (int) Product::sum('warehouse_stock_quantity'),
+            'products' => Product::where('warehouse_stock_quantity', '>', 0)->count(),
+            'empty_products' => Product::where('warehouse_stock_quantity', 0)->count(),
+            'stock_value' => (float) InventoryBatch::selectRaw('COALESCE(SUM(warehouse_remaining_quantity * unit_cost), 0) as value')->value('value'),
+        ];
+
+        return view('admin.inventory.warehouse', $data);
+    }
+
+    public function display(Request $request): View
+    {
+        $data = $this->stockPageData($request);
+        $data['stats'] = [
+            'units' => (int) Product::sum('stock_quantity'),
+            'low_products' => Product::whereColumn('stock_quantity', '<=', 'reorder_level')->count(),
+            'empty_products' => Product::where('stock_quantity', 0)->count(),
+        ];
+
+        return view('admin.inventory.display', $data);
+    }
+
+    public function sales(Request $request): View
+    {
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date', 'after_or_equal:from'],
+            'include_demo' => ['nullable', 'boolean'],
+        ]);
+
+        $search = trim((string) ($filters['q'] ?? ''));
+        $includeDemo = $request->boolean('include_demo');
+        $from = $filters['from'] ?? now()->startOfMonth()->toDateString();
+        $to = $filters['to'] ?? now()->toDateString();
+        $fromDate = Carbon::parse($from)->startOfDay();
+        $toDate = Carbon::parse($to)->endOfDay();
+
+        $sales = InventoryMovement::query()
+            ->where('type', InventoryMovement::TYPE_SALE_PAID)
+            ->whereBetween('occurred_at', [$fromDate, $toDate])
+            ->when(! $includeDemo, fn ($query) => $query->whereDoesntHave('shoppingList', fn ($orderQuery) => $orderQuery->where('payment_provider', 'demo')))
+            ->when($search !== '', fn ($query) => $query->where(function ($saleQuery) use ($search) {
+                $saleQuery->where('product_name', 'like', "%{$search}%")
+                    ->orWhere('sku', 'like', "%{$search}%")
+                    ->orWhere('reference', 'like', "%{$search}%")
+                    ->orWhereHas('shoppingList', fn ($orderQuery) => $orderQuery->where('reference', 'like', "%{$search}%"));
+            }));
+
+        $stats = [
+            'units' => (int) (clone $sales)->sum('quantity'),
+            'revenue' => (float) (clone $sales)->sum('total_revenue'),
+            'profit' => (float) (clone $sales)->sum('profit'),
+            'orders' => (clone $sales)->whereNotNull('shopping_list_id')->distinct('shopping_list_id')->count('shopping_list_id'),
+        ];
+
+        $movements = (clone $sales)
+            ->with('product.category', 'shoppingList')
+            ->latest('occurred_at')
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('admin.inventory.sales', compact('movements', 'stats', 'search', 'from', 'to', 'includeDemo'));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function stockPageData(Request $request): array
+    {
+        $search = trim((string) $request->query('q'));
+        $categoryId = (string) $request->query('category');
+
+        $products = Product::query()
+            ->with('category')
+            ->withExists(['inventoryBatches as has_opening_stock' => fn ($query) => $query->where('source', InventoryBatch::SOURCE_OPENING_STOCK)])
+            ->withSum('inventoryBatches as warehouse_batch_quantity', 'warehouse_remaining_quantity')
+            ->withSum('inventoryBatches as display_batch_quantity', 'display_remaining_quantity')
+            ->addSelect([
+                'warehouse_batch_cost_value' => InventoryBatch::query()
+                    ->selectRaw('COALESCE(SUM(warehouse_remaining_quantity * unit_cost), 0)')
+                    ->whereColumn('product_id', 'products.id'),
+            ])
+            ->when($search !== '', fn ($query) => $query->where(function ($productQuery) use ($search) {
+                $productQuery->where('name', 'like', "%{$search}%")
+                    ->orWhere('sku', 'like', "%{$search}%")
+                    ->orWhere('brand', 'like', "%{$search}%")
+                    ->orWhere('color', 'like', "%{$search}%");
+            }))
+            ->when($categoryId !== '', fn ($query) => $query->where('product_category_id', $categoryId))
+            ->orderBy('name')
+            ->paginate(20)
+            ->withQueryString();
+
+        $products->getCollection()->transform(function (Product $product): Product {
+            $product->warehouse_batch_quantity = (int) ($product->warehouse_batch_quantity ?? 0);
+            $product->display_batch_quantity = (int) ($product->display_batch_quantity ?? 0);
+            $product->transferable_warehouse_quantity = min(
+                (int) $product->warehouse_stock_quantity,
+                $product->warehouse_batch_quantity,
+            );
+
+            return $product;
+        });
+
+        return [
+            'products' => $products,
+            'categories' => ProductCategory::orderBy('name')->get(),
+            'search' => $search,
+            'categoryId' => $categoryId,
+        ];
     }
 
     public function opening(Request $request, Product $product, InventoryService $inventory): RedirectResponse

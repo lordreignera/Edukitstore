@@ -20,8 +20,8 @@
         <!-- Styles -->
         @livewireStyles
     </head>
-    <body data-private-page>
-        <div class="font-sans text-gray-900 antialiased">
+    <body @if (auth()->check()) data-session-timeout-ms="{{ max(60, (int) config('session.idle_timeout_minutes', 5) * 60 * 1000) }}" data-session-warning-ms="{{ max(0, (int) config('session.idle_warning_seconds', 60) * 1000) }}" data-session-logout-url="{{ route('logout', absolute: false) }}" data-session-login-url="{{ route('login', absolute: false) }}" @endif data-private-page class="bg-slate-50 font-sans text-slate-900 antialiased">
+        <div>
             {{ $slot }}
         </div>
 

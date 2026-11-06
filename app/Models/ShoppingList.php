@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 
 class ShoppingList extends Model
@@ -102,6 +103,11 @@ class ShoppingList extends Model
     public function assignedDriver(): BelongsTo
     {
         return $this->belongsTo(Driver::class, 'assigned_driver_id');
+    }
+
+    public function driverPayout(): HasOne
+    {
+        return $this->hasOne(DriverPayout::class);
     }
 
     public function customer(): BelongsTo

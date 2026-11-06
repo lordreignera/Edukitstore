@@ -20,11 +20,21 @@
                     <tr class="align-top">
                         <td class="whitespace-nowrap px-5 py-4 text-xs font-semibold text-slate-600">
                             {{ $movement->occurred_at->format('d M Y') }}
-                            <p class="mt-1 text-[11px] text-slate-400">{{ $movement->created_at->format('H:i') }}</p>
+                            <p class="mt-1 text-[11px] text-slate-400">Recorded {{ $movement->created_at->format('d M Y, H:i') }}</p>
                         </td>
                         <td class="px-5 py-4">
                             <p class="font-black text-slate-950">{{ $movement->product_name ?? $movement->product?->name ?? 'Deleted product' }}</p>
                             <p class="mt-1 text-xs text-slate-500">{{ $movement->sku ?? 'No code' }}</p>
+                            @if ($movement->shoppingList)
+                                @can('invoices.view')
+                                    <a href="{{ route('admin.invoices.show', $movement->shoppingList) }}" class="mt-1 inline-block text-xs font-bold text-orange-700 hover:underline">Order {{ $movement->shoppingList->reference }}</a>
+                                @else
+                                    <p class="mt-1 text-xs text-slate-500">Order {{ $movement->shoppingList->reference }}</p>
+                                @endcan
+                            @endif
+                            @if ($movement->shoppingList?->payment_provider === 'demo')
+                                <span class="mt-1 inline-flex rounded bg-amber-100 px-2 py-0.5 text-[10px] font-extrabold uppercase text-amber-800">Test payment</span>
+                            @endif
                             @if ($movement->inventoryBatch)
                                 <p class="mt-1 text-[11px] font-semibold text-slate-400">{{ $movement->inventoryBatch->batch_reference }}</p>
                             @endif

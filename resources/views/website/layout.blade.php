@@ -12,7 +12,7 @@
         <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800&display=swap" rel="stylesheet" />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body @if (auth()->check() || request()->routeIs('website.quote.show')) data-private-page @endif class="overflow-x-hidden bg-[#f6fbff] text-slate-950 antialiased" style="font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;">
+    <body @if (auth()->check()) data-session-timeout-ms="{{ max(60, (int) config('session.idle_timeout_minutes', 5) * 60 * 1000) }}" data-session-warning-ms="{{ max(0, (int) config('session.idle_warning_seconds', 60) * 1000) }}" data-session-logout-url="{{ route('logout', absolute: false) }}" data-session-login-url="{{ route('login', absolute: false) }}" @endif @if (auth()->check() || request()->routeIs('website.quote.show')) data-private-page @endif class="overflow-x-hidden bg-[#f6fbff] text-slate-950 antialiased" style="font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;">
         @include('website.partials.navbar')
 
         @if (session('cart_added'))

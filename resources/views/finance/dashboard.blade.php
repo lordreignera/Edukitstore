@@ -13,7 +13,7 @@
     </x-slot>
 
     <div class="px-4 py-6 sm:px-6 lg:px-8"><div class="mx-auto max-w-[1500px] space-y-5">
-        <form method="GET" action="{{ route('finance.dashboard') }}" class="grid gap-3 rounded-md border border-slate-200 bg-white p-4 sm:grid-cols-4">
+        <form method="GET" action="{{ route('finance.dashboard') }}" class="filter-bar">
             <select name="source" class="rounded-md border-slate-300 text-sm"><option value="">All stock owners</option><option value="edukit" @selected($source === 'edukit')>EduKit warehouse</option><option value="supplier" @selected($source === 'supplier')>Supplier direct</option></select>
             <input type="date" name="from" value="{{ $from?->format('Y-m-d') }}" class="rounded-md border-slate-300 text-sm" aria-label="From date">
             <input type="date" name="to" value="{{ $to?->format('Y-m-d') }}" class="rounded-md border-slate-300 text-sm" aria-label="To date">

@@ -54,6 +54,9 @@ class PermissionCatalog
                 'inventory.import' => 'Import inventory CSV files',
                 'inventory.export' => 'Export inventory CSV files',
                 'reports.profit.view' => 'View profit reports',
+                'reports.performance.view' => 'View driver and supplier performance reports',
+                'reports.driver-payouts.view' => 'View driver payout records and outstanding deliveries',
+                'reports.driver-payouts.record' => 'Record external driver payments',
             ],
             'Schools and Operations' => [
                 'schools.view' => 'View schools',

@@ -11,7 +11,7 @@ class NotificationController extends Controller
     public function index(): View
     {
         return view('admin.notifications.index', [
-            'notifications' => auth()->user()->notifications()->latest()->paginate(25),
+            'notifications' => auth()->user()->unreadNotifications()->latest()->paginate(25),
         ]);
     }
 

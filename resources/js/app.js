@@ -10,23 +10,112 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
 
 const sessionHeartbeatUrl = document.querySelector('meta[name="session-heartbeat-url"]')?.content;
 const sessionExpiryNotice = document.querySelector('[data-session-expired-notice]');
+const sessionIdleWarning = document.querySelector('[data-session-idle-warning]');
+const idleTimeoutMs = Number(document.body?.dataset.sessionTimeoutMs || 0);
+const idleWarningMs = Math.min(
+    Number(document.body?.dataset.sessionWarningMs || 60_000),
+    Math.max(0, idleTimeoutMs - 1_000),
+);
+const idleActivityKey = 'edukit:last-user-activity';
 
 if (sessionHeartbeatUrl && sessionExpiryNotice) {
     const heartbeatEveryMs = 4 * 60 * 1000;
     const activeWindowMs = 10 * 60 * 1000;
     let lastUserActivityAt = Date.now();
     let lastHeartbeatAttemptAt = Date.now();
+    let lastSharedActivityWriteAt = 0;
     let heartbeatInFlight = false;
     let heartbeatFailed = false;
+    let logoutStarted = false;
 
-    sessionExpiryNotice.querySelector('[data-session-expired-reload]')?.addEventListener('click', () => {
-        window.location.reload();
+    const showSessionExpired = (message) => {
+        sessionIdleWarning?.setAttribute('hidden', '');
+        if (sessionIdleWarning) sessionIdleWarning.style.display = 'none';
+        const messageElement = sessionExpiryNotice.querySelector('[data-session-expired-message]');
+        if (messageElement && message) messageElement.textContent = message;
+        sessionExpiryNotice.hidden = false;
+        sessionExpiryNotice.style.display = 'flex';
+    };
+
+    sessionExpiryNotice.querySelector('[data-session-expired-login]')?.addEventListener('click', (event) => {
+        event.preventDefault();
+        window.location.assign(document.body.dataset.sessionLoginUrl || '/login');
     });
 
-    const refreshSessionWhileActive = async () => {
+    const readSharedActivity = () => {
+        if (!idleTimeoutMs) return lastUserActivityAt;
+
+        try {
+            const shared = Number(window.localStorage.getItem(idleActivityKey));
+            if (Number.isFinite(shared) && shared > lastUserActivityAt && shared <= Date.now()) {
+                lastUserActivityAt = shared;
+            }
+        } catch (error) {
+            // Storage may be disabled; this tab still enforces its own idle timer.
+        }
+
+        return lastUserActivityAt;
+    };
+
+    const showIdleWarning = (remainingMs) => {
+        if (!sessionIdleWarning) return;
+
+        const seconds = Math.max(0, Math.ceil(remainingMs / 1000));
+        const countdown = sessionIdleWarning.querySelector('[data-session-countdown]');
+        if (countdown) countdown.textContent = `${seconds} ${seconds === 1 ? 'second' : 'seconds'}`;
+        sessionIdleWarning.hidden = false;
+        sessionIdleWarning.style.display = 'flex';
+    };
+
+    const hideIdleWarning = () => {
+        if (!sessionIdleWarning) return;
+        sessionIdleWarning.hidden = true;
+        sessionIdleWarning.style.display = 'none';
+    };
+
+    const performLogout = () => {
+        if (logoutStarted) return;
+        logoutStarted = true;
+        hideIdleWarning();
+
+        const token = document.querySelector('meta[name="csrf-token"]')?.content;
+        const action = document.body.dataset.sessionLogoutUrl;
+        if (!token || !action) {
+            window.location.replace(document.body.dataset.sessionLoginUrl || '/login');
+            return;
+        }
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = action;
+        form.hidden = true;
+
+        const csrf = document.createElement('input');
+        csrf.type = 'hidden';
+        csrf.name = '_token';
+        csrf.value = token;
+        form.appendChild(csrf);
+        document.body.appendChild(form);
+        form.submit();
+    };
+
+    const updateIdleState = () => {
+        if (!idleTimeoutMs || logoutStarted) return;
+
+        const remainingMs = idleTimeoutMs - (Date.now() - readSharedActivity());
+        if (remainingMs <= 0) {
+            performLogout();
+        } else if (remainingMs <= idleWarningMs) {
+            showIdleWarning(remainingMs);
+        } else {
+            hideIdleWarning();
+        }
+    };
+
+    const refreshSessionWhileActive = async (force = false) => {
         if (heartbeatFailed || heartbeatInFlight || document.hidden
             || Date.now() - lastUserActivityAt > activeWindowMs
-            || Date.now() - lastHeartbeatAttemptAt < heartbeatEveryMs) {
+            || (!force && Date.now() - lastHeartbeatAttemptAt < heartbeatEveryMs)) {
             return;
         }
 
@@ -42,15 +131,16 @@ if (sessionHeartbeatUrl && sessionExpiryNotice) {
                 credentials: 'same-origin',
                 headers: {
                     'Accept': 'application/json',
+                    'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': csrfToken,
                     'X-Requested-With': 'XMLHttpRequest',
                 },
+                body: JSON.stringify({ activity_age_ms: Math.max(0, Date.now() - lastUserActivityAt) }),
             });
 
             if (response.status === 401 || response.status === 419) {
                 heartbeatFailed = true;
-                sessionExpiryNotice.hidden = false;
-                sessionExpiryNotice.style.display = 'flex';
+                showSessionExpired('Your secure session expired or could not be verified. Sign in again to continue.');
             }
         } catch (error) {
             // A brief network interruption should not disrupt the page; the next
@@ -60,20 +150,68 @@ if (sessionHeartbeatUrl && sessionExpiryNotice) {
         }
     };
 
-    const noteUserActivity = () => {
+    const noteUserActivity = (event = null) => {
+        if (event?.target instanceof Element && event.target.closest('[data-session-idle-warning]')) return;
+
+        readSharedActivity();
+        if (idleTimeoutMs && Date.now() - lastUserActivityAt >= idleTimeoutMs) {
+            performLogout();
+            return;
+        }
+
         lastUserActivityAt = Date.now();
+        if (idleTimeoutMs && Date.now() - lastSharedActivityWriteAt >= 2_000) {
+            try {
+                window.localStorage.setItem(idleActivityKey, String(lastUserActivityAt));
+                lastSharedActivityWriteAt = Date.now();
+            } catch (error) {
+                // Storage may be disabled; the server still enforces the idle limit.
+            }
+        }
+        updateIdleState();
         refreshSessionWhileActive();
     };
 
-    ['pointerdown', 'keydown', 'input', 'scroll', 'touchstart'].forEach((eventName) => {
+    ['pointerdown', 'pointermove', 'keydown', 'input', 'scroll', 'touchstart'].forEach((eventName) => {
         document.addEventListener(eventName, noteUserActivity, { passive: true, capture: true });
     });
 
     document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) noteUserActivity();
+        if (!document.hidden) {
+            readSharedActivity();
+            updateIdleState();
+            refreshSessionWhileActive();
+        }
     });
 
     window.setInterval(refreshSessionWhileActive, heartbeatEveryMs);
+
+    if (idleTimeoutMs) {
+        try {
+            // A page request means the user has just returned to an authenticated
+            // workspace; share that activity with other open EduKit tabs.
+            window.localStorage.setItem(idleActivityKey, String(lastUserActivityAt));
+            lastSharedActivityWriteAt = Date.now();
+        } catch (error) {
+            // This tab still enforces inactivity if browser storage is unavailable.
+        }
+
+        window.addEventListener('storage', (event) => {
+            if (event.key === idleActivityKey && event.newValue) {
+                readSharedActivity();
+                updateIdleState();
+            }
+        });
+
+        window.setInterval(updateIdleState, 1_000);
+        updateIdleState();
+
+        sessionIdleWarning?.querySelector('[data-session-stay-active]')?.addEventListener('click', () => {
+            noteUserActivity();
+            refreshSessionWhileActive(true);
+        });
+        sessionIdleWarning?.querySelector('[data-session-sign-out]')?.addEventListener('click', performLogout);
+    }
 }
 
 const pushButton = document.querySelector('[data-push-notifications]');
