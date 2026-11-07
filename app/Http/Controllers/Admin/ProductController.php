@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Services\InventoryService;
+use App\Services\OrderNotificationService;
 use App\Services\ProductCodeGenerator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -63,7 +64,7 @@ class ProductController extends Controller
         ]);
     }
 
-    public function store(Request $request, InventoryService $inventory, ProductCodeGenerator $codes): RedirectResponse
+    public function store(Request $request, InventoryService $inventory, ProductCodeGenerator $codes, OrderNotificationService $notifications): RedirectResponse
     {
         $data = $this->validatedData($request);
         $openingStock = $this->openingStockData($data);
@@ -78,7 +79,7 @@ class ProductController extends Controller
         $data['warehouse_stock_quantity'] = 0;
         $data['stock_quantity'] = 0;
 
-        DB::transaction(function () use ($data, $openingStock, $inventory): void {
+        $product = DB::transaction(function () use ($data, $openingStock, $inventory): Product {
             $product = Product::create($data);
 
             if ($openingStock['warehouse_quantity'] + $openingStock['display_quantity'] > 0) {
@@ -91,7 +92,12 @@ class ProductController extends Controller
                     'notes' => 'Opening stock recorded during product setup.',
                 ], auth()->id());
             }
+
+            return $product;
         });
+
+        // Product announcements happen after opening stock commits and recheck storefront availability.
+        $notifications->productAvailable($product->fresh());
 
         return redirect()->route('admin.products.index')->with('status', 'Product added to the master list.');
     }
@@ -110,8 +116,9 @@ class ProductController extends Controller
         return view('admin.products.edit', compact('product', 'categories'));
     }
 
-    public function update(Request $request, Product $product, ProductCodeGenerator $codes): RedirectResponse
+    public function update(Request $request, Product $product, ProductCodeGenerator $codes, OrderNotificationService $notifications): RedirectResponse
     {
+        $wasAvailableOnStore = $product->is_active && $product->marketplace_stock_quantity > 0;
         $data = $this->validatedData($request, $product);
         unset($data['image']);
         unset($data['opening_stock_date'], $data['opening_warehouse_quantity'], $data['opening_display_quantity']);
@@ -126,6 +133,12 @@ class ProductController extends Controller
         }
 
         $product->update($data);
+
+        $product->refresh();
+        if (! $wasAvailableOnStore && $product->is_active && $product->marketplace_stock_quantity > 0) {
+            // Notify only on the transition from unavailable to active and purchasable, not on routine edits.
+            $notifications->productAvailable($product);
+        }
 
         return redirect()->route('admin.products.index')->with('status', 'Product updated.');
     }

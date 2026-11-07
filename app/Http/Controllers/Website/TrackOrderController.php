@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Website;
 
 use App\Http\Controllers\Controller;
 use App\Models\ShoppingList;
+use App\Services\OrderNotificationService;
 use App\Support\InvoiceAccess;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -17,7 +18,7 @@ class TrackOrderController extends Controller
         return view('website.track-order');
     }
 
-    public function acknowledgeReceipt(Request $request, string $reference): RedirectResponse
+    public function acknowledgeReceipt(Request $request, string $reference, OrderNotificationService $notifications): RedirectResponse
     {
         $invoice = ShoppingList::where('reference', strtoupper(trim($reference)))
             ->orWhere('payment_reference', strtoupper(trim($reference)))
@@ -38,6 +39,7 @@ class TrackOrderController extends Controller
         ]);
 
         DB::transaction(function () use ($invoice, $data): void {
+            // Customer receipt is the completion event; supplier payables are earned only after this confirmation.
             $invoice->update([
                 'status' => ShoppingList::STATUS_FULFILLED,
                 'customer_received_at' => now(),
@@ -47,8 +49,9 @@ class TrackOrderController extends Controller
                 'delivery_confirmed_at' => now(),
                 'delivery_notes' => $data['received_notes'] ?? $invoice->delivery_notes,
             ]);
-            $invoice->lineItems()->whereNotNull('supplier_id')->update(['settlement_status' => 'earned']);
+            $invoice->lineItems()->whereNotNull('supplier_id')->where('supplier_payable', '>', 0)->update(['settlement_status' => 'earned']);
         });
+        $notifications->customerConfirmedReceipt($invoice->fresh());
 
         return redirect()->route('website.quote.show', $invoice->reference)
             ->with('status', 'Receipt confirmed. Thank you for confirming that all items were received.');

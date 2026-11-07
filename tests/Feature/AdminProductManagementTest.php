@@ -7,8 +7,11 @@ use App\Models\InventoryBatch;
 use App\Models\InventoryMovement;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\PushSubscription;
 use App\Models\School;
 use App\Models\User;
+use App\Notifications\ProductAvailableNotification;
+use App\Services\PushNotificationService;
 use Database\Seeders\EduKitProductSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -83,6 +86,58 @@ class AdminProductManagementTest extends TestCase
             ->assertSee('P.7 Integrated Science Revision Book')
             ->assertSee('Blue and white')
             ->assertSee('UGX 28,000');
+    }
+
+    public function test_new_in_stock_product_is_announced_to_opted_in_customers(): void
+    {
+        Storage::fake('public');
+        Role::findOrCreate('super-admin', 'web');
+        $admin = User::factory()->create();
+        $admin->assignRole('super-admin');
+
+        $customerRole = Role::findOrCreate('customer', 'web');
+        $customer = User::factory()->create(['is_active' => true]);
+        $customer->assignRole($customerRole);
+        $endpoint = 'https://fcm.googleapis.com/fcm/send/new-product-opt-in';
+        PushSubscription::create([
+            'user_id' => $customer->id,
+            'endpoint' => $endpoint,
+            'endpoint_hash' => hash('sha256', $endpoint),
+            'public_key' => 'test-public-key',
+            'auth_token' => 'test-auth-token',
+        ]);
+
+        $push = new class extends PushNotificationService
+        {
+            public array $sent = [];
+
+            public function sendTo(User $user, array $payload): void
+            {
+                $this->sent[] = ['user_id' => $user->id, 'payload' => $payload];
+            }
+        };
+        $this->app->instance(PushNotificationService::class, $push);
+
+        $this->actingAs($admin)->post(route('admin.products.store'), [
+            'name' => 'New Costed Display Product',
+            'cost_price' => 1000,
+            'price' => 1500,
+            'reorder_level' => 1,
+            'opening_stock_date' => now()->toDateString(),
+            'opening_warehouse_quantity' => 0,
+            'opening_display_quantity' => 4,
+            'image' => UploadedFile::fake()->image('new-product.jpg'),
+            'is_active' => '1',
+        ])->assertRedirect(route('admin.products.index'));
+
+        $product = Product::where('name', 'New Costed Display Product')->firstOrFail();
+        $this->assertDatabaseHas('notifications', [
+            'type' => ProductAvailableNotification::class,
+            'notifiable_type' => User::class,
+            'notifiable_id' => $customer->id,
+        ]);
+        $this->assertSame(4, $product->fresh()->stock_quantity);
+        $this->assertSame([$customer->id], array_column($push->sent, 'user_id'));
     }
 
     public function test_admin_product_index_links_to_view_edit_and_delete_actions(): void

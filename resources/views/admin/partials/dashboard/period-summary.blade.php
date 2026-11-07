@@ -11,7 +11,7 @@
     ] + ($includeDemo ? ['include_demo' => 1] : []));
     $cards = [
         [
-            'label' => 'Orders received',
+            'label' => 'Orders received in period',
             'value' => number_format($performance['orders_received']),
             'note' => 'Created '.strtolower($periodLabel),
             'icon' => 'invoice',
@@ -19,7 +19,7 @@
             'url' => route('admin.invoices.index', ['date_field' => 'created', 'from' => $periodFrom, 'to' => $periodTo]),
         ],
         [
-            'label' => 'Paid orders',
+            'label' => 'Paid orders in period',
             'value' => number_format($performance['paid_orders']),
             'note' => 'Paid '.strtolower($periodLabel),
             'icon' => 'check',
@@ -48,8 +48,8 @@
 <section aria-labelledby="performance-title" class="space-y-3">
     <div class="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm xl:flex-row xl:items-center xl:justify-between">
         <div class="min-w-0">
-            <h2 id="performance-title" class="text-sm font-extrabold text-[#071d4f]">Performance overview</h2>
-            <p class="mt-0.5 text-xs text-slate-500">Orders use creation date; paid and profit figures use payment date. Platform cards below are current snapshots.</p>
+            <h2 id="performance-title" class="text-sm font-extrabold text-[#071d4f]">Performance for selected period</h2>
+            <p class="mt-0.5 text-xs text-slate-500">Order counts use creation date; paid and profit figures use payment date. Platform cards below are current snapshots.</p>
         </div>
 
         <form method="GET" action="{{ route('admin.dashboard') }}" x-data="{ applying: false }" @submit="applying = true" class="filter-bar filter-bar--inline">

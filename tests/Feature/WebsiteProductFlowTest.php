@@ -408,7 +408,7 @@ class WebsiteProductFlowTest extends TestCase
             ->assertSee('Gayaza High School')
             ->assertSee('Convenience fee')
             ->assertSee('UGX 72,000')
-            ->assertSee('Pay now');
+            ->assertSee('Pesapal payment is not available yet');
     }
 
     public function test_cart_supports_legacy_public_product_image_paths(): void
@@ -613,9 +613,12 @@ class WebsiteProductFlowTest extends TestCase
         ]);
 
         $this->post(route('website.cart.store', $product), ['quantity' => 1]);
-        $this->get(route('website.cart.index'))
+        $this->withSession(['checkout_now' => true])
+            ->get(route('website.cart.index'))
             ->assertOk()
             ->assertSee('Checkout as a guest')
+            ->assertSee('Pesapal payment setup is still pending')
+            ->assertSee('Place order and pay')
             ->assertSee('name="email"', false);
 
         $this->post(route('website.cart.submit'), [
@@ -630,8 +633,11 @@ class WebsiteProductFlowTest extends TestCase
         $this->assertSame('claim.buyer@example.test', $order->email);
         $this->get(route('website.quote.show', $order->reference))
             ->assertOk()
-            ->assertSee('Pay now')
-            ->assertSee('Want to track this order later?');
+            ->assertSee('Pesapal payment is not available yet')
+            ->assertSee('Want to track this order later?')
+            ->assertSee('c***@example.test')
+            ->assertDontSee('claim.buyer@example.test')
+            ->assertDontSee('Pay now');
 
         $this->post(route('customer.register.store'), [
             'name' => 'Guest Buyer',

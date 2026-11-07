@@ -15,9 +15,9 @@
         <p class="mt-2 text-xs font-semibold text-orange-800">Costed batch stock remaining, all products</p>
     </article>
     <article class="rounded-md border border-orange-100 bg-orange-50 p-4">
-        <p class="text-xs font-bold text-slate-600">Gross profit</p>
+        <p class="text-xs font-bold text-slate-600">Gross profit after write-offs</p>
         <p class="mt-2 text-3xl font-extrabold text-slate-950">UGX {{ number_format($stats['gross_profit']) }}</p>
-        <p class="mt-2 text-xs font-semibold text-orange-700">For selected dates and demo-payment setting</p>
+        <p class="mt-2 text-xs font-semibold text-orange-700">Sales margin less unavailable-stock cost for selected dates</p>
     </article>
     <article class="rounded-md border border-slate-200 bg-white p-4">
         <p class="text-xs font-bold text-slate-600">Opening balance</p>

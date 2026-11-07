@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Driver;
 use App\Models\Product;
 use App\Models\ShoppingList;
+use App\Models\ShoppingListItem;
 use App\Services\InventoryService;
 use App\Services\InvoiceWorkflow;
 use App\Services\PushNotificationService;
@@ -88,14 +89,21 @@ class InvoiceController extends Controller
     public function show(ShoppingList $invoice): View
     {
         return view('admin.invoices.show', [
-            'invoice' => $invoice->load('assignedDriver', 'deliveryConfirmer', 'driverStartedBy', 'driverReachedBy', 'school.district', 'lineItems', 'paymentAttempts'),
+            'invoice' => $invoice->load('assignedDriver', 'packedBy', 'manualRefundRecordedBy', 'deliveryConfirmer', 'driverStartedBy', 'driverReachedBy', 'school.district', 'lineItems.product', 'paymentAttempts'),
             'statuses' => ShoppingList::statuses(),
             'drivers' => Driver::query()
                 ->where('is_approved', true)
-                ->where('is_available', true)
+                ->where(fn ($query) => $query->where('is_available', true)->orWhere('id', $invoice->assigned_driver_id ?: 0))
                 ->orderBy('name')
                 ->get(),
             'products' => Product::active()->orderBy('name')->get(['id', 'name', 'sku', 'price']),
+        ]);
+    }
+
+    public function print(ShoppingList $invoice): View
+    {
+        return view('admin.invoices.print', [
+            'invoice' => $invoice->load('assignedDriver', 'school.district', 'lineItems.product'),
         ]);
     }
 
@@ -143,7 +151,77 @@ class InvoiceController extends Controller
     {
         $workflow->resolvePaidStock($invoice, $inventory, $supplierSales);
 
-        return back()->with('status', 'Stock allocated. The paid order is ready for delivery.');
+        return back()->with('status', 'Stock allocation is complete. Review the product quantities, then pack and assign a driver.');
+    }
+
+    public function packAndAssign(Request $request, ShoppingList $invoice, InvoiceWorkflow $workflow, InventoryService $inventory, SupplierSaleService $supplierSales, PushNotificationService $pushNotifications, \App\Services\OrderNotificationService $notifications): RedirectResponse
+    {
+        $data = $request->validate([
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.unavailable_quantity' => ['required', 'integer', 'min:0'],
+            'items.*.unavailable_reason' => ['nullable', Rule::in(array_keys(ShoppingListItem::unavailableReasons()))],
+            'items.*.unavailable_note' => ['nullable', 'string', 'max:500'],
+            'packed_items_confirmed' => ['nullable', 'accepted'],
+            'assigned_driver_id' => ['nullable', 'integer', 'exists:drivers,id'],
+        ]);
+
+        $before = $invoice->lineItems()->get()->mapWithKeys(fn (ShoppingListItem $item) => [
+            $item->id => [(int) $item->unavailable_quantity, $item->unavailable_reason, $item->unavailable_note],
+        ])->all();
+        $previousDriverId = $invoice->assigned_driver_id;
+        $updatedInvoice = $workflow->packAndAssign(
+            $invoice,
+            $data['items'],
+            $request->boolean('packed_items_confirmed'),
+            isset($data['assigned_driver_id']) ? (int) $data['assigned_driver_id'] : null,
+            (int) auth()->id(),
+            $inventory,
+            $supplierSales,
+        );
+
+        $after = $updatedInvoice->lineItems->mapWithKeys(fn (ShoppingListItem $item) => [
+            $item->id => [(int) $item->unavailable_quantity, $item->unavailable_reason, $item->unavailable_note],
+        ])->all();
+        if ($before !== $after) {
+            $notifications->itemsUnavailable($updatedInvoice);
+        }
+
+        if ($updatedInvoice->assigned_driver_id && (int) $updatedInvoice->assigned_driver_id !== (int) $previousDriverId) {
+            $driverUser = Driver::with('user')->find($updatedInvoice->assigned_driver_id)?->user;
+            if ($driverUser) {
+                $pushNotifications->sendTo($driverUser, [
+                    'title' => 'Packed order assigned',
+                    'body' => "Order {$updatedInvoice->reference} is packed and ready in your deliveries.",
+                    'url' => route('driver.deliveries.index', ['status' => 'ready']),
+                    'tag' => 'edukit-driver-order-'.$updatedInvoice->id,
+                ]);
+            }
+        }
+
+        if ($updatedInvoice->allItemsUnavailable()) {
+            $status = 'Availability saved: all items are unavailable. Record the manual refund to close this order.';
+        } else {
+            $packedUnits = (int) $updatedInvoice->lineItems->sum('quantity');
+            $driverName = $updatedInvoice->assignedDriver?->name;
+            $status = "Fulfilment saved: {$packedUnits} unit(s) packed".($driverName ? " and assigned to {$driverName}." : '.');
+            if ($updatedInvoice->lineItems->sum('unavailable_quantity') > 0) {
+                $status .= ' Unavailable items and refund details are shown below.';
+            }
+        }
+
+        return back()->with('status', $status);
+    }
+
+    public function recordManualRefund(Request $request, ShoppingList $invoice, InvoiceWorkflow $workflow, \App\Services\OrderNotificationService $notifications): RedirectResponse
+    {
+        $data = $request->validate([
+            'manual_refund_reference' => ['required', 'string', 'max:160', Rule::unique('shopping_lists', 'manual_refund_reference')],
+        ]);
+
+        $updatedInvoice = $workflow->recordManualRefund($invoice, (int) auth()->id(), trim($data['manual_refund_reference']));
+        $notifications->manualRefundRecorded($updatedInvoice);
+
+        return back()->with('status', 'Manual refund recorded against the external transaction reference.');
     }
 
     /**
@@ -159,7 +237,7 @@ class InvoiceController extends Controller
         $source = (string) $request->query('source');
         $issuesOnly = $request->boolean('issues');
         $dateFilters = $request->validate([
-            'date_field' => ['nullable', Rule::in(['created', 'paid'])],
+            'date_field' => ['nullable', Rule::in(['created', 'paid', 'completed'])],
             'from' => ['nullable', 'date'],
             'to' => ['nullable', 'date', 'after_or_equal:from'],
             'exclude_demo' => ['nullable', 'boolean'],
@@ -190,6 +268,8 @@ class InvoiceController extends Controller
             ->when($dateField === 'created' && $dateTo !== '', fn ($query) => $query->whereDate('created_at', '<=', $dateTo))
             ->when($dateField === 'paid' && $dateFrom !== '', fn ($query) => $query->whereDate('paid_at', '>=', $dateFrom))
             ->when($dateField === 'paid' && $dateTo !== '', fn ($query) => $query->whereDate('paid_at', '<=', $dateTo))
+            ->when($dateField === 'completed' && $dateFrom !== '', fn ($query) => $query->whereRaw('DATE(COALESCE(customer_received_at, delivery_confirmed_at)) >= ?', [$dateFrom]))
+            ->when($dateField === 'completed' && $dateTo !== '', fn ($query) => $query->whereRaw('DATE(COALESCE(customer_received_at, delivery_confirmed_at)) <= ?', [$dateTo]))
             ->when($excludeDemo, fn ($query) => $query->where(fn ($provider) => $provider
                 ->whereNull('payment_provider')->orWhere('payment_provider', '!=', 'demo')))
             ->when($issuesOnly, fn ($query) => $query->whereNotNull('payment_exception'))
@@ -197,10 +277,28 @@ class InvoiceController extends Controller
             ->when($deliveryStatus === 'awaiting_driver_assignment', fn ($query) => $query
                 ->where('payment_status', ShoppingList::PAYMENT_PAID)
                 ->whereNull('assigned_driver_id')->whereNull('payment_exception')
+                ->whereHas('lineItems', fn ($items) => $items->where('quantity', '>', 0))
                 ->whereNull('customer_received_at')->whereNull('delivery_confirmed_at'))
             ->when($deliveryStatus === 'unassigned', fn ($query) => $query->whereNull('assigned_driver_id')->whereNull('customer_received_at')->whereNull('delivery_confirmed_at'))
             ->when($deliveryStatus === 'awaiting_payment', fn ($query) => $query->whereNotNull('assigned_driver_id')->where('payment_status', '!=', ShoppingList::PAYMENT_PAID)->whereNull('customer_received_at')->whereNull('delivery_confirmed_at'))
-            ->when($deliveryStatus === 'ready_for_delivery', fn ($query) => $query->whereNotNull('assigned_driver_id')->where('payment_status', ShoppingList::PAYMENT_PAID)->whereNull('payment_exception')->whereNull('driver_started_at')->whereNull('customer_received_at')->whereNull('delivery_confirmed_at'))
+            ->when($deliveryStatus === 'ready_to_pack', fn ($query) => $query->where('payment_status', ShoppingList::PAYMENT_PAID)
+                ->whereNull('packed_at')->whereNull('assigned_driver_id')->whereNull('payment_exception')
+                ->whereHas('lineItems', fn ($items) => $items->where('quantity', '>', 0))
+                ->whereNull('customer_received_at')->whereNull('delivery_confirmed_at'))
+            ->when($deliveryStatus === 'packed', fn ($query) => $query->where('payment_status', ShoppingList::PAYMENT_PAID)
+                ->whereNotNull('packed_at')->whereNull('assigned_driver_id')->whereNull('payment_exception')
+                ->whereHas('lineItems', fn ($items) => $items->where('quantity', '>', 0))
+                ->whereNull('customer_received_at')->whereNull('delivery_confirmed_at'))
+            ->when($deliveryStatus === 'refund_pending', fn ($query) => $query->where('payment_status', ShoppingList::PAYMENT_PAID)
+                ->whereNotNull('packed_at')->whereNull('manual_refunded_at')->whereHas('lineItems', fn ($items) => $items->where('unavailable_quantity', '>', 0))
+                ->whereDoesntHave('lineItems', fn ($items) => $items->where('quantity', '>', 0)))
+            ->when($deliveryStatus === 'refunded', fn ($query) => $query->where('payment_status', ShoppingList::PAYMENT_REFUNDED))
+            ->when($deliveryStatus === 'cancelled', fn ($query) => $query->where('status', ShoppingList::STATUS_CANCELLED)
+                ->where('payment_status', '!=', ShoppingList::PAYMENT_REFUNDED))
+            ->when($deliveryStatus === 'ready_for_delivery', fn ($query) => $query->whereNotNull('assigned_driver_id')->where('payment_status', ShoppingList::PAYMENT_PAID)->whereNotNull('packed_at')->whereNull('payment_exception')->whereNull('driver_started_at')->whereNull('customer_received_at')->whereNull('delivery_confirmed_at'))
+            ->when($deliveryStatus === 'assigned', fn ($query) => $query->where('status', ShoppingList::STATUS_QUOTED)
+                ->whereNotNull('assigned_driver_id')->where('payment_status', ShoppingList::PAYMENT_PAID)->whereNotNull('packed_at')->whereNull('payment_exception')
+                ->whereNull('customer_received_at')->whereNull('delivery_confirmed_at'))
             ->when($deliveryStatus === 'in_transit', fn ($query) => $query->whereNotNull('driver_started_at')->whereNull('driver_reached_at')->whereNull('customer_received_at'))
             ->when($deliveryStatus === 'awaiting_customer_confirmation', fn ($query) => $query->whereNotNull('driver_reached_at')->whereNull('customer_received_at')->whereNull('delivery_confirmed_at'))
             ->when($deliveryStatus === 'under_review', fn ($query) => $query->whereNotNull('payment_exception')->whereNull('customer_received_at')->whereNull('delivery_confirmed_at'))

@@ -11,7 +11,10 @@
                 <p class="mt-1 text-sm text-slate-600">Welcome, {{ $customer->name }}. Your orders and delivery updates are saved here.</p>
             </div>
             <div class="flex flex-wrap gap-2">
-                <x-push-notifications />
+                <div class="flex flex-col items-start gap-1">
+                    <x-push-notifications />
+                    <span class="text-xs text-slate-500">Opt in for order updates and new-product alerts.</span>
+                </div>
                 <a href="{{ route('website.products.index') }}" class="inline-flex min-h-11 items-center justify-center rounded-md bg-orange-600 px-4 py-2 text-sm font-black text-white hover:bg-orange-700">Shop products</a>
                 <a href="{{ route('website.upload-list') }}" class="inline-flex min-h-11 items-center justify-center rounded-md border border-orange-300 bg-white px-4 py-2 text-sm font-bold text-orange-800 hover:bg-orange-50">Upload a school list</a>
                 <form method="POST" action="{{ route('logout') }}">

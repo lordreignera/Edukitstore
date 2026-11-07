@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DeliveryFeeReportController as AdminDeliveryFeeReportController;
 use App\Http\Controllers\Admin\DriverController as AdminDriverController;
 use App\Http\Controllers\Admin\InventoryController as AdminInventoryController;
+use App\Http\Controllers\Admin\GoLiveResetController as AdminGoLiveResetController;
 use App\Http\Controllers\Admin\InvoiceController as AdminInvoiceController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\PushSubscriptionController;
@@ -140,11 +141,16 @@ Route::middleware([
         Route::post('notifications/{notification}/open', [AdminNotificationController::class, 'open'])->middleware('permission:invoices.view')->name('notifications.open');
         Route::get('invoices', [AdminInvoiceController::class, 'index'])->middleware('permission:invoices.view')->name('invoices.index');
         Route::get('invoices/export', [AdminInvoiceController::class, 'export'])->middleware('permission:invoices.view')->name('invoices.export');
+        Route::get('invoices/{invoice}/print', [AdminInvoiceController::class, 'print'])->middleware('permission:invoices.view')->name('invoices.print');
         Route::get('invoices/{invoice}', [AdminInvoiceController::class, 'show'])->middleware('permission:invoices.view')->name('invoices.show');
         Route::patch('invoices/{invoice}', [AdminInvoiceController::class, 'update'])->middleware('permission:invoices.update')->name('invoices.update');
+        Route::patch('invoices/{invoice}/fulfilment', [AdminInvoiceController::class, 'packAndAssign'])->middleware('permission:invoices.update')->name('invoices.fulfilment');
+        Route::patch('invoices/{invoice}/manual-refund', [AdminInvoiceController::class, 'recordManualRefund'])->middleware('permission:invoices.update')->name('invoices.manual-refund');
         Route::patch('invoices/{invoice}/resolve-paid-stock', [AdminInvoiceController::class, 'resolvePaidStock'])->middleware('permission:invoices.resolve-stock')->name('invoices.resolve-paid-stock');
 
         Route::get('inventory', [AdminInventoryController::class, 'index'])->middleware('permission:inventory.view')->name('inventory.index');
+        Route::get('inventory/go-live-reset', [AdminGoLiveResetController::class, 'index'])->middleware('role:super-admin')->name('inventory.go-live-reset');
+        Route::post('inventory/go-live-reset', [AdminGoLiveResetController::class, 'store'])->middleware('role:super-admin')->name('inventory.go-live-reset.store');
         Route::get('inventory/warehouse', [AdminInventoryController::class, 'warehouse'])->middleware('permission:inventory.view')->name('inventory.warehouse');
         Route::get('inventory/display', [AdminInventoryController::class, 'display'])->middleware('permission:inventory.view')->name('inventory.display');
         Route::get('inventory/sales', [AdminInventoryController::class, 'sales'])->middleware('permission:inventory.view')->name('inventory.sales');

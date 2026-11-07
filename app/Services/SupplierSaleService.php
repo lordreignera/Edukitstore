@@ -23,7 +23,9 @@ class SupplierSaleService
     public function recordPaidSale(ShoppingList $invoice): void
     {
         DB::transaction(function () use ($invoice): void {
-            foreach ($invoice->fulfilmentItems()->where('fulfilment_source', 'supplier') as $item) {
+            foreach ($invoice->fulfilmentItems()
+                ->where('fulfilment_source', 'supplier')
+                ->filter(fn (array $item): bool => (int) ($item['quantity'] ?? 0) > 0) as $item) {
                 $offer = SupplierOffer::whereKey($item['supplier_offer_id'])->lockForUpdate()->first();
                 if (! $offer) {
                     throw ValidationException::withMessages(['payment' => ($item['name'] ?? 'A supplier product').' is no longer available.']);
@@ -36,6 +38,7 @@ class SupplierSaleService
 
                 $supplierPayable = $quantity * (float) $offer->supplier_price;
                 $revenue = $quantity * (float) $item['unit_price'];
+                // Supplier stock is consumed on payment; the payable is reserved until customer receipt is confirmed.
                 $offer->decrement('quantity_available', $quantity);
                 $offer->increment('quantity_sold', $quantity);
 
@@ -48,6 +51,12 @@ class SupplierSaleService
                         'line_total' => $revenue, 'cost_total' => $supplierPayable,
                         'supplier_payable' => $supplierPayable, 'profit_total' => $revenue - $supplierPayable,
                         'settlement_status' => 'reserved',
+                        'cost_breakdown' => [[
+                            'supplier_offer_id' => $offer->id,
+                            'stock_allocated_quantity' => $quantity,
+                            'unit_cost' => (float) $offer->supplier_price,
+                            'cost_total' => $supplierPayable,
+                        ]],
                     ]
                 );
             }

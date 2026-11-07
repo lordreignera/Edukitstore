@@ -21,15 +21,20 @@
                 <a href="{{ route('admin.inventory.sales') }}" class="inline-flex h-9 items-center justify-center rounded border border-slate-300 px-4 text-sm font-bold text-slate-600 hover:bg-slate-50">Clear</a>
             </form>
 
-            <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Paid sales summary">
+            <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5" aria-label="Paid sales summary">
                 <article class="rounded-md border border-orange-200 bg-white p-4"><p class="text-xs font-bold uppercase text-orange-800">Units sold</p><p class="mt-2 text-3xl font-extrabold text-slate-950">{{ number_format($stats['units']) }}</p><p class="mt-1 text-xs text-slate-500">{{ $includeDemo ? 'Includes demo/test payments' : 'Demo/test payments excluded' }}</p></article>
                 <article class="rounded-md border border-slate-200 bg-white p-4"><p class="text-xs font-bold uppercase text-slate-500">Orders with stock sales</p><p class="mt-2 text-3xl font-extrabold text-slate-950">{{ number_format($stats['orders']) }}</p><p class="mt-1 text-xs text-slate-500">Orders that have inventory sale records</p></article>
                 <article class="rounded-md border border-slate-200 bg-white p-4"><p class="text-xs font-bold uppercase text-slate-500">Item sales revenue</p><p class="mt-2 text-2xl font-extrabold text-slate-950">UGX {{ number_format($stats['revenue']) }}</p><p class="mt-1 text-xs text-slate-500">Excludes delivery and convenience fees</p></article>
-                <article class="rounded-md border border-emerald-200 bg-emerald-50 p-4"><p class="text-xs font-bold uppercase text-emerald-800">Gross profit</p><p class="mt-2 text-2xl font-extrabold text-emerald-950">UGX {{ number_format($stats['profit']) }}</p><p class="mt-1 text-xs text-emerald-800">Realized against stock batch cost</p></article>
+                <article class="rounded-md border border-red-200 bg-red-50 p-4"><p class="text-xs font-bold uppercase text-red-800">Unavailable stock write-off</p><p class="mt-2 text-2xl font-extrabold text-red-950">UGX {{ number_format($stats['writeoff_cost']) }}</p><p class="mt-1 text-xs text-red-800">Cost of paid units not delivered</p></article>
+                <article class="rounded-md border {{ $stats['profit'] < 0 ? 'border-red-200 bg-red-50' : 'border-emerald-200 bg-emerald-50' }} p-4">
+                    <p class="text-xs font-bold uppercase {{ $stats['profit'] < 0 ? 'text-red-800' : 'text-emerald-800' }}">Gross profit after write-offs</p>
+                    <p class="mt-2 text-2xl font-extrabold {{ $stats['profit'] < 0 ? 'text-red-950' : 'text-emerald-950' }}">UGX {{ number_format($stats['profit']) }}</p>
+                    <p class="mt-1 text-xs {{ $stats['profit'] < 0 ? 'text-red-800' : 'text-emerald-800' }}">Sale margin less unavailable stock cost</p>
+                </article>
             </section>
 
             <section class="overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm">
-                <div class="border-b border-slate-100 px-5 py-4"><h2 class="text-sm font-extrabold text-slate-950">Paid stock sales</h2><p class="mt-1 text-xs text-slate-500">Only verified paid inventory movements appear here. Pending orders remain in Orders &amp; Fulfilment. {{ $includeDemo ? 'Demo/test orders are included.' : 'Demo/test orders are excluded unless selected above.' }}</p></div>
+                <div class="border-b border-slate-100 px-5 py-4"><h2 class="text-sm font-extrabold text-slate-950">Paid stock sales</h2><p class="mt-1 text-xs text-slate-500">Units show quantities packed for delivery; unavailable units are listed separately in Inventory Movement History. Pending orders remain in Orders &amp; Fulfilment. {{ $includeDemo ? 'Demo/test orders are included.' : 'Demo/test orders are excluded unless selected above.' }}</p></div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-slate-200 text-sm">
                         <thead class="bg-slate-50 text-left text-[11px] font-bold uppercase text-slate-500"><tr><th class="px-5 py-3">Sold</th><th class="px-5 py-3">Order</th><th class="px-5 py-3">Product</th><th class="px-5 py-3">Units</th><th class="px-5 py-3">Revenue</th><th class="px-5 py-3">Cost</th><th class="px-5 py-3">Profit</th><th class="px-5 py-3"><span class="sr-only">Actions</span></th></tr></thead>

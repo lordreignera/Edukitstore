@@ -40,6 +40,18 @@ class InventoryController extends Controller
 
             return $query;
         };
+        $paidSalesAndWriteoffsInPeriod = function ($query) use ($dateRange, $includeDemo) {
+            $dateRange($query->whereIn('type', [
+                InventoryMovement::TYPE_SALE_PAID,
+                InventoryMovement::TYPE_UNAVAILABLE_STOCK_WRITEOFF,
+            ]));
+
+            if (! $includeDemo) {
+                $query->whereDoesntHave('shoppingList', fn ($orderQuery) => $orderQuery->where('payment_provider', 'demo'));
+            }
+
+            return $query;
+        };
 
         $products = Product::query()
             ->with('category')
@@ -47,7 +59,7 @@ class InventoryController extends Controller
             ->withSum('inventoryBatches as costed_stock_remaining', 'remaining_quantity')
             ->withSum('inventoryBatches as warehouse_batch_quantity', 'warehouse_remaining_quantity')
             ->withSum(['inventoryMovements as sold_units' => fn ($query) => $paidSalesInPeriod($query)], 'quantity')
-            ->withSum(['inventoryMovements as gross_profit' => fn ($query) => $paidSalesInPeriod($query)], 'profit')
+            ->withSum(['inventoryMovements as gross_profit' => fn ($query) => $paidSalesAndWriteoffsInPeriod($query)], 'profit')
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($productQuery) use ($search) {
                     $productQuery->where('name', 'like', "%{$search}%")
@@ -84,6 +96,7 @@ class InventoryController extends Controller
 
         $allProducts = Product::all(['stock_quantity', 'warehouse_stock_quantity', 'reorder_level']);
         $periodSales = $paidSalesInPeriod(InventoryMovement::query());
+        $periodSalesAndWriteoffs = $paidSalesAndWriteoffsInPeriod(InventoryMovement::query());
         $currentUnits = $allProducts->sum('stock_quantity') + $allProducts->sum('warehouse_stock_quantity');
 
         $stats = [
@@ -94,7 +107,7 @@ class InventoryController extends Controller
             'period_opening_units' => $fromDate ? $inventory->stockBalanceBefore($fromDate) : $currentUnits,
             'period_closing_units' => $toDate ? $inventory->stockBalanceUpTo($toDate) : $currentUnits,
             'sold_units' => (int) (clone $periodSales)->sum('quantity'),
-            'gross_profit' => (float) (clone $periodSales)->sum('profit'),
+            'gross_profit' => (float) (clone $periodSalesAndWriteoffs)->sum('profit'),
         ];
 
         $movements = InventoryMovement::query()
@@ -165,6 +178,7 @@ class InventoryController extends Controller
 
         $sales = InventoryMovement::query()
             ->where('type', InventoryMovement::TYPE_SALE_PAID)
+            ->where('quantity', '>', 0)
             ->whereBetween('occurred_at', [$fromDate, $toDate])
             ->when(! $includeDemo, fn ($query) => $query->whereDoesntHave('shoppingList', fn ($orderQuery) => $orderQuery->where('payment_provider', 'demo')))
             ->when($search !== '', fn ($query) => $query->where(function ($saleQuery) use ($search) {
@@ -174,10 +188,22 @@ class InventoryController extends Controller
                     ->orWhereHas('shoppingList', fn ($orderQuery) => $orderQuery->where('reference', 'like', "%{$search}%"));
             }));
 
+        $writeoffs = InventoryMovement::query()
+            ->where('type', InventoryMovement::TYPE_UNAVAILABLE_STOCK_WRITEOFF)
+            ->whereBetween('occurred_at', [$fromDate, $toDate])
+            ->when(! $includeDemo, fn ($query) => $query->whereDoesntHave('shoppingList', fn ($orderQuery) => $orderQuery->where('payment_provider', 'demo')))
+            ->when($search !== '', fn ($query) => $query->where(function ($writeoffQuery) use ($search) {
+                $writeoffQuery->where('product_name', 'like', "%{$search}%")
+                    ->orWhere('sku', 'like', "%{$search}%")
+                    ->orWhere('reference', 'like', "%{$search}%")
+                    ->orWhereHas('shoppingList', fn ($orderQuery) => $orderQuery->where('reference', 'like', "%{$search}%"));
+            }));
+
         $stats = [
             'units' => (int) (clone $sales)->sum('quantity'),
             'revenue' => (float) (clone $sales)->sum('total_revenue'),
-            'profit' => (float) (clone $sales)->sum('profit'),
+            'writeoff_cost' => (float) (clone $writeoffs)->sum('total_cost'),
+            'profit' => (float) (clone $sales)->sum('profit') + (float) (clone $writeoffs)->sum('profit'),
             'orders' => (clone $sales)->whereNotNull('shopping_list_id')->distinct('shopping_list_id')->count('shopping_list_id'),
         ];
 

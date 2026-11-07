@@ -20,6 +20,8 @@ class DemoPaymentService
     {
         abort_unless(PaymentMode::demoEnabled(), 404);
 
+        // Dry-run payments share the live stock, cost and margin path, but never call a gateway.
+        // Locking the invoice and writing everything in one transaction prevents duplicate payment records/sales.
         DB::transaction(function () use ($invoice): void {
             $invoice = ShoppingList::whereKey($invoice->id)->lockForUpdate()->firstOrFail();
             if ($invoice->status !== ShoppingList::STATUS_QUOTED
@@ -49,6 +51,7 @@ class DemoPaymentService
             ]);
         });
 
+        // Notify only after the payment transaction commits; a rolled-back payment must not send a receipt.
         $this->notifications->paymentConfirmed($invoice->fresh());
     }
 }

@@ -64,6 +64,7 @@ class FlutterwavePaymentService
         }
         $data = $response->json('data', []);
 
+        // Trust a server-side provider verification only when both the transaction and checkout reference match.
         $matchedReference = $response->successful()
             && $response->json('status') === 'success'
             && ($data['status'] ?? null) === 'successful'
@@ -139,6 +140,7 @@ class FlutterwavePaymentService
 
             $exception = null;
             try {
+                // Keep inventory and supplier ledgers atomic; if stock is unavailable, flag the paid order for review.
                 DB::transaction(function () use ($invoice): void {
                     $this->inventory->recordPaidCartSale($invoice);
                     $this->supplierSales->recordPaidSale($invoice);

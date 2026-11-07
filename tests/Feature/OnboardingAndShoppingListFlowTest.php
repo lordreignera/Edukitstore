@@ -282,13 +282,13 @@ class OnboardingAndShoppingListFlowTest extends TestCase
                 'status' => ShoppingList::STATUS_QUOTED,
                 'assigned_driver_id' => $driver->id,
             ])
-            ->assertRedirect();
+            ->assertSessionHasErrors('assigned_driver_id');
 
         $this->assertDatabaseHas('shopping_lists', [
             'id' => $shoppingList->id,
             'status' => ShoppingList::STATUS_QUOTED,
             'estimated_total' => 145000,
-            'assigned_driver_id' => $driver->id,
+            'assigned_driver_id' => null,
             'reviewed_by' => $admin->id,
         ]);
     }
@@ -375,7 +375,7 @@ class OnboardingAndShoppingListFlowTest extends TestCase
             ->assertOk()
             ->assertSee('UGX 135,000')
             ->assertDontSee('John Driver')
-            ->assertSee('Pay now');
+            ->assertSee('Pesapal payment is not available yet');
     }
 
     public function test_admin_cannot_complete_delivery_without_driver_confirmation(): void
@@ -402,6 +402,7 @@ class OnboardingAndShoppingListFlowTest extends TestCase
             'status' => ShoppingList::STATUS_QUOTED,
             'payment_status' => ShoppingList::PAYMENT_PAID,
             'assigned_driver_id' => $driver->id,
+            'packed_at' => now(),
         ]);
 
         $this->actingAs($admin)
@@ -442,6 +443,7 @@ class OnboardingAndShoppingListFlowTest extends TestCase
             'status' => ShoppingList::STATUS_QUOTED,
             'payment_status' => ShoppingList::PAYMENT_PAID,
             'assigned_driver_id' => $driver->id,
+            'packed_at' => now(),
         ]);
 
         $this->actingAs($driverUser)
@@ -518,7 +520,10 @@ class OnboardingAndShoppingListFlowTest extends TestCase
 
     public function test_quoted_invoice_redirects_to_flutterwave_checkout(): void
     {
-        config(['services.flutterwave.secret_key' => 'FLWSECK_TEST']);
+        config([
+            'services.online_payment_provider' => 'flutterwave',
+            'services.flutterwave.secret_key' => 'FLWSECK_TEST',
+        ]);
 
         $product = Product::create([
             'name' => 'School Backpack', 'slug' => 'school-backpack-checkout',
@@ -575,6 +580,36 @@ class OnboardingAndShoppingListFlowTest extends TestCase
         Http::assertSent(fn ($request): bool => $request['amount'] === 135000
             && $request['currency'] === 'UGX'
             && $request['customer']['email'] === 'norah@example.test');
+    }
+
+    public function test_pesapal_is_the_default_and_does_not_fall_back_to_legacy_flutterwave(): void
+    {
+        config([
+            'services.online_payment_provider' => 'pesapal',
+            'services.flutterwave.secret_key' => 'FLWSECK_TEST',
+        ]);
+        Http::fake();
+
+        $shoppingList = ShoppingList::create([
+            'parent_name' => 'Guest Buyer',
+            'phone' => '+256700123456',
+            'email' => 'guest@example.test',
+            'delivery_preference' => 'pickup',
+            'source' => ShoppingList::SOURCE_CART,
+            'items_subtotal' => 20000,
+            'delivery_fee' => 2000,
+            'estimated_total' => 22000,
+            'status' => ShoppingList::STATUS_QUOTED,
+            'payment_status' => ShoppingList::PAYMENT_UNPAID,
+        ]);
+
+        $this->withSession(['invoice_access' => [$shoppingList->id => true]])
+            ->post(route('website.quote.pay', $shoppingList->reference), ['confirm_items' => '1'])
+            ->assertSessionHasErrors('payment');
+
+        $this->assertSame(ShoppingList::PAYMENT_UNPAID, $shoppingList->fresh()->payment_status);
+        $this->assertSame(0, $shoppingList->paymentAttempts()->count());
+        Http::assertNothingSent();
     }
 
     public function test_flutterwave_callback_marks_verified_invoice_paid(): void

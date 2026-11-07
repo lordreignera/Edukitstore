@@ -18,6 +18,8 @@ class InventoryMovement extends Model
 
     public const TYPE_SALE_PAID = 'sale_paid';
 
+    public const TYPE_UNAVAILABLE_STOCK_WRITEOFF = 'unavailable_stock_writeoff';
+
     protected $fillable = [
         'product_id',
         'inventory_batch_id',
@@ -84,6 +86,7 @@ class InventoryMovement extends Model
             self::TYPE_STOCK_INTAKE => 'Stock intake',
             self::TYPE_TRANSFER_TO_DISPLAY => 'Moved to website/display',
             self::TYPE_SALE_PAID => 'Paid sale',
+            self::TYPE_UNAVAILABLE_STOCK_WRITEOFF => 'Unavailable stock write-off',
         ];
     }
 

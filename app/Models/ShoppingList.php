@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 
+/**
+ * Legacy model/table name for both uploaded school lists and direct store orders.
+ * Customer-facing screens call these records orders or invoices depending on their stage.
+ */
 class ShoppingList extends Model
 {
     use HasFactory;
@@ -60,6 +64,12 @@ class ShoppingList extends Model
         'items_subtotal',
         'delivery_fee',
         'assigned_driver_id',
+        'packed_at',
+        'packed_by',
+        'manual_refund_amount',
+        'manual_refund_reference',
+        'manual_refunded_at',
+        'manual_refund_recorded_by',
         'driver_started_at',
         'driver_started_by',
         'driver_reached_at',
@@ -92,6 +102,9 @@ class ShoppingList extends Model
             'delivery_fee' => 'integer',
             'estimated_total' => 'integer',
             'paid_at' => 'datetime',
+            'packed_at' => 'datetime',
+            'manual_refunded_at' => 'datetime',
+            'manual_refund_amount' => 'integer',
             'driver_started_at' => 'datetime',
             'driver_reached_at' => 'datetime',
             'customer_received_at' => 'datetime',
@@ -103,6 +116,16 @@ class ShoppingList extends Model
     public function assignedDriver(): BelongsTo
     {
         return $this->belongsTo(Driver::class, 'assigned_driver_id');
+    }
+
+    public function packedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'packed_by');
+    }
+
+    public function manualRefundRecordedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'manual_refund_recorded_by');
     }
 
     public function driverPayout(): HasOne
@@ -198,7 +221,13 @@ class ShoppingList extends Model
             'awaiting_driver_assignment' => 'Awaiting Driver Assignment',
             'unassigned' => 'Unassigned',
             'awaiting_payment' => 'Awaiting Payment',
+            'ready_to_pack' => 'Paid — Ready to Pack',
+            'packed' => 'Packed — Awaiting Driver',
+            'refund_pending' => 'Refund Pending',
+            'refunded' => 'Refund Recorded',
+            'cancelled' => 'Cancelled',
             'ready_for_delivery' => 'Assigned to Driver',
+            'assigned' => 'All Active Driver Assignments',
             'in_transit' => 'In Transit',
             'awaiting_customer_confirmation' => 'Awaiting Customer Confirmation',
             'under_review' => 'Under Review',
@@ -216,12 +245,28 @@ class ShoppingList extends Model
             return 'under_review';
         }
 
-        if (! $this->assigned_driver_id) {
-            return 'unassigned';
+        if ($this->payment_status === self::PAYMENT_REFUNDED) {
+            return 'refunded';
+        }
+
+        if ($this->status === self::STATUS_CANCELLED) {
+            return 'cancelled';
         }
 
         if ($this->payment_status !== self::PAYMENT_PAID) {
             return 'awaiting_payment';
+        }
+
+        if ($this->allItemsUnavailable()) {
+            return $this->manualRefundOutstanding() > 0 ? 'refund_pending' : 'refunded';
+        }
+
+        if (! $this->packed_at) {
+            return 'ready_to_pack';
+        }
+
+        if (! $this->assigned_driver_id) {
+            return 'packed';
         }
 
         if ($this->driver_reached_at) {
@@ -233,6 +278,36 @@ class ShoppingList extends Model
         }
 
         return 'ready_for_delivery';
+    }
+
+    public function manualRefundDue(): int
+    {
+        $items = $this->relationLoaded('lineItems') ? $this->lineItems : $this->lineItems()->get();
+        $itemRefund = (int) $items->sum(fn (ShoppingListItem $item): int =>
+            (int) $item->unavailable_quantity * (int) $item->unit_price
+        );
+
+        // Return the delivery/convenience fee only when the customer has no deliverable items.
+        return $itemRefund + ($items->isNotEmpty() && $items->every(fn (ShoppingListItem $item): bool => (int) $item->quantity === 0)
+            ? (int) ($this->delivery_fee ?? 0)
+            : 0);
+    }
+
+    public function manualRefundOutstanding(): int
+    {
+        return max(0, $this->manualRefundDue() - (int) $this->manual_refund_amount);
+    }
+
+    public function allItemsUnavailable(): bool
+    {
+        $items = $this->relationLoaded('lineItems') ? $this->lineItems : $this->lineItems()->get();
+
+        return $items->isNotEmpty() && $items->every(fn (ShoppingListItem $item): bool => (int) $item->quantity === 0);
+    }
+
+    public function fulfilmentStatusLabel(): string
+    {
+        return self::deliveryStatuses()[$this->deliveryStatus()] ?? ucfirst($this->deliveryStatus());
     }
 
     public static function nextReference(): string

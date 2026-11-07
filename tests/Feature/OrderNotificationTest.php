@@ -4,9 +4,13 @@ namespace Tests\Feature;
 
 use App\Mail\OrderReceivedMail;
 use App\Models\Driver;
+use App\Models\Product;
+use App\Models\PushSubscription;
 use App\Models\ShoppingList;
 use App\Models\User;
 use App\Notifications\NewOrderReceivedNotification;
+use App\Notifications\OrderWorkflowNotification;
+use App\Notifications\ProductAvailableNotification;
 use App\Services\OrderNotificationService;
 use App\Services\PushNotificationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -84,6 +88,106 @@ class OrderNotificationTest extends TestCase
         $this->assertNull($admin->notifications()->where('data->reference', $nextOrder->reference)->firstOrFail()->read_at);
     }
 
+    public function test_delivery_updates_are_stored_and_pushed_only_to_the_order_customer(): void
+    {
+        $customer = User::factory()->create(['is_active' => true]);
+        $otherCustomer = User::factory()->create(['is_active' => true]);
+        $order = $this->orderFor($customer);
+        $push = new class extends PushNotificationService
+        {
+            public array $sent = [];
+
+            public function sendTo(User $user, array $payload): void
+            {
+                $this->sent[] = ['user_id' => $user->id, 'payload' => $payload];
+            }
+        };
+        $this->app->instance(PushNotificationService::class, $push);
+
+        $notifications = app(OrderNotificationService::class);
+        $notifications->orderInTransit($order);
+        $notifications->orderArrived($order);
+
+        $this->assertSame(2, $customer->notifications()->where('type', OrderWorkflowNotification::class)->count());
+        $this->assertSame(0, $otherCustomer->notifications()->count());
+        $this->assertSame([$customer->id, $customer->id], array_column($push->sent, 'user_id'));
+        $this->assertTrue($customer->notifications()->where('data->event', 'order_in_transit')->exists());
+        $this->assertTrue($customer->notifications()->where('data->event', 'order_arrived')->exists());
+    }
+
+    public function test_customer_receipt_confirmation_notifies_each_authorized_admin_user(): void
+    {
+        $admin = $this->adminWithOrderPermission();
+        $unrelated = User::factory()->create(['is_active' => true]);
+        $order = $this->orderFor(User::factory()->create());
+        $push = new class extends PushNotificationService
+        {
+            public array $sent = [];
+
+            public function sendTo(User $user, array $payload): void
+            {
+                $this->sent[] = ['user_id' => $user->id, 'payload' => $payload];
+            }
+        };
+        $this->app->instance(PushNotificationService::class, $push);
+
+        app(OrderNotificationService::class)->customerConfirmedReceipt($order);
+
+        $this->assertDatabaseHas('notifications', [
+            'type' => OrderWorkflowNotification::class,
+            'notifiable_type' => User::class,
+            'notifiable_id' => $admin->id,
+        ]);
+        $this->assertSame('customer_confirmed_receipt', $admin->notifications()->firstOrFail()->data['event']);
+        $this->assertSame(0, $unrelated->notifications()->count());
+        $this->assertSame([$admin->id], array_column($push->sent, 'user_id'));
+    }
+
+    public function test_new_product_alerts_only_go_to_opted_in_customer_accounts(): void
+    {
+        $customerRole = Role::findOrCreate('customer', 'web');
+        $optedInCustomer = User::factory()->create(['is_active' => true]);
+        $optedInCustomer->assignRole($customerRole);
+        $this->addPushSubscription($optedInCustomer, 'opted-in-product-device');
+
+        $customerWithoutOptIn = User::factory()->create(['is_active' => true]);
+        $customerWithoutOptIn->assignRole($customerRole);
+
+        $admin = $this->adminWithOrderPermission();
+        $this->addPushSubscription($admin, 'admin-product-device');
+
+        $product = Product::create([
+            'name' => 'New Exercise Book',
+            'slug' => 'new-exercise-book',
+            'sku' => 'EDK-PRODUCT-ALERT-1',
+            'price' => 2500,
+            'stock_quantity' => 12,
+            'is_active' => true,
+        ]);
+        $push = new class extends PushNotificationService
+        {
+            public array $sent = [];
+
+            public function sendTo(User $user, array $payload): void
+            {
+                $this->sent[] = ['user_id' => $user->id, 'payload' => $payload];
+            }
+        };
+        $this->app->instance(PushNotificationService::class, $push);
+
+        app(OrderNotificationService::class)->productAvailable($product);
+
+        $this->assertDatabaseHas('notifications', [
+            'type' => ProductAvailableNotification::class,
+            'notifiable_type' => User::class,
+            'notifiable_id' => $optedInCustomer->id,
+        ]);
+        $this->assertSame(0, $customerWithoutOptIn->notifications()->count());
+        $this->assertSame(0, $admin->notifications()->count());
+        $this->assertSame([$optedInCustomer->id], array_column($push->sent, 'user_id'));
+        $this->assertSame(route('website.products.show', $product), $push->sent[0]['payload']['url']);
+    }
+
     public function test_push_subscription_accepts_known_https_provider_and_rejects_private_endpoint(): void
     {
         config([
@@ -154,6 +258,10 @@ class OrderNotificationTest extends TestCase
         ]);
         $order = $this->orderFor(User::factory()->create());
         $order->update(['payment_status' => ShoppingList::PAYMENT_PAID]);
+        $line = $order->lineItems()->create([
+            'product_name' => 'Exercise book', 'quantity' => 1, 'unit_price' => 10000,
+            'line_total' => 10000, 'cost_total' => 0, 'profit_total' => 10000,
+        ]);
         $push = new class extends PushNotificationService
         {
             public array $sent = [];
@@ -166,16 +274,27 @@ class OrderNotificationTest extends TestCase
         $this->app->instance(PushNotificationService::class, $push);
 
         $this->actingAs($admin)
-            ->patch(route('admin.invoices.update', $order), [
-                'status' => ShoppingList::STATUS_QUOTED,
+            ->patch(route('admin.invoices.fulfilment', $order), [
+                'items' => [$line->id => ['unavailable_quantity' => 0]],
+                'packed_items_confirmed' => true,
                 'assigned_driver_id' => $driver->id,
             ])
             ->assertRedirect();
 
         $this->assertCount(1, $push->sent);
         $this->assertSame($driverUser->id, $push->sent[0]['user']->id);
-        $this->assertSame('New delivery assigned', $push->sent[0]['payload']['title']);
+        $this->assertSame('Packed order assigned', $push->sent[0]['payload']['title']);
         $this->assertSame(route('driver.deliveries.index', ['status' => 'ready']), $push->sent[0]['payload']['url']);
+
+        $this->actingAs($admin)
+            ->patch(route('admin.invoices.fulfilment', $order), [
+                'items' => [$line->id => ['unavailable_quantity' => 0]],
+                'packed_items_confirmed' => true,
+                'assigned_driver_id' => $driver->id,
+            ])
+            ->assertRedirect();
+
+        $this->assertCount(1, $push->sent, 'Resaving unchanged fulfilment must not send a duplicate driver push.');
     }
 
     private function adminWithOrderPermission(): User
@@ -203,6 +322,20 @@ class OrderNotificationTest extends TestCase
             'estimated_total' => 10000,
             'status' => ShoppingList::STATUS_QUOTED,
             'payment_status' => ShoppingList::PAYMENT_UNPAID,
+        ]);
+    }
+
+    private function addPushSubscription(User $user, string $endpointSuffix): void
+    {
+        $endpoint = "https://fcm.googleapis.com/fcm/send/{$endpointSuffix}";
+
+        PushSubscription::create([
+            'user_id' => $user->id,
+            'endpoint' => $endpoint,
+            'endpoint_hash' => hash('sha256', $endpoint),
+            'public_key' => 'test-public-key',
+            'auth_token' => 'test-auth-token',
+            'content_encoding' => 'aes128gcm',
         ]);
     }
 }

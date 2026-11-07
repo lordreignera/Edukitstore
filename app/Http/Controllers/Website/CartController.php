@@ -207,6 +207,7 @@ class CartController extends Controller
 
         $shoppingList = DB::transaction(function () use ($data, $items, $itemsSubtotal): ShoppingList {
             $shoppingList = ShoppingList::create($data + [
+                // Guest checkout remains open; only link orders directly when a customer account is signed in.
                 'customer_user_id' => auth()->user()?->hasRole('customer') ? auth()->id() : null,
                 'source' => ShoppingList::SOURCE_CART,
                 'reference' => ShoppingList::nextReference(),
@@ -273,11 +274,16 @@ class CartController extends Controller
 
         $request->validate(['confirm_items' => ['accepted']]);
 
+        // Demo mode uses the same inventory/profit workflow; live checkout requires an explicitly enabled provider.
         if (PaymentMode::demoEnabled()) {
             $demoPayments->pay($shoppingList);
 
             return redirect()->route('website.quote.show', $shoppingList->reference)
                 ->with('status', 'Demo payment completed. No money was collected.');
+        }
+
+        if (config('services.online_payment_provider', 'pesapal') !== 'flutterwave') {
+            return back()->withErrors(['payment' => 'Pesapal is EduKit’s planned payment provider, but online checkout is not available yet because merchant setup is still pending. Your order is saved and no payment was taken.']);
         }
 
         $inventory->ensureInvoiceHasDisplayStock($shoppingList);

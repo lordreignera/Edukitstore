@@ -41,6 +41,10 @@ class DashboardController extends Controller
 
         $periodStart = Carbon::parse($periodFrom)->startOfDay();
         $periodEnd = Carbon::parse($periodTo)->endOfDay();
+        $today = now();
+        $todayStart = $today->copy()->startOfDay();
+        $todayEnd = $today->copy()->endOfDay();
+        $todayDate = $today->toDateString();
         $includeDemo = $request->boolean('include_demo');
 
         $paidOrders = ShoppingList::query()
@@ -99,6 +103,7 @@ class DashboardController extends Controller
             'payment_exceptions' => ShoppingList::whereNotNull('payment_exception')->count(),
             'orders_awaiting_driver_assignment' => ShoppingList::where('payment_status', ShoppingList::PAYMENT_PAID)
                 ->whereNull('assigned_driver_id')->whereNull('payment_exception')
+                ->whereHas('lineItems', fn ($items) => $items->where('quantity', '>', 0))
                 ->whereNull('customer_received_at')->whereNull('delivery_confirmed_at')->count(),
             'shopping_lists' => ShoppingList::count(),
             'schools' => School::count(),
@@ -108,6 +113,25 @@ class DashboardController extends Controller
             'display_stock' => Product::sum('stock_quantity'),
             'warehouse_stock' => Product::sum('warehouse_stock_quantity'),
             'low_display_stock' => Product::whereColumn('stock_quantity', '<=', 'reorder_level')->count(),
+        ];
+
+        // Keep today's intake/completion separate from the selected performance period and live open queues.
+        $todayFlow = [
+            'date' => $todayDate,
+            'received' => ShoppingList::query()->whereBetween('created_at', [$todayStart, $todayEnd])->count(),
+            'awaiting_fulfilment' => $stats['orders_awaiting_driver_assignment'],
+            'assigned_to_drivers' => ShoppingList::query()
+                ->where('status', ShoppingList::STATUS_QUOTED)
+                ->where('payment_status', ShoppingList::PAYMENT_PAID)
+                ->whereNotNull('assigned_driver_id')
+                ->whereNotNull('packed_at')
+                ->whereNull('payment_exception')
+                ->whereNull('customer_received_at')
+                ->whereNull('delivery_confirmed_at')
+                ->count(),
+            'completed' => ShoppingList::query()
+                ->whereRaw('DATE(COALESCE(customer_received_at, delivery_confirmed_at)) = ?', [$todayDate])
+                ->count(),
         ];
 
         $latestOrders = ShoppingList::query()
@@ -206,6 +230,7 @@ class DashboardController extends Controller
 
         return view('admin.dashboard', compact(
             'stats',
+            'todayFlow',
             'latestOrders',
             'actionQueues',
             'performance',

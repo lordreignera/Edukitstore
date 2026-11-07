@@ -34,6 +34,10 @@ return [
         'secret_hash' => env('FLUTTERWAVE_SECRET_HASH'),
     ],
 
+    // Pesapal is the intended live provider. Keep the legacy Flutterwave flow
+    // available only when explicitly selected during existing integrations.
+    'online_payment_provider' => env('ONLINE_PAYMENT_PROVIDER', 'pesapal'),
+
     'webpush' => [
         'subject' => env('VAPID_SUBJECT', env('APP_URL', 'http://localhost')),
         'public_key' => env('VAPID_PUBLIC_KEY'),

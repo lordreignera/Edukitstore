@@ -1,7 +1,7 @@
 <section class="overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm">
     <div class="border-b border-slate-100 px-5 py-4">
         <h2 class="text-sm font-extrabold text-slate-950">Inventory Movement History</h2>
-        <p class="mt-1 text-xs text-slate-500">Opening stock, intake, display transfers and paid sales for the selected period.</p>
+        <p class="mt-1 text-xs text-slate-500">Opening stock, intake, display transfers, paid sales and unavailable-stock write-offs for the selected period. Write-offs split the original paid stock deduction; they do not deduct stock twice.</p>
     </div>
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-slate-200 text-sm">

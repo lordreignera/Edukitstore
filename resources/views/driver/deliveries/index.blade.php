@@ -55,6 +55,24 @@
                                     <div><dt class="font-bold text-slate-500">Total</dt><dd>UGX {{ number_format($delivery->estimated_total ?? 0) }}</dd></div>
                                     <div><dt class="font-bold text-slate-500">Location</dt><dd>{{ $delivery->delivery_location ?: '-' }}</dd></div>
                                 </dl>
+                                <div class="mt-4 border-t border-slate-100 pt-3">
+                                    <p class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Packed items to deliver</p>
+                                    <div class="mt-2 flex flex-wrap gap-2">
+                                        @forelse ($delivery->lineItems->where('quantity', '>', 0) as $item)
+                                            <div class="flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 p-2">
+                                                <div class="size-10 overflow-hidden rounded border border-slate-200 bg-white">
+                                                    <x-ui.responsive-image :src="$item->product?->image_url" :alt="$item->product_name" label="Product image unavailable" image-class="h-full w-full object-contain p-0.5" />
+                                                </div>
+                                                <div class="max-w-40">
+                                                    <p class="truncate text-xs font-bold text-slate-800">{{ $item->product_name }}</p>
+                                                    <p class="text-xs text-slate-500">Qty {{ $item->quantity }}</p>
+                                                </div>
+                                            </div>
+                                        @empty
+                                            <p class="text-xs text-slate-500">No deliverable items are assigned to this order.</p>
+                                        @endforelse
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="space-y-3">
@@ -79,6 +97,8 @@
                                     </form>
                                 @elseif ($journeyStatus === 'awaiting_customer_confirmation')
                                     <div class="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900">You have marked arrival. Ask the customer to review the items and confirm receipt.</div>
+                                @elseif ($journeyStatus === 'ready_to_pack')
+                                    <div class="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900">EduKit is checking and packing this order. You can start the trip once it is marked packed.</div>
                                 @elseif ($delivery->payment_exception)
                                     <div class="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-800">Payment received; order is under stock review.</div>
                                 @else

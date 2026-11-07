@@ -19,6 +19,11 @@
                 <a href="{{ route('admin.products.create') }}" class="inline-flex items-center gap-2 rounded bg-orange-700 px-4 py-2 text-sm font-bold text-white hover:bg-orange-800">
                     <x-ui.icon name="plus" size="size-4" /> Add product
                 </a>
+                @if (auth()->user()?->hasRole('super-admin'))
+                    <a href="{{ route('admin.inventory.go-live-reset') }}" class="inline-flex items-center gap-2 rounded border border-red-300 px-4 py-2 text-sm font-bold text-red-800 hover:bg-red-50">
+                        Go-live reset
+                    </a>
+                @endif
             </div>
         </div>
     </x-slot>

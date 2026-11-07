@@ -184,7 +184,7 @@ class ReportingIntegrityTest extends TestCase
                 'period' => 'custom', 'from' => '2026-11-01', 'to' => '2026-11-05',
             ]))
             ->assertOk()
-            ->assertSee('Performance overview')
+            ->assertSee('Performance for selected period')
             ->assertViewHas('performance', fn ($performance) => $performance['orders_received'] === 3
                 && $performance['paid_orders'] === 1
                 && (int) $performance['item_revenue'] === 10000

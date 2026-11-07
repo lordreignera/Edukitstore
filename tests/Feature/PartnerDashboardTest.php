@@ -84,6 +84,7 @@ class PartnerDashboardTest extends TestCase
             'phone' => '0700000001',
             'reference' => 'EDK-260919-1000',
             'assigned_driver_id' => $driver->id,
+            'packed_at' => now(),
             'payment_status' => ShoppingList::PAYMENT_PAID,
         ]);
         ShoppingList::create([
@@ -91,6 +92,7 @@ class PartnerDashboardTest extends TestCase
             'phone' => '0700000002',
             'reference' => 'EDK-260919-1001',
             'assigned_driver_id' => $otherDriver->id,
+            'packed_at' => now(),
             'payment_status' => ShoppingList::PAYMENT_PAID,
         ]);
 

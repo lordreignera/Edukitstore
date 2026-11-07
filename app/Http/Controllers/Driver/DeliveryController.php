@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Driver;
 
 use App\Http\Controllers\Controller;
 use App\Models\ShoppingList;
+use App\Services\OrderNotificationService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,7 +21,7 @@ class DeliveryController extends Controller
         $status = (string) $request->query('status');
 
         $deliveries = ShoppingList::query()
-            ->with('school.district')
+            ->with('school.district', 'lineItems.product')
             ->where('assigned_driver_id', $driver->id)
             ->whereNotIn('status', [ShoppingList::STATUS_REJECTED, ShoppingList::STATUS_CANCELLED])
             ->when($search !== '', fn ($query) => $query->where(function ($deliveryQuery) use ($search) {
@@ -28,7 +29,7 @@ class DeliveryController extends Controller
                     ->orWhere('parent_name', 'like', "%{$search}%")
                     ->orWhere('phone', 'like', "%{$search}%");
             }))
-            ->when($status === 'ready', fn ($query) => $query->where('payment_status', ShoppingList::PAYMENT_PAID)->where('status', ShoppingList::STATUS_QUOTED)->whereNull('payment_exception')->whereNull('driver_started_at')->whereNull('customer_received_at'))
+            ->when($status === 'ready', fn ($query) => $query->where('payment_status', ShoppingList::PAYMENT_PAID)->where('status', ShoppingList::STATUS_QUOTED)->whereNotNull('packed_at')->whereNull('payment_exception')->whereNull('driver_started_at')->whereNull('customer_received_at'))
             ->when($status === 'waiting', fn ($query) => $query->where('payment_status', '!=', ShoppingList::PAYMENT_PAID)->whereNull('customer_received_at')->whereNull('delivery_confirmed_at'))
             ->when($status === 'in_transit', fn ($query) => $query->whereNotNull('driver_started_at')->whereNull('driver_reached_at')->whereNull('customer_received_at')->whereNull('delivery_confirmed_at'))
             ->when($status === 'reached', fn ($query) => $query->whereNotNull('driver_reached_at')->whereNull('customer_received_at')->whereNull('delivery_confirmed_at'))
@@ -43,7 +44,7 @@ class DeliveryController extends Controller
         return view('driver.deliveries.index', compact('driver', 'deliveries', 'search', 'status'));
     }
 
-    public function startJourney(ShoppingList $shoppingList): RedirectResponse
+    public function startJourney(ShoppingList $shoppingList, OrderNotificationService $notifications): RedirectResponse
     {
         $this->authorizeDriver($shoppingList);
 
@@ -60,11 +61,12 @@ class DeliveryController extends Controller
             'driver_started_at' => now(),
             'driver_started_by' => auth()->id(),
         ]);
+        $notifications->orderInTransit($shoppingList->fresh());
 
         return back()->with('status', 'Journey started. The customer can now see that the order is in transit.');
     }
 
-    public function reached(Request $request, ShoppingList $shoppingList): RedirectResponse
+    public function reached(Request $request, ShoppingList $shoppingList, OrderNotificationService $notifications): RedirectResponse
     {
         $this->authorizeDriver($shoppingList);
 
@@ -90,6 +92,7 @@ class DeliveryController extends Controller
             'driver_reached_by' => auth()->id(),
             'delivery_notes' => $data['delivery_notes'] ?? null,
         ]);
+        $notifications->orderArrived($shoppingList->fresh());
 
         return back()->with('status', 'Arrival recorded. The customer can now confirm receipt of the items.');
     }
@@ -114,6 +117,10 @@ class DeliveryController extends Controller
 
         if ($shoppingList->status !== ShoppingList::STATUS_QUOTED || $shoppingList->payment_exception) {
             return 'This order is under review and cannot move through delivery yet.';
+        }
+
+        if (! $shoppingList->packed_at) {
+            return 'The order must be packed and checked by EduKit before the delivery journey starts.';
         }
 
         if ($shoppingList->customer_received_at || $shoppingList->delivery_confirmed_at) {

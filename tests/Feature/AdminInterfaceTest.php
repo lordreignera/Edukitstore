@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Product;
+use App\Models\Driver;
 use App\Models\ShoppingList;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -40,7 +42,8 @@ class AdminInterfaceTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertSee('Performance overview')
+            ->assertSee('Order flow today')
+            ->assertSee('Performance for selected period')
             ->assertSee('Orders received')
             ->assertSee('Paid item revenue')
             ->assertSee('Action center')
@@ -51,6 +54,79 @@ class AdminInterfaceTest extends TestCase
             ->assertSee('Search orders, products, schools, suppliers')
             ->assertSee('Orders & Fulfilment')
             ->assertSee('View Website');
+    }
+
+    public function test_dashboard_shows_today_order_flow_with_matching_filtered_links(): void
+    {
+        $this->travelTo(Carbon::parse('2026-11-06 12:00:00'));
+        $admin = $this->superAdmin();
+        $driver = Driver::create([
+            'name' => 'Today Flow Driver',
+            'is_approved' => true,
+            'is_available' => true,
+        ]);
+        $createOrder = fn (array $attributes) => ShoppingList::create(array_merge([
+            'parent_name' => 'Today Flow Customer',
+            'phone' => '+256700000001',
+            'delivery_preference' => 'pickup',
+            'status' => ShoppingList::STATUS_QUOTED,
+            'payment_status' => ShoppingList::PAYMENT_PAID,
+        ], $attributes));
+
+        $receivedToday = $createOrder(['payment_status' => ShoppingList::PAYMENT_UNPAID]);
+        $awaitingDriver = $createOrder([]);
+        $awaitingDriver->lineItems()->create(['product_name' => 'Pen', 'quantity' => 1, 'unit_price' => 1000, 'line_total' => 1000]);
+        $assigned = $createOrder(['assigned_driver_id' => $driver->id, 'packed_at' => now()]);
+        $completedToday = $createOrder([
+            'status' => ShoppingList::STATUS_FULFILLED,
+            'customer_received_at' => now(),
+            'delivery_confirmed_at' => now(),
+        ]);
+        $paymentException = $createOrder(['payment_exception' => 'Stock review required.']);
+        $completedYesterday = $createOrder([
+            'status' => ShoppingList::STATUS_FULFILLED,
+            'customer_received_at' => now()->subDay(),
+            'delivery_confirmed_at' => now()->subDay(),
+        ]);
+        $completedYesterday->forceFill(['created_at' => now()->subDay()])->saveQuietly();
+
+        $today = now()->toDateString();
+        $assignedUrl = route('admin.invoices.index', ['delivery_status' => 'assigned']);
+        $completedUrl = route('admin.invoices.index', [
+            'delivery_status' => 'delivered',
+            'date_field' => 'completed',
+            'from' => $today,
+            'to' => $today,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('Orders received today')
+            ->assertSee('Open queue: awaiting fulfilment')
+            ->assertSee('Open queue: assigned to drivers')
+            ->assertSee('All dates · paid orders waiting for packing and driver assignment')
+            ->assertSee('Completed today')
+            ->assertSee(str_replace('&', '&amp;', $assignedUrl), false)
+            ->assertSee(str_replace('&', '&amp;', $completedUrl), false)
+            ->assertViewHas('todayFlow', fn (array $flow): bool => $flow['received'] === 5
+                && $flow['awaiting_fulfilment'] === 1
+                && $flow['assigned_to_drivers'] === 1
+                && $flow['completed'] === 1);
+
+        $this->get($assignedUrl)
+            ->assertOk()
+            ->assertSee($assigned->reference)
+            ->assertDontSee($awaitingDriver->reference)
+            ->assertDontSee($completedToday->reference)
+            ->assertDontSee($paymentException->reference);
+
+        $this->get($completedUrl)
+            ->assertOk()
+            ->assertSee($completedToday->reference)
+            ->assertDontSee($completedYesterday->reference);
+
+        $this->travelBack();
     }
 
     public function test_admin_can_search_the_master_product_list(): void
@@ -103,6 +179,7 @@ class AdminInterfaceTest extends TestCase
         ], $attributes));
 
         $ready = $createOrder([]);
+        $ready->lineItems()->create(['product_name' => 'Exercise book', 'quantity' => 1, 'unit_price' => 5000, 'line_total' => 5000]);
         $exception = $createOrder(['payment_exception' => 'Stock needs review.']);
         $unpaid = $createOrder(['payment_status' => ShoppingList::PAYMENT_UNPAID]);
 

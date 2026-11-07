@@ -1,3 +1,9 @@
+@if ($invoice->payment_status === \App\Models\ShoppingList::PAYMENT_PAID)
+    <div class="mt-5 rounded-md border border-orange-100 bg-orange-50 p-4 text-sm text-orange-950">
+        <p class="font-extrabold">Payment has been received; the quote is locked.</p>
+        <p class="mt-1">Current fulfilment stage: <strong>{{ $invoice->fulfilmentStatusLabel() }}</strong>. Use the product check above to record packing, unavailable items, and driver assignment.</p>
+    </div>
+@else
 <form method="POST" action="{{ route('admin.invoices.update', $invoice) }}" class="mt-5 space-y-5">
     @csrf
     @method('PATCH')
@@ -109,3 +115,4 @@
 
     <button class="rounded bg-orange-700 px-5 py-2 text-sm font-semibold text-white hover:bg-orange-800">Save invoice</button>
 </form>
+@endif

@@ -205,6 +205,7 @@ class InventoryService
         DB::transaction(function () use ($shoppingList, $userId, &$thresholdCrossings): void {
             $lockedInvoice = ShoppingList::whereKey($shoppingList->id)->lockForUpdate()->firstOrFail();
 
+            // A paid-sale movement is the idempotency marker used by payment callbacks and retries.
             if (InventoryMovement::where('shopping_list_id', $lockedInvoice->id)
                 ->where('type', InventoryMovement::TYPE_SALE_PAID)
                 ->exists()) {
@@ -244,6 +245,7 @@ class InventoryService
                     ];
                 }
 
+                // Item margin is revenue less FIFO acquisition cost; delivery/convenience fees stay separate.
                 ShoppingListItem::updateOrCreate(
                     [
                         'shopping_list_id' => $lockedInvoice->id,
@@ -288,6 +290,7 @@ class InventoryService
             }
         });
 
+        // Alert only after stock, sale movements and profit rows have committed successfully.
         if ($thresholdCrossings !== []) {
             DB::afterCommit(fn () => app(InventoryAlertService::class)->notifyThresholdCrossings($thresholdCrossings));
         }

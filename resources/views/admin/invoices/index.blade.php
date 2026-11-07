@@ -64,6 +64,7 @@
                             <option value="" @selected($dateField === '')>Any date</option>
                             <option value="created" @selected($dateField === 'created')>Order received</option>
                             <option value="paid" @selected($dateField === 'paid')>Payment date</option>
+                            <option value="completed" @selected($dateField === 'completed')>Completion date</option>
                         </select>
                     </label>
                     <label class="block text-xs font-semibold text-slate-600">From

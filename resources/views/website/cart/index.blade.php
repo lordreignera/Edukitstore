@@ -16,10 +16,10 @@
                 <div class="rounded border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-semibold text-orange-800">{{ session('status') }}</div>
             @endif
             @if ($errors->any())
-                <div class="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">Please check the highlighted cart details.</div>
+                <div role="alert" class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">Please check the highlighted cart details.</div>
             @endif
             @if ($cartNotice)
-                <div role="status" class="rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">{{ $cartNotice }}</div>
+                <div role="status" class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">{{ $cartNotice }}</div>
             @endif
 
             @forelse ($products as $product)
@@ -69,16 +69,16 @@
                     <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Cart subtotal</p>
                     <p class="mt-1 text-xl font-black text-[#07215f]">UGX {{ number_format($subtotal) }}</p>
                 </div>
-                <p class="text-sm font-bold text-slate-600">{{ $checkoutNow ? 'Enter delivery details below to complete checkout.' : 'Enter delivery details below to create your invoice.' }}</p>
+                <p class="text-sm font-bold text-slate-600">{{ $checkoutNow ? 'Enter your details below to place the order. Your invoice opens next.' : 'Enter delivery details below to create your invoice.' }}</p>
             </div>
         @endif
     </section>
 
     @if ($products->isNotEmpty())
-        <section id="order-details" class="mx-auto mb-14 max-w-5xl rounded-md border border-[#dbe8f3] bg-white text-slate-950 shadow-sm" data-school-delivery data-subtotal="{{ $subtotal }}" data-has-edukit-items="{{ $hasEdukitItems ? '1' : '0' }}" data-supplier-fees='@json($supplierFeeProfiles)'>
+        <section id="order-details" class="mx-auto mb-14 max-w-5xl rounded-xl border border-[#dbe8f3] bg-white text-slate-950 shadow-sm" data-school-delivery data-subtotal="{{ $subtotal }}" data-has-edukit-items="{{ $hasEdukitItems ? '1' : '0' }}" data-supplier-fees='@json($supplierFeeProfiles)'>
                 <div class="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
                     <div>
-                        <p class="text-xs font-black uppercase tracking-wide text-orange-700">{{ $checkoutNow ? 'One step to payment' : 'One step to your invoice' }}</p>
+                        <p class="text-xs font-black uppercase tracking-wide text-orange-700">{{ $checkoutNow ? 'Place your order' : 'One step to your invoice' }}</p>
                         <h2 class="mt-1 text-2xl font-black text-[#07215f]">{{ $checkoutNow ? 'Checkout details and total' : 'Delivery details and total' }}</h2>
                     </div>
                 </div>
@@ -111,11 +111,22 @@
 
                     <form method="POST" action="{{ route('website.cart.submit') }}" class="mt-5 grid gap-4 sm:grid-cols-2">
                         @csrf
+                        @if (! \App\Support\PaymentMode::demoEnabled() && config('services.online_payment_provider', 'pesapal') === 'pesapal')
+                            <div role="status" class="sm:col-span-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
+                                <p class="font-black">Pesapal payment setup is still pending</p>
+                                <p class="mt-1 text-xs leading-5">EduKit plans to use Pesapal for online payments. Merchant setup is not complete yet, so submitting this form places your order but does not charge you. Online payment will be available once Pesapal checkout is configured.</p>
+                            </div>
+                        @elseif (\App\Support\PaymentMode::demoEnabled())
+                            <div role="status" class="sm:col-span-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                                <p class="font-black">Demo payment mode</p>
+                                <p class="mt-1 text-xs leading-5">Test orders may be marked paid automatically, but no real money is collected. EduKit plans to use Pesapal for live payments after merchant setup is complete.</p>
+                            </div>
+                        @endif
                         <p class="sm:col-span-2 rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-xs leading-5 text-orange-950">
                             @if (auth()->user()?->hasRole('customer'))
                                 Your order will be saved to your signed-in EduKit account. You can continue without creating another account.
                             @else
-                                Checkout as a guest - no account is required to place or pay. Use an email you can access; verify it after creating an account or signing in to track your order.
+                                Checkout as a guest - no account is required to place an order. Use an email you can access; verify it after creating an account or signing in to track your order.
                                 <a href="{{ route('customer.register') }}" class="ml-1 font-black underline">Create account</a>
                                 <span>or</span>
                                 <a href="{{ route('login') }}" class="font-black underline">Sign in</a>.
@@ -144,8 +155,8 @@
                             <textarea id="notes" name="notes" rows="3" class="mt-1 w-full rounded-md border-[#d7e4ef] text-sm focus:border-orange-600 focus:ring-orange-600">{{ old('notes') }}</textarea>
                         </div>
                         <div class="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
-                            <p class="text-xs leading-5 text-slate-500">{{ $checkoutNow ? 'Place your order and continue to the payment options.' : 'Your itemized invoice opens automatically. Review it before paying.' }}</p>
-                            <button class="inline-flex min-h-12 justify-center rounded-md bg-[#07215f] px-5 py-3 text-sm font-bold text-white hover:bg-orange-700">{{ $checkoutNow ? 'Place order and continue' : 'Create and view invoice' }}</button>
+                            <p class="text-xs leading-5 text-slate-500">{{ $checkoutNow ? (\App\Support\PaymentMode::demoEnabled() ? 'Your order will be saved and a demo payment recorded; no money is collected.' : (config('services.online_payment_provider', 'pesapal') === 'flutterwave' ? 'Your order is saved first. Continue to your invoice to start secure payment.' : 'Your order is saved first. You can pay from the invoice once Pesapal checkout is available.')) : 'Your itemized invoice opens automatically. Review it before paying.' }}</p>
+                            <button class="inline-flex min-h-12 justify-center rounded-lg bg-[#07215f] px-5 py-3 text-sm font-bold text-white hover:bg-orange-700">{{ $checkoutNow ? 'Place order and pay' : 'Create and view invoice' }}</button>
                         </div>
                     </form>
                 </div>

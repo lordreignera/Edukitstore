@@ -206,6 +206,7 @@ class SupplierMarketplaceFlowTest extends TestCase
             'phone' => '0700000002',
             'reference' => 'EDK-260920-1001',
             'assigned_driver_id' => $driver->id,
+            'packed_at' => now(),
             'status' => ShoppingList::STATUS_QUOTED,
             'payment_status' => ShoppingList::PAYMENT_PAID,
         ]);
